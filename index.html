@@ -1,583 +1,447 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Web Design Tool</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Web Designer Tool — Edit / View</title>
   <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #1a1a1a;
-      color: #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+    /* ---------- Reset & base ---------- */
+    :root{
+      --bg:#0b0f13; --panel:#0f1720; --muted:#9aa4b2; --accent:#6ee7b7; --accent-2:#7c5cff;
+      --glass: rgba(255,255,255,0.03);
+      --radius:12px; --shadow: 0 6px 20px rgba(2,6,23,0.7);
     }
-    header {
-      padding: 1rem;
-      background-color: #2d3748;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    .main-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
-    .sidebar, .properties-panel {
-      width: 280px;
-      background-color: #212121;
-      padding: 1rem;
-      overflow-y: auto;
-      transition: width 0.3s ease;
-    }
-    .canvas-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-    .page-canvas {
-      background-color: #2d3748;
-      border: 2px dashed #4a5568;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      position: relative;
-      overflow: hidden;
-      transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
-      transform-origin: top center;
-    }
-    .element-item {
-      padding: 0.75rem;
-      background-color: #2d3748;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-bottom: 0.5rem;
-      transition: background-color 0.2s ease;
-    }
-    .element-item:hover {
-      background-color: #4a90e2;
-    }
-    .tool-button {
-      padding: 0.5rem 1rem;
-      background-color: #4a5568;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .tool-button:hover {
-      background-color: #636b77;
-    }
-    .tool-button.active {
-      background-color: #4a90e2;
-    }
-    .element {
-      position: absolute;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: border 0.2s ease;
-    }
-    .element.selected {
-      border-color: #4a90e2;
-    }
-    .resize-handle {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      background: #4a90e2;
-      border: 1px solid #1a1a1a;
-      z-index: 100;
-    }
-    .handle-tl { top: -5px; left: -5px; cursor: nw-resize; }
-    .handle-tr { top: -5px; right: -5px; cursor: ne-resize; }
-    .handle-bl { bottom: -5px; left: -5px; cursor: sw-resize; }
-    .handle-br { bottom: -5px; right: -5px; cursor: se-resize; }
-    .code-output {
-      padding: 1rem;
-      background-color: #212121;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-    }
-    textarea {
-      width: 100%;
-      height: 200px;
-      background-color: #1a1a1a;
-      color: #e0e0e0;
-      border: 1px solid #4a5568;
-      padding: 0.5rem;
-      font-family: monospace;
-      font-size: 0.8rem;
-    }
-    .hidden {
-      display: none !important;
-    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;color:#d8e3ea;background:linear-gradient(180deg,var(--bg),#040608);}
+    a{color:inherit}
+
+    /* ---------- Layout ---------- */
+    .app{display:grid;grid-template-columns:260px 1fr 360px;grid-template-rows:64px 1fr 220px;gap:16px;height:100vh;padding:16px}
+    header{grid-column:1/4;display:flex;align-items:center;gap:16px;padding:12px;border-radius:12px;background:linear-gradient(180deg,var(--panel),rgba(255,255,255,0.02));box-shadow:var(--shadow)}
+
+    /* left sidebar */
+    .sidebar{background:var(--panel);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px}
+    .sidebar h3{margin:0;font-size:13px;color:var(--muted)}
+    .library{flex:1;overflow:auto;padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .lib-item{cursor:grab;border-radius:10px;padding:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+
+    /* center workspace */
+    .canvas-panel{display:flex;flex-direction:column;gap:12px}
+    .toolbar{display:flex;align-items:center;gap:8px}
+    .segmented{background:transparent;padding:6px;border-radius:10px;display:inline-flex;gap:6px}
+    .segmented button{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer}
+    .segmented button.active{background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#071018;font-weight:600;border:none}
+
+    .workwrap{display:flex;justify-content:center;align-items:flex-start;gap:12px}
+    .device-frame{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+
+    /* the actual workspace (page div) */
+    .page{width:100%;min-height:600px;background:linear-gradient(180deg,#05060a, #071018);border-radius:8px;padding:24px;overflow:auto;position:relative}
+    .page .placeholder{color:var(--muted);opacity:0.7}
+
+    /* right inspector */
+    .inspector{background:var(--panel);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px}
+    .inspector label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    .inspector input[type=text], .inspector select, .inspector textarea{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#dbe9ef}
+    .inspector .row{display:flex;gap:8px}
+    .inspector .row > *{flex:1}
+    .small{font-size:12px;color:var(--muted)}
+
+    /* bottom codegen */
+    .code-panel{grid-column:1/4;display:flex;gap:12px}
+    .code-box{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column}
+    .code-box pre{flex:1;background:transparent;border:none;color:#cfeff3;overflow:auto;margin:0;font-family:monospace;font-size:12px}
+    .code-actions{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .btn{background:linear-gradient(90deg,var(--accent-2),var(--accent));border:none;padding:8px 12px;border-radius:10px;color:#071018;cursor:pointer}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    .split{display:flex;gap:8px}
+
+    /* selectable outline */
+    .selected{outline:2px dashed rgba(124,92,255,0.8);outline-offset:6px}
+
+    /* default element styles inside page */
+    .page button{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent-2),var(--accent));color:#071018;cursor:pointer}
+    .page nav{display:flex;gap:12px;align-items:center}
+    .page .card{background:#071322;padding:16px;border-radius:12px}
+
+    /* responsive sizes (device frame widths) */
+    .device-phone{width:360px}
+    .device-tablet{width:820px}
+    .device-laptop{width:1100px}
+
+    /* small screens layout tweaks */
+    @media (max-width:1100px){.app{grid-template-columns:240px 1fr;grid-template-rows:64px 1fr 300px}.inspector{display:none}.code-panel{grid-column:1/3}}
+    @media (max-width:700px){.library{grid-template-columns:1fr 1fr}.sidebar{display:none}.app{grid-template-columns:1fr;grid-template-rows:64px 1fr 220px 260px}}
   </style>
 </head>
 <body>
-
-  <header>
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <h1 style="font-size: 1.5rem; font-weight: bold;">Web Design Tool</h1>
-      <div id="mode-toggles" style="display: flex; gap: 0.5rem;">
-        <button id="edit-mode-btn" class="tool-button active">Edit Mode</button>
-        <button id="view-mode-btn" class="tool-button">View Mode</button>
+  <div class="app">
+    <header>
+      <div style="display:flex;align-items:center;gap:12px">
+        <strong style="font-size:15px">Design Studio</strong>
+        <span class="muted">— Edit & View</span>
       </div>
-      <div id="screen-size-toggles" style="display: flex; gap: 0.5rem;">
-        <button id="phone-btn" class="tool-button">Phone</button>
-        <button id="tablet-btn" class="tool-button">Tablet</button>
-        <button id="laptop-btn" class="tool-button active">Laptop</button>
-      </div>
-    </div>
-    <div style="display: flex; gap: 0.5rem;">
-      <button id="undo-btn" class="tool-button">Undo</button>
-      <button id="redo-btn" class="tool-button">Redo</button>
-      <button id="save-btn" class="tool-button">Save</button>
-      <button id="load-btn" class="tool-button">Load</button>
-    </div>
-  </header>
 
-  <div class="main-container">
-    <aside id="element-panel" class="sidebar">
-      <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Elements</h2>
-      <div id="element-list">
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <div class="segmented" role="tablist">
+          <button id="mode-edit" class="active">Edit</button>
+          <button id="mode-view">View</button>
         </div>
+        <div class="segmented" title="Device preview">
+          <button id="dev-phone">Phone</button>
+          <button id="dev-tablet">Tablet</button>
+          <button id="dev-laptop" class="active">Laptop</button>
+        </div>
+        <button id="export" class="ghost">Export</button>
+      </div>
+    </header>
+
+    <!-- left library -->
+    <aside class="sidebar">
+      <h3>Elements Library</h3>
+      <div class="library" id="library">
+        <div class="lib-item" data-snippet="<button>Click me</button>">Button</div>
+        <div class="lib-item" data-snippet="<nav><a href='#'>Home</a><a href='#'>About</a><a href='#'>Contact</a></nav>">Navbar</div>
+        <div class="lib-item" data-snippet="<header><h1>Headline</h1><p class='muted'>subtitle</p></header>">Header</div>
+        <div class="lib-item" data-snippet="<section class='card'><h3>Card</h3><p>Card content</p></section>">Card</div>
+        <div class="lib-item" data-snippet="<label>Text<input type='text' placeholder='Type...'></label>">Form</div>
+        <div class="lib-item" data-snippet="<div class='switch' data-state='off'><span>Toggle</span></div>">Toggle</div>
+        <div class="lib-item" data-snippet="<footer><p class='muted'>© 2025 Company</p></footer>">Footer</div>
+        <div class="lib-item" data-snippet="<div class='modal'><div class='modal-body'><h3>Modal</h3><p>Modal content</p></div></div>">Modal</div>
+        <div class="lib-item" data-snippet="<ul class='list'><li>Item 1</li><li>Item 2</li></ul>">List</div>
+        <div class="lib-item" data-snippet="<div class='banner'><h2>Promo banner</h2></div>">Banner</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="clear" class="ghost">Clear</button>
+        <button id="reset" class="ghost">Reset</button>
+      </div>
     </aside>
 
-    <main class="canvas-container" id="canvas-container">
-      <div id="page-canvas" class="page-canvas">
+    <!-- center canvas -->
+    <main class="canvas-panel">
+      <div class="toolbar">
+        <div class="muted small">Drag an element from the left into the page. Select elements to edit properties on the right.</div>
+      </div>
+
+      <div class="workwrap">
+        <div class="device-frame device-laptop" id="deviceFrame">
+          <div class="page" id="page" contenteditable="false">
+            <div class="placeholder">Drop elements here or click library items to add.</div>
+          </div>
         </div>
+      </div>
     </main>
 
-    <aside id="properties-panel" class="properties-panel hidden">
-      <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Element Properties</h2>
-      <div id="properties-editor">
+    <!-- right inspector -->
+    <aside class="inspector" id="inspector">
+      <div>
+        <div class="muted">Selected element</div>
+        <div id="sel-path" class="small muted">none</div>
+      </div>
+
+      <div id="inspector-fields">
+        <label>Type</label>
+        <input type="text" id="prop-type" readonly />
+
+        <label>Inner Text / HTML</label>
+        <textarea id="prop-html" rows="3"></textarea>
+
+        <div class="row">
+          <div>
+            <label>Font size (px)</label>
+            <input id="prop-fs" type="text" />
+          </div>
+          <div>
+            <label>Padding (px)</label>
+            <input id="prop-pad" type="text" />
+          </div>
         </div>
+
+        <label>Background color</label>
+        <input id="prop-bg" type="text" placeholder="#hex or css var" />
+
+        <label>Text color</label>
+        <input id="prop-color" type="text" placeholder="#hex or css var" />
+
+        <label>Link / href</label>
+        <input id="prop-href" type="text" placeholder="/page or https://..." />
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="apply" class="btn">Apply</button>
+          <button id="remove" class="ghost">Remove</button>
+        </div>
+      </div>
+
+      <div style="margin-top:auto;font-size:12px;color:var(--muted)">Pro tip: double-click an element on the page to quickly edit its text.</div>
     </aside>
+
+    <!-- bottom code panel -->
+    <section class="code-panel">
+      <div class="code-box">
+        <div class="code-actions"><strong>HTML</strong><div><button class="ghost" onclick="copyCode('html')">Copy</button></div></div>
+        <pre id="code-html"></pre>
+      </div>
+      <div class="code-box">
+        <div class="code-actions"><strong>CSS</strong><div><button class="ghost" onclick="copyCode('css')">Copy</button></div></div>
+        <pre id="code-css"></pre>
+      </div>
+      <div class="code-box">
+        <div class="code-actions"><strong>JS</strong><div><button class="ghost" onclick="copyCode('js')">Copy</button></div></div>
+        <pre id="code-js"></pre>
+      </div>
+    </section>
   </div>
 
-  <footer id="code-area" class="code-output">
-    <div>
-      <h3 style="font-weight: bold;">HTML <button onclick="copyCode('html')" class="tool-button">Copy</button></h3>
-      <textarea id="html-output" readonly></textarea>
-    </div>
-    <div>
-      <h3 style="font-weight: bold;">CSS <button onclick="copyCode('css')" class="tool-button">Copy</button></h3>
-      <textarea id="css-output" readonly></textarea>
-    </div>
-    <div>
-      <h3 style="font-weight: bold;">JavaScript <button onclick="copyCode('js')" class="tool-button">Copy</button></h3>
-      <textarea id="js-output" readonly></textarea>
-    </div>
-  </footer>
-
   <script>
-    const state = {
-      mode: 'edit',
-      screenSize: 'laptop',
-      elements: [],
-      selectedElementId: null,
-      history: [[]],
-      historyIndex: 0
-    };
+    /* ---------- Basic state ---------- */
+    const page = document.getElementById('page');
+    const library = document.getElementById('library');
+    const inspector = document.getElementById('inspector');
+    const selPath = document.getElementById('sel-path');
+    let selected = null;
 
-    const elementsList = [
-      { type: 'heading', label: 'Heading', defaultContent: 'New Heading', defaultStyles: { fontSize: '2rem', fontWeight: 'bold' } },
-      { type: 'paragraph', label: 'Paragraph', defaultContent: 'Lorem ipsum dolor sit amet.', defaultStyles: { fontSize: '1rem' } },
-      { type: 'button', label: 'Button', defaultContent: 'Click Me', defaultStyles: { backgroundColor: '#4a90e2', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none' } },
-      { type: 'image', label: 'Image', defaultContent: 'https://via.placeholder.com/150', defaultStyles: { width: '150px', height: '150px' } },
-      { type: 'link', label: 'Link', defaultContent: 'Link', defaultStyles: { color: '#4a90e2' } },
-    ];
+    // device buttons
+    const devPhone = document.getElementById('dev-phone');
+    const devTablet = document.getElementById('dev-tablet');
+    const devLaptop = document.getElementById('dev-laptop');
+    const deviceFrame = document.getElementById('deviceFrame');
 
-    const screenSizes = {
-      phone: { width: 375, height: 667 },
-      tablet: { width: 768, height: 1024 },
-      laptop: { width: 1366, height: 768 },
-    };
+    // mode
+    const modeEdit = document.getElementById('mode-edit');
+    const modeView = document.getElementById('mode-view');
 
-    // DOM Elements
-    const pageCanvas = document.getElementById('page-canvas');
-    const elementPanel = document.getElementById('element-panel');
-    const propertiesPanel = document.getElementById('properties-panel');
-    const propertiesEditor = document.getElementById('properties-editor');
-    const codeArea = document.getElementById('code-area');
-    const htmlOutput = document.getElementById('html-output');
-    const cssOutput = document.getElementById('css-output');
-    const jsOutput = document.getElementById('js-output');
-    const editModeBtn = document.getElementById('edit-mode-btn');
-    const viewModeBtn = document.getElementById('view-mode-btn');
-    const phoneBtn = document.getElementById('phone-btn');
-    const tabletBtn = document.getElementById('tablet-btn');
-    const laptopBtn = document.getElementById('laptop-btn');
-    const undoBtn = document.getElementById('undo-btn');
-    const redoBtn = document.getElementById('redo-btn');
-    const saveBtn = document.getElementById('save-btn');
-    const loadBtn = document.getElementById('load-btn');
+    // code outputs
+    const codeHtml = document.getElementById('code-html');
+    const codeCss = document.getElementById('code-css');
+    const codeJs = document.getElementById('code-js');
 
-    // --- Core Functions ---
+    /* ---------- Utility helpers ---------- */
+    function htmlEscape(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
-    function saveState() {
-      state.history = state.history.slice(0, state.historyIndex + 1);
-      state.history.push(JSON.parse(JSON.stringify(state.elements)));
-      state.historyIndex = state.history.length - 1;
+    function updateSelectedPath(el){
+      if(!el){selPath.textContent='none';return}
+      const path = [];
+      let cur = el;
+      while(cur && cur !== page){
+        let p = cur.tagName.toLowerCase();
+        if(cur.id) p += '#'+cur.id;
+        path.unshift(p);
+        cur = cur.parentElement;
+      }
+      selPath.textContent = path.join(' > ');
     }
 
-    function render() {
-      // Clear canvas
-      pageCanvas.innerHTML = '';
-      pageCanvas.style.width = `${screenSizes[state.screenSize].width}px`;
-      pageCanvas.style.height = `${screenSizes[state.screenSize].height}px`;
-      
-      const containerWidth = document.getElementById('canvas-container').offsetWidth;
-      const scale = Math.min(1, containerWidth / (screenSizes[state.screenSize].width + 40));
-      pageCanvas.style.transform = `scale(${scale})`;
-
-      // Render elements
-      state.elements.forEach(el => {
-        const elementDiv = document.createElement('div');
-        elementDiv.classList.add('element');
-        if (state.mode === 'edit' && state.selectedElementId === el.id) {
-          elementDiv.classList.add('selected');
-        }
-
-        elementDiv.dataset.id = el.id;
-        elementDiv.style.position = 'absolute';
-        elementDiv.style.left = `${el.x}px`;
-        elementDiv.style.top = `${el.y}px`;
-        elementDiv.style.width = `${el.width}px`;
-        elementDiv.style.height = `${el.height}px`;
-
-        const finalStyles = { ...el.styles, ...(el.responsive[state.screenSize] || {}) };
-        Object.entries(finalStyles).forEach(([key, value]) => {
-          elementDiv.style[key] = value;
-        });
-
-        // Add content based on type
-        let contentEl;
-        switch (el.type) {
-          case 'heading':
-            contentEl = document.createElement('h1');
-            contentEl.textContent = el.content;
-            break;
-          case 'paragraph':
-            contentEl = document.createElement('p');
-            contentEl.textContent = el.content;
-            break;
-          case 'button':
-            contentEl = document.createElement('button');
-            contentEl.textContent = el.content;
-            break;
-          case 'image':
-            contentEl = document.createElement('img');
-            contentEl.src = el.content;
-            contentEl.style.width = '100%';
-            contentEl.style.height = '100%';
-            break;
-          case 'link':
-            contentEl = document.createElement('a');
-            contentEl.textContent = el.content;
-            contentEl.href = '#';
-            break;
-          default:
-            contentEl = document.createElement('div');
-            contentEl.textContent = el.type;
-            break;
-        }
-
-        elementDiv.appendChild(contentEl);
-        pageCanvas.appendChild(elementDiv);
-
-        if (state.mode === 'edit') {
-          elementDiv.draggable = true;
-          elementDiv.ondragstart = (e) => onDragStart(e, el.id);
-
-          if (state.selectedElementId === el.id) {
-            addResizeHandles(elementDiv, el.id);
-          }
-        }
+    /* ---------- Library interactions ---------- */
+    library.querySelectorAll('.lib-item').forEach(item=>{
+      item.addEventListener('click', ()=>{
+        const snippet = item.dataset.snippet;
+        const temp = document.createElement('div'); temp.innerHTML = snippet;
+        const node = temp.firstElementChild;
+        makeElementInteractive(node);
+        page.appendChild(node);
+        generateAll();
       });
-      
-      updatePropertiesPanel();
-      updateCodeOutput();
-    }
 
-    function addResizeHandles(element, id) {
-      const handles = ['tl', 'tr', 'bl', 'br'];
-      handles.forEach(handleType => {
-        const handle = document.createElement('div');
-        handle.classList.add('resize-handle', `handle-${handleType}`);
-        handle.onmousedown = (e) => onResizeStart(e, id, handleType);
-        element.appendChild(handle);
+      // drag to page (clone)
+      item.draggable = true;
+      item.addEventListener('dragstart', e=>{
+        e.dataTransfer.setData('text/plain', item.dataset.snippet);
       });
-    }
-
-    function updatePropertiesPanel() {
-      propertiesEditor.innerHTML = '';
-      if (state.mode === 'edit' && state.selectedElementId) {
-        propertiesPanel.classList.remove('hidden');
-        const selectedEl = state.elements.find(el => el.id === state.selectedElementId);
-        
-        const contentLabel = document.createElement('label');
-        contentLabel.textContent = 'Content';
-        propertiesEditor.appendChild(contentLabel);
-        
-        const contentInput = document.createElement('textarea');
-        contentInput.value = selectedEl.content;
-        contentInput.oninput = (e) => {
-          saveState();
-          selectedEl.content = e.target.value;
-          render();
-        };
-        propertiesEditor.appendChild(contentInput);
-        
-        const styleHeader = document.createElement('h3');
-        styleHeader.textContent = 'Styles';
-        propertiesEditor.appendChild(styleHeader);
-
-        const styleKeys = ['width', 'height', 'backgroundColor', 'color', 'fontSize', 'padding', 'borderRadius', 'border'];
-        styleKeys.forEach(key => {
-          const styleValue = selectedEl.styles[key] || '';
-          
-          const label = document.createElement('label');
-          label.textContent = key;
-          propertiesEditor.appendChild(label);
-          
-          const input = document.createElement('input');
-          input.type = (key.includes('color')) ? 'color' : 'text';
-          input.value = styleValue;
-          input.oninput = (e) => {
-            saveState();
-            selectedEl.styles[key] = e.target.value;
-            render();
-          };
-          propertiesEditor.appendChild(input);
-        });
-
-      } else {
-        propertiesPanel.classList.add('hidden');
-      }
-    }
-
-    function updateCodeOutput() {
-      if (state.mode === 'edit') {
-        codeArea.style.display = 'grid';
-        htmlOutput.value = generateHTML();
-        cssOutput.value = generateCSS();
-        jsOutput.value = generateJS();
-      } else {
-        codeArea.style.display = 'none';
-      }
-    }
-
-    // --- Event Handlers ---
-
-    document.getElementById('element-list').innerHTML = elementsList.map(el =>
-      `<div class="element-item" data-type="${el.type}">${el.label}</div>`
-    ).join('');
-
-    elementPanel.addEventListener('click', (e) => {
-      if (e.target.classList.contains('element-item')) {
-        const type = e.target.dataset.type;
-        const defaultEl = elementsList.find(el => el.type === type);
-        const newElement = {
-          id: `el${Date.now()}`,
-          type,
-          content: defaultEl.defaultContent,
-          x: 50,
-          y: 50,
-          width: 150,
-          height: 50,
-          styles: { ...defaultEl.defaultStyles },
-          responsive: { phone: {}, tablet: {}, laptop: {} }
-        };
-        saveState();
-        state.elements.push(newElement);
-        state.selectedElementId = newElement.id;
-        render();
-      }
     });
 
-    pageCanvas.addEventListener('click', (e) => {
-      let targetElement = e.target.closest('.element');
-      if (targetElement) {
-        const id = targetElement.dataset.id;
-        state.selectedElementId = id;
-      } else {
-        state.selectedElementId = null;
-      }
-      render();
-    });
-
-    pageCanvas.addEventListener('dragover', (e) => e.preventDefault());
-    pageCanvas.addEventListener('drop', (e) => {
+    page.addEventListener('dragover', e=>{e.preventDefault();});
+    page.addEventListener('drop', e=>{
       e.preventDefault();
-      const id = e.dataTransfer.getData('id');
-      const x = e.clientX - pageCanvas.getBoundingClientRect().left;
-      const y = e.clientY - pageCanvas.getBoundingClientRect().top;
-      const el = state.elements.find(e => e.id === id);
-      if (el) {
-        saveState();
-        el.x = x - (e.offsetX);
-        el.y = y - (e.offsetY);
-        render();
+      const html = e.dataTransfer.getData('text/plain');
+      if(!html) return;
+      const temp = document.createElement('div'); temp.innerHTML = html;
+      const el = temp.firstElementChild;
+      makeElementInteractive(el);
+      page.appendChild(el);
+      generateAll();
+    });
+
+    document.getElementById('clear').addEventListener('click', ()=>{page.innerHTML='';generateAll();});
+    document.getElementById('reset').addEventListener('click', ()=>{page.innerHTML='<div class="placeholder">Drop elements here or click library items to add.</div>';generateAll();});
+
+    /* ---------- Make elements selectable & editable ---------- */
+    function makeElementInteractive(el){
+      // ensure it's an Element
+      if(!(el instanceof Element)) return;
+      el.tabIndex = 0;
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
+        selectElement(el);
+      });
+      el.addEventListener('dblclick', e=>{
+        e.stopPropagation();
+        // quick text edit
+        const text = prompt('Edit HTML/InnerText', el.innerHTML);
+        if(text!==null){el.innerHTML = text; generateAll();}
+      });
+
+      // allow nested elements to be interactively added
+      Array.from(el.children).forEach(child=>makeElementInteractive(child));
+    }
+
+    // clicking outside deselects
+    document.body.addEventListener('click', e=>{
+      if(!page.contains(e.target)) return;
+      if(e.target === page){deselect();}
+    });
+
+    function selectElement(el){
+      deselect();
+      selected = el;
+      el.classList.add('selected');
+      loadInspector(el);
+      updateSelectedPath(el);
+    }
+    function deselect(){
+      if(selected){selected.classList.remove('selected');}
+      selected = null; loadInspector(null); updateSelectedPath(null);
+    }
+
+    /* ---------- Inspector bindings ---------- */
+    const propType = document.getElementById('prop-type');
+    const propHtml = document.getElementById('prop-html');
+    const propFs = document.getElementById('prop-fs');
+    const propPad = document.getElementById('prop-pad');
+    const propBg = document.getElementById('prop-bg');
+    const propColor = document.getElementById('prop-color');
+    const propHref = document.getElementById('prop-href');
+    const applyBtn = document.getElementById('apply');
+    const removeBtn = document.getElementById('remove');
+
+    function loadInspector(el){
+      if(!el){propType.value=''; propHtml.value=''; propFs.value=''; propPad.value=''; propBg.value=''; propColor.value=''; propHref.value=''; return}
+      propType.value = el.tagName.toLowerCase();
+      propHtml.value = el.innerHTML;
+      const style = getComputedStyle(el);
+      propFs.value = parseInt(style.fontSize) || '';
+      propPad.value = parseInt(style.padding) || '';
+      propBg.value = el.style.backgroundColor || el.style.background || '';
+      propColor.value = el.style.color || '';
+      // if anchor
+      const a = el.querySelector('a') || (el.tagName.toLowerCase()==='a' ? el : null);
+      propHref.value = a ? (a.getAttribute('href')||'') : (el.getAttribute('href')||el.dataset.href||'');
+    }
+
+    applyBtn.addEventListener('click', ()=>{
+      if(!selected) return alert('No element selected');
+      selected.innerHTML = propHtml.value;
+      if(propFs.value) selected.style.fontSize = propFs.value + 'px'; else selected.style.fontSize = '';
+      if(propPad.value) selected.style.padding = propPad.value + 'px'; else selected.style.padding = '';
+      selected.style.background = propBg.value || '';
+      selected.style.color = propColor.value || '';
+      // link handling
+      if(propHref.value){
+        // if selected is anchor -> set href
+        if(selected.tagName.toLowerCase()==='a') selected.setAttribute('href', propHref.value);
+        else{
+          // wrap in anchor
+          const a = document.createElement('a'); a.setAttribute('href', propHref.value);
+          a.innerHTML = selected.outerHTML;
+          selected.replaceWith(a);
+          makeElementInteractive(a);
+          selectElement(a);
+        }
       }
+      generateAll();
     });
 
-    function onDragStart(e, id) {
-      e.dataTransfer.setData('id', id);
+    removeBtn.addEventListener('click', ()=>{ if(!selected) return; selected.remove(); selected=null; loadInspector(null); generateAll(); });
+
+    /* ---------- Mode & device handling ---------- */
+    function setDevice(kind){
+      deviceFrame.classList.remove('device-phone','device-tablet','device-laptop');
+      if(kind==='phone') deviceFrame.classList.add('device-phone');
+      if(kind==='tablet') deviceFrame.classList.add('device-tablet');
+      if(kind==='laptop') deviceFrame.classList.add('device-laptop');
+      [devPhone,devTablet,devLaptop].forEach(b=>b.classList.remove('active'));
+      if(kind==='phone') devPhone.classList.add('active');
+      if(kind==='tablet') devTablet.classList.add('active');
+      if(kind==='laptop') devLaptop.classList.add('active');
+    }
+    devPhone.addEventListener('click', ()=>setDevice('phone'));
+    devTablet.addEventListener('click', ()=>setDevice('tablet'));
+    devLaptop.addEventListener('click', ()=>setDevice('laptop'));
+
+    function setMode(m){
+      if(m==='edit'){
+        modeEdit.classList.add('active'); modeView.classList.remove('active');
+        document.querySelectorAll('.inspector, .library, .code-panel, header .segmented').forEach(n=>n.style.display='');
+        page.contentEditable = false; // we manage editing via inspector
+      } else {
+        modeView.classList.add('active'); modeEdit.classList.remove('active');
+        // hide all tool panels for clean view
+        document.querySelectorAll('.inspector, .library, .code-panel').forEach(n=>n.style.display='none');
+        page.contentEditable = false;
+      }
+    }
+    modeEdit.addEventListener('click', ()=>setMode('edit'));
+    modeView.addEventListener('click', ()=>setMode('view'));
+
+    // initialize
+    setDevice('laptop'); setMode('edit');
+
+    /* ---------- Live code generation ---------- */
+    function generateHTML(){
+      // we will serialize the page innerHTML but keep inspector-only classes removed
+      const clone = page.cloneNode(true);
+      // remove selection outlines
+      clone.querySelectorAll('.selected').forEach(n=>n.classList.remove('selected'));
+      // remove placeholder when exporting
+      clone.querySelectorAll('.placeholder').forEach(n=>n.remove());
+      // flatten dataset attributes used by tool
+      clone.querySelectorAll('[data-state]').forEach(n=>n.removeAttribute('data-state'));
+      return '<!-- Generated HTML -->\n' + clone.innerHTML.trim();
+    }
+    function generateCSS(){
+      // basic CSS to accompany the exported HTML
+      return `/* Generated CSS - minimal reset */\n*{box-sizing:border-box}body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#fff;color:#071018;padding:24px}\nbutton{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#7c5cff,#6ee7b7);color:#071018}\n.card{background:#071322;color:#e6f7f3;padding:14px;border-radius:12px}\nnav{display:flex;gap:12px}\n`;
+    }
+    function generateJS(){
+      // add simple JS skeleton for modal or toggles
+      return `// Generated JS - minimal behaviors\ndocument.querySelectorAll('.switch').forEach(s=>{s.addEventListener('click',()=>{s.dataset.state = s.dataset.state==='on'?'off':'on';})});\n`;
     }
 
-    function onResizeStart(e, id, handleType) {
-      e.preventDefault();
-      const el = state.elements.find(e => e.id === id);
-      if (!el) return;
-
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const startWidth = el.width;
-      const startHeight = el.height;
-      const startXPos = el.x;
-      const startYPos = el.y;
-
-      const onMouseMove = (moveEvent) => {
-        let dx = moveEvent.clientX - startX;
-        let dy = moveEvent.clientY - startY;
-
-        let newWidth = startWidth;
-        let newHeight = startHeight;
-        let newX = startXPos;
-        let newY = startYPos;
-
-        if (handleType.includes('r')) newWidth = startWidth + dx;
-        if (handleType.includes('l')) { newWidth = startWidth - dx; newX = startXPos + dx; }
-        if (handleType.includes('b')) newHeight = startHeight + dy;
-        if (handleType.includes('t')) { newHeight = startHeight - dy; newY = startYPos + dy; }
-
-        el.width = newWidth;
-        el.height = newHeight;
-        el.x = newX;
-        el.y = newY;
-        render();
-      };
-
-      const onMouseUp = () => {
-        saveState();
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+    function generateAll(){
+      codeHtml.textContent = generateHTML();
+      codeCss.textContent = generateCSS();
+      codeJs.textContent = generateJS();
     }
-    
-    editModeBtn.addEventListener('click', () => { state.mode = 'edit'; render(); updateButtons(); });
-    viewModeBtn.addEventListener('click', () => { state.mode = 'view'; render(); updateButtons(); });
-    phoneBtn.addEventListener('click', () => { state.screenSize = 'phone'; render(); updateButtons(); });
-    tabletBtn.addEventListener('click', () => { state.screenSize = 'tablet'; render(); updateButtons(); });
-    laptopBtn.addEventListener('click', () => { state.screenSize = 'laptop'; render(); updateButtons(); });
-    undoBtn.addEventListener('click', () => {
-        if (state.historyIndex > 0) {
-            state.historyIndex--;
-            state.elements = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
-            render();
-        }
-    });
-    redoBtn.addEventListener('click', () => {
-        if (state.historyIndex < state.history.length - 1) {
-            state.historyIndex++;
-            state.elements = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
-            render();
-        }
-    });
-    saveBtn.addEventListener('click', () => {
-        localStorage.setItem('webDesignTool', JSON.stringify(state.elements));
-        alert('Design saved!');
-    });
-    loadBtn.addEventListener('click', () => {
-        const savedElements = localStorage.getItem('webDesignTool');
-        if (savedElements) {
-            state.elements = JSON.parse(savedElements);
-            state.history = [JSON.parse(savedElements)];
-            state.historyIndex = 0;
-            render();
-            alert('Design loaded!');
-        }
+    // initial
+    generateAll();
+
+    /* ---------- Copy helpers ---------- */
+    function copyCode(kind){
+      const text = kind==='html'?codeHtml.textContent: kind==='css'?codeCss.textContent: codeJs.textContent;
+      navigator.clipboard.writeText(text).then(()=>alert(kind.toUpperCase()+ ' copied to clipboard'));}
+    window.copyCode = copyCode;
+
+    /* ---------- Export (download) ---------- */
+    document.getElementById('export').addEventListener('click', ()=>{
+      const full = `<!doctype html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Exported Page</title>\n<style>${generateCSS()}</style>\n</head>\n<body>\n${generateHTML()}\n<script>${generateJS()}<\/script>\n</body>\n</html>`;
+      const blob = new Blob([full],{type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'exported-page.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
 
-    function updateButtons() {
-      editModeBtn.classList.toggle('active', state.mode === 'edit');
-      viewModeBtn.classList.toggle('active', state.mode === 'view');
-      phoneBtn.classList.toggle('active', state.screenSize === 'phone');
-      tabletBtn.classList.toggle('active', state.screenSize === 'tablet');
-      laptopBtn.classList.toggle('active', state.screenSize === 'laptop');
-      
-      const isEditMode = state.mode === 'edit';
-      elementPanel.style.display = isEditMode ? 'block' : 'none';
-      codeArea.style.display = isEditMode ? 'grid' : 'none';
-      propertiesPanel.style.display = isEditMode ? 'block' : 'none';
-    }
+    /* ---------- make already existing page children interactive if any ---------- */
+    Array.from(page.children).forEach(ch=>makeElementInteractive(ch));
 
-    // --- Code Generation Functions ---
-    function generateHTML() {
-      let html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>My Generated Page</title>\n  <link rel="stylesheet" href="styles.css">\n</head>\n<body>\n';
-      state.elements.forEach(el => {
-        let tag = '';
-        switch(el.type) {
-          case 'heading': tag = 'h1'; break;
-          case 'paragraph': tag = 'p'; break;
-          case 'button': tag = 'button'; break;
-          case 'image': tag = 'img'; break;
-          case 'link': tag = 'a'; break;
-          default: tag = 'div';
-        }
-        const attrs = el.type === 'image' ? `src="${el.content}"` : ``;
-        const content = el.type !== 'image' ? el.content : '';
-        html += `  <${tag} id="${el.id}" ${attrs}>${content}</${tag}>\n`;
-      });
-      html += '</body>\n</html>';
-      return html;
-    }
-    
-    function generateCSS() {
-      let css = `body { background-color: #1a1a1a; color: #e0e0e0; font-family: sans-serif; }\n\n`;
-      state.elements.forEach(el => {
-        css += `#${el.id} {\n`;
-        css += `  position: absolute;\n`;
-        css += `  left: ${el.x}px;\n`;
-        css += `  top: ${el.y}px;\n`;
-        css += `  width: ${el.width}px;\n`;
-        css += `  height: ${el.height}px;\n`;
-        Object.entries(el.styles).forEach(([key, value]) => {
-          css += `  ${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value};\n`;
-        });
-        css += `}\n\n`;
-      });
-      return css;
-    }
+    /* ---------- keyboard shortcuts ---------- */
+    window.addEventListener('keydown', e=>{
+      if(e.key==='Delete' && selected){selected.remove(); selected=null; generateAll();}
+      if((e.ctrlKey||e.metaKey) && e.key==='s'){e.preventDefault(); document.getElementById('export').click();}
+    });
 
-    function generateJS() {
-      return `// No interactive scripts generated for this simple version.`;
-    }
-
-    function copyCode(type) {
-      const textarea = document.getElementById(`${type}-output`);
-      textarea.select();
-      document.execCommand('copy');
-      alert(`Copied ${type.toUpperCase()} code to clipboard!`);
-    }
-
-    // Initial render
-    render();
-    updateButtons();
+    /* ---------- small polish: keep inspector in sync on clicks inside page ---------- */
+    page.addEventListener('click', ()=>{generateAll();});
   </script>
-
 </body>
 </html>
