@@ -164,6 +164,7 @@
         
         #page-div > * {
             position: absolute;
+            cursor: move;
         }
 
         .selected-element {
@@ -197,6 +198,11 @@
 
         .edit-field input[type="color"] {
             height: 40px;
+        }
+        
+        .edit-field .edit-field-group {
+            display: flex;
+            gap: 10px;
         }
 
         #code-container {
@@ -310,7 +316,6 @@
     </header>
 
     <main id="main-container">
-        <!-- Elements Panel -->
         <aside id="elements-panel" class="panel">
             <h2>Elements</h2>
             <div id="elements-list">
@@ -369,7 +374,6 @@
             </div>
         </aside>
 
-        <!-- Work Space -->
         <section id="work-space-container">
             <div id="device-toggles">
                 <button id="phone-btn" class="active" data-size="375px">
@@ -384,16 +388,13 @@
             </div>
             <div id="work-space">
                 <div id="page-div">
-                    <!-- Elements will be added here -->
-                </div>
+                    </div>
             </div>
         </section>
 
-        <!-- Edit Section -->
         <aside id="edit-panel" class="panel">
             <h2>Edit Properties</h2>
             <div id="edit-properties-content">
-                <!-- Properties will be populated dynamically -->
                 <p class="placeholder-text">Select an element to edit its properties.</p>
             </div>
         </aside>
@@ -418,14 +419,12 @@
         </div>
     </section>
 
-    <!-- View Mode Container (Initially Hidden) -->
     <div id="view-mode-container">
         <div class="view-header">
             <button id="view-edit-btn">Edit</button>
         </div>
         <div id="view-mode-content">
-            <!-- The final page will be rendered here -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -490,42 +489,49 @@
                 });
             });
 
-            // Element Selection on Page (with drag prevention)
+            // Draggable Elements
             pageDiv.addEventListener('mousedown', (e) => {
                 const clickedElement = e.target.closest('#page-div > *');
                 if (clickedElement) {
                     selectElement(clickedElement);
                     isDragging = true;
+                    pageRect = pageDiv.getBoundingClientRect();
                     dragOffset.x = e.clientX - clickedElement.getBoundingClientRect().left;
                     dragOffset.y = e.clientY - clickedElement.getBoundingClientRect().top;
+                    e.preventDefault();
                 }
             });
 
-            pageDiv.addEventListener('mousemove', (e) => {
+            document.addEventListener('mousemove', (e) => {
                 if (isDragging && selectedElement) {
                     let newLeft = e.clientX - pageRect.left - dragOffset.x;
                     let newTop = e.clientY - pageRect.top - dragOffset.y;
 
-                    // Clamp to page boundaries
-                    newLeft = Math.max(0, Math.min(newLeft, pageRect.width - selectedElement.offsetWidth));
-                    newTop = Math.max(0, Math.min(newTop, pageRect.height - selectedElement.offsetHeight));
+                    const parentWidth = pageRect.width;
+                    const parentHeight = pageRect.height;
+                    const elementWidth = selectedElement.offsetWidth;
+                    const elementHeight = selectedElement.offsetHeight;
 
-                    selectedElement.style.left = `${newLeft}px`;
-                    selectedElement.style.top = `${newTop}px`;
-                    updateCode();
+                    const newLeftPercent = (newLeft / parentWidth) * 100;
+                    const newTopPercent = (newTop / parentHeight) * 100;
+
+                    selectedElement.style.left = `${newLeftPercent}%`;
+                    selectedElement.style.top = `${newTopPercent}%`;
+
+                    // Update edit panel inputs in real-time
+                    const topInput = document.getElementById('edit-Top');
+                    if (topInput) topInput.value = newTopPercent.toFixed(2);
+                    const leftInput = document.getElementById('edit-Left');
+                    if (leftInput) leftInput.value = newLeftPercent.toFixed(2);
                 }
             });
 
-            pageDiv.addEventListener('mouseup', () => {
-                isDragging = false;
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    updateCode();
+                }
             });
-
-            window.addEventListener('resize', () => {
-                pageRect = pageDiv.getBoundingClientRect();
-            });
-
-            // Initialize page dimensions for dragging
-            pageRect = pageDiv.getBoundingClientRect();
 
             function selectElement(element) {
                 if (selectedElement) {
@@ -549,6 +555,8 @@
                         element.innerHTML = '<a>Home</a><a>About</a><a>Contact</a>';
                         element.style.display = 'flex';
                         element.style.gap = '1rem';
+                        element.style.padding = '10px';
+                        element.style.backgroundColor = '#ccc';
                         break;
                     case 'toggle':
                         element = document.createElement('div');
@@ -558,24 +566,19 @@
                     case 'modal':
                         element = document.createElement('div');
                         element.classList.add('modal');
-                        element.innerHTML = `
-                            <div class="modal-content">
-                                <span class="close-btn">&times;</span>
-                                <p>Modal Content</p>
-                            </div>`;
+                        element.innerHTML = `<div class="modal-content"><span class="close-btn">&times;</span><p>Modal Content</p></div>`;
                         break;
                     case 'card':
                         element = document.createElement('div');
                         element.classList.add('card');
                         element.innerHTML = '<h3>Card Title</h3><p>Some text.</p>';
+                        element.style.padding = '15px';
+                        element.style.border = '1px solid #ccc';
+                        element.style.borderRadius = '8px';
                         break;
                     case 'form':
                         element = document.createElement('form');
-                        element.innerHTML = `
-                            <input type="text" placeholder="Name"><br>
-                            <textarea placeholder="Message"></textarea><br>
-                            <button type="submit">Submit</button>
-                        `;
+                        element.innerHTML = `<input type="text" placeholder="Name"><br><textarea placeholder="Message"></textarea><br><button type="submit">Submit</button>`;
                         element.style.display = 'flex';
                         element.style.flexDirection = 'column';
                         element.style.gap = '10px';
@@ -590,13 +593,7 @@
                     case 'carousel':
                         element = document.createElement('div');
                         element.classList.add('carousel');
-                        element.innerHTML = `
-                            <div class="carousel-track">
-                                <div class="carousel-slide">Slide 1</div>
-                                <div class="carousel-slide">Slide 2</div>
-                                <div class="carousel-slide">Slide 3</div>
-                            </div>
-                        `;
+                        element.innerHTML = `<div class="carousel-track"><div class="carousel-slide">Slide 1</div><div class="carousel-slide">Slide 2</div><div class="carousel-slide">Slide 3</div></div>`;
                         break;
                     case 'footer':
                         element = document.createElement('footer');
@@ -608,17 +605,12 @@
                     case 'accordion':
                         element = document.createElement('div');
                         element.classList.add('accordion');
-                        element.innerHTML = `
-                            <button class="accordion-header">Section 1</button>
-                            <div class="accordion-content"><p>Content for section 1.</p></div>
-                        `;
+                        element.innerHTML = `<button class="accordion-header">Section 1</button><div class="accordion-content"><p>Content for section 1.</p></div>`;
                         break;
                     case 'social-icons':
                         element = document.createElement('div');
                         element.classList.add('social-icons');
-                        element.innerHTML = `
-                            <a href="#">Fb</a><a href="#">Tw</a><a href="#">Ig</a>
-                        `;
+                        element.innerHTML = `<a href="#">Fb</a><a href="#">Tw</a><a href="#">Ig</a>`;
                         element.style.display = 'flex';
                         element.style.gap = '10px';
                         break;
@@ -628,22 +620,14 @@
                         element.style.display = 'grid';
                         element.style.gridTemplateColumns = 'repeat(2, 1fr)';
                         element.style.gap = '10px';
-                        element.innerHTML = `
-                            <div class="grid-item">Item 1</div>
-                            <div class="grid-item">Item 2</div>
-                            <div class="grid-item">Item 3</div>
-                        `;
+                        element.innerHTML = `<div class="grid-item">Item 1</div><div class="grid-item">Item 2</div><div class="grid-item">Item 3</div>`;
                         break;
                     case 'flex':
                         element = document.createElement('div');
                         element.classList.add('flex-container');
                         element.style.display = 'flex';
                         element.style.gap = '10px';
-                        element.innerHTML = `
-                            <div class="flex-item">Item 1</div>
-                            <div class="flex-item">Item 2</div>
-                            <div class="flex-item">Item 3</div>
-                        `;
+                        element.innerHTML = `<div class="flex-item">Item 1</div><div class="flex-item">Item 2</div><div class="flex-item">Item 3</div>`;
                         break;
                     default:
                         element = document.createElement('div');
@@ -651,50 +635,67 @@
                         break;
                 }
                 element.style.position = 'absolute';
-                element.style.top = '10px';
-                element.style.left = '10px';
+                element.style.top = '10%';
+                element.style.left = '10%';
                 return element;
             }
 
-            // Populate Edit Panel
+            // Property definitions
+            const propertyMap = {
+                'common': {
+                    'Top (%)': { type: 'number', prop: 'style.top', unit: '%' },
+                    'Left (%)': { type: 'number', prop: 'style.left', unit: '%' },
+                    'Width': { type: 'text', prop: 'style.width' },
+                    'Height': { type: 'text', prop: 'style.height' },
+                    'Padding': { type: 'text', prop: 'style.padding' },
+                    'Margin': { type: 'text', prop: 'style.margin' },
+                    'Background Color': { type: 'color', prop: 'style.backgroundColor' },
+                    'Border': { type: 'text', prop: 'style.border' },
+                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
+                },
+                'text': {
+                    'Text Content': { type: 'textarea', prop: 'textContent' },
+                    'Font Size': { type: 'text', prop: 'style.fontSize' },
+                    'Color': { type: 'color', prop: 'style.color' },
+                    'Text Align': { type: 'select', prop: 'style.textAlign', options: ['left', 'center', 'right'] }
+                },
+                'button': {
+                    'Text Content': { type: 'text', prop: 'textContent' },
+                    'Background Color': { type: 'color', prop: 'style.backgroundColor' },
+                    'Color': { type: 'color', prop: 'style.color' },
+                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
+                },
+                'img': {
+                    'Source URL': { type: 'text', prop: 'src' },
+                    'Alt Text': { type: 'text', prop: 'alt' },
+                    'Width': { type: 'text', prop: 'style.width' },
+                    'Height': { type: 'text', prop: 'style.height' }
+                }
+            };
+
             function populateEditPanel(element) {
                 editPanelContent.innerHTML = '';
                 if (!element) {
                     editPanelContent.innerHTML = '<p class="placeholder-text">Select an element to edit its properties.</p>';
                     return;
                 }
-
-                const type = element.tagName.toLowerCase();
-                let properties = {};
-
-                if (type === 'button') {
-                    properties = {
-                        'Text Content': { type: 'text', prop: 'textContent' },
-                        'Background Color': { type: 'color', prop: 'style.backgroundColor' },
-                        'Color': { type: 'color', prop: 'style.color' },
-                        'Border Radius': { type: 'range', prop: 'style.borderRadius', min: 0, max: 50, unit: 'px' }
-                    };
-                } else if (type === 'img') {
-                    properties = {
-                        'Source URL': { type: 'text', prop: 'src' },
-                        'Alt Text': { type: 'text', prop: 'alt' },
-                        'Width': { type: 'text', prop: 'style.width' },
-                        'Height': { type: 'text', prop: 'style.height' }
-                    };
-                } else if (['h1', 'h2', 'h3', 'p', 'span'].includes(type) || element.textContent) {
-                    properties = {
-                        'Text Content': { type: 'textarea', prop: 'textContent' },
-                        'Font Size': { type: 'text', prop: 'style.fontSize' },
-                        'Color': { type: 'color', prop: 'style.color' },
-                        'Line Height': { type: 'text', prop: 'style.lineHeight' }
-                    };
+                
+                const elementType = element.tagName.toLowerCase();
+                
+                // Determine properties to show based on element type
+                const propsToShow = { ...propertyMap.common };
+                if (propertyMap[elementType]) {
+                    Object.assign(propsToShow, propertyMap[elementType]);
+                }
+                if (element.textContent && !propsToShow['Text Content']) {
+                    Object.assign(propsToShow, propertyMap.text);
                 }
 
-                for (const label in properties) {
-                    const prop = properties[label];
+                for (const label in propsToShow) {
+                    const prop = propsToShow[label];
                     const div = document.createElement('div');
                     div.classList.add('edit-field');
-                    const inputId = `edit-${label.replace(/\s/g, '-')}`;
+                    const inputId = `edit-${label.replace(/[\s(%)]/g, '-')}`;
 
                     const labelEl = document.createElement('label');
                     labelEl.textContent = label;
@@ -705,21 +706,31 @@
                     if (prop.type === 'textarea') {
                         input = document.createElement('textarea');
                         input.value = element.textContent;
+                    } else if (prop.type === 'select') {
+                        input = document.createElement('select');
+                        prop.options.forEach(option => {
+                            const opt = document.createElement('option');
+                            opt.value = option;
+                            opt.textContent = option;
+                            input.appendChild(opt);
+                        });
+                        input.value = element.style[prop.prop.split('.').pop()] || '';
                     } else {
                         input = document.createElement('input');
                         input.type = prop.type;
-                        if (prop.type === 'text') {
-                            input.value = element[prop.prop] || element.style[prop.prop.split('.').pop()];
+                        if (prop.type === 'text' || prop.type === 'number') {
+                            const styleProp = prop.prop.split('.').pop();
+                            if (element.style[styleProp].includes('%')) {
+                                input.value = parseFloat(element.style[styleProp]);
+                            } else {
+                                input.value = element.style[styleProp];
+                            }
                         } else if (prop.type === 'color') {
                             input.value = rgbToHex(element.style.color || '#000000');
-                        } else if (prop.type === 'range') {
-                            input.type = 'range';
-                            input.min = prop.min;
-                            input.max = prop.max;
-                            input.value = parseFloat(element.style[prop.prop.split('.').pop()]) || 0;
                         }
                     }
                     input.id = inputId;
+
                     input.addEventListener('input', (e) => {
                         if (prop.prop.startsWith('style.')) {
                             const styleProp = prop.prop.split('.').pop();
@@ -733,7 +744,7 @@
                         }
                         updateCode();
                     });
-
+                    
                     div.appendChild(input);
                     editPanelContent.appendChild(div);
                 }
