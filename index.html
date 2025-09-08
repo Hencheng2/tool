@@ -3,479 +3,759 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag-and-Drop Webpage Builder</title>
+    <title>Visual Web Builder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Dark mode by default */
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
+        :root {
+            --dark-bg: #1a1a1a;
+            --darker-bg: #121212;
+            --panel-bg: #242424;
+            --accent: #646cff;
+            --accent-hover: #747bff;
+            --text: #ffffff;
+            --text-secondary: #a0a0a0;
+            --border: #444;
+            --success: #4CAF50;
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text);
             display: flex;
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
         }
 
-        * {
-            transition: all 0.3s ease;
-        }
-
-        #header {
+        header {
+            background-color: var(--darker-bg);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
-            background-color: #1e1e1e;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
         }
 
-        #devices {
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        .device-btn {
-            background-color: #333;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .device-btn:hover {
-            background-color: #444;
-        }
-
-        .device-btn.active {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-
-        #mode-toggle {
-            background-color: #333;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        #mode-toggle:hover {
-            background-color: #444;
-        }
-
-        #main {
+        .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
 
-        #sidebar {
+        .components-panel {
             width: 250px;
-            background-color: #1e1e1e;
-            padding: 10px;
-            border-right: 1px solid #333;
+            background-color: var(--panel-bg);
+            padding: 15px;
             overflow-y: auto;
+            border-right: 1px solid var(--border);
         }
 
-        .element {
-            background-color: #333;
-            padding: 10px;
+        .components-panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--text-secondary);
+        }
+
+        .component-category {
+            margin-bottom: 20px;
+        }
+
+        .component-category h3 {
+            font-size: 0.9rem;
             margin-bottom: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .component-item {
+            background-color: var(--darker-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
             cursor: grab;
-            border-radius: 5px;
-            user-select: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .element:hover {
-            background-color: #444;
+        .component-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
         }
 
-        #editor {
+        .workspace {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .toolbar {
+            background-color: var(--panel-bg);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .device-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .device-btn {
+            background-color: var(--darker-bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .device-btn.active {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .device-btn:hover:not(.active) {
+            border-color: var(--accent-hover);
+            color: var(--text);
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 5px;
+        }
+
+        .mode-btn {
+            background-color: var(--darker-bg);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .mode-btn:hover:not(.active) {
+            border-color: var(--accent-hover);
+            color: var(--text);
+        }
+
+        .preview-area {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            overflow: auto;
-            padding: 20px;
+            background-color: #2d2d2d;
         }
 
-        #canvas {
-            background-color: #fff;
-            color: #000;
-            min-height: 500px;
+        .preview-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Device sizes */
+        .desktop-size {
             width: 100%;
             max-width: 1200px;
-            border: 1px solid #555;
+        }
+
+        .tablet-size {
+            width: 768px;
+        }
+
+        .mobile-size {
+            width: 375px;
+        }
+
+        .preview-content {
+            min-height: 500px;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
             position: relative;
         }
 
-        #canvas.edit-mode {
+        .drop-zone {
             min-height: 100%;
-        }
-
-        #canvas.laptop {
-            max-width: 1200px;
-        }
-
-        #canvas.tablet {
-            max-width: 768px;
-        }
-
-        #canvas.phone {
-            max-width: 375px;
-        }
-
-        #view-mode {
-            flex: 1;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        #preview {
-            background-color: #fff;
-            color: #000;
-            min-height: 500px;
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto 20px;
-            border: 1px solid #555;
+        }
+
+        .element-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 6px;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            text-align: center;
+            color: #999;
+            margin: 10px 0;
         }
 
-        #code-areas {
-            display: flex;
-            gap: 10px;
-            height: 200px;
-        }
-
-        .code-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        textarea {
-            flex: 1;
-            background-color: #1e1e1e;
-            color: #fff;
-            border: 1px solid #333;
-            padding: 10px;
-            font-family: monospace;
-            resize: none;
-            border-radius: 5px;
-        }
-
-        .copy-btn {
-            background-color: #333;
-            border: 1px solid #555;
-            color: #fff;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 5px;
-        }
-
-        .copy-btn:hover {
-            background-color: #444;
-        }
-
-        .canvas-element {
-            border: 1px dashed #ccc;
+        .element {
+            border: 1px solid #eee;
             padding: 10px;
             margin: 10px 0;
+            border-radius: 6px;
             position: relative;
-            cursor: move;
         }
 
-        .canvas-element:hover {
-            border-color: #007bff;
+        .element.selected {
+            border: 2px solid var(--accent);
         }
 
-        .edit-panel {
+        .element-actions {
             position: absolute;
-            top: 0;
-            right: 0;
-            background: #222;
-            color: #fff;
-            padding: 10px;
-            border-radius: 5px;
+            top: -15px;
+            right: 5px;
+            background-color: var(--accent);
+            border-radius: 4px;
+            padding: 2px 5px;
             display: none;
-            z-index: 10;
         }
 
-        .canvas-element:hover .edit-panel {
+        .element:hover .element-actions {
+            display: flex;
+        }
+
+        .element-action {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 0 3px;
+        }
+
+        /* Sample components */
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .button {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .code-panel {
+            height: 250px;
+            background-color: var(--darker-bg);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-tabs {
+            display: flex;
+            background-color: var(--panel-bg);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+        }
+
+        .code-tab.active {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .code-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .code-area {
+            flex: 1;
+            padding: 15px;
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            border: none;
+            resize: none;
+            overflow: auto;
+        }
+
+        .code-container {
+            flex: 1;
+            position: relative;
+            display: none;
+        }
+
+        .code-container.active {
             display: block;
         }
 
-        .edit-panel input, .edit-panel select {
-            background: #333;
-            color: #fff;
-            border: 1px solid #555;
-            padding: 5px;
-            margin: 5px 0;
-            border-radius: 3px;
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
-        @media (max-width: 768px) {
-            #main {
+        .copy-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--success);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .main-container {
                 flex-direction: column;
             }
-
-            #sidebar {
+            
+            .components-panel {
                 width: 100%;
+                height: 200px;
                 border-right: none;
-                border-bottom: 1px solid #333;
-                overflow-x: auto;
-            }
-
-            #editor, #view-mode {
-                padding: 10px;
+                border-bottom: 1px solid var(--border);
             }
         }
     </style>
 </head>
 <body>
-    <div id="header">
-        <div id="devices">
-            <button class="device-btn active" data-size="laptop">Laptop</button>
-            <button class="device-btn" data-size="tablet">Tablet</button>
-            <button class="device-btn" data-size="phone">Phone</button>
+    <header>
+        <div class="logo">
+            <i class="fas fa-code"></i>
+            <span>Visual Web Builder</span>
         </div>
-        <button id="mode-toggle">Switch to View Mode</button>
-    </div>
-    <div id="main">
-        <div id="sidebar">
-            <div class="element" draggable="true" data-type="navbar">Navbar</div>
-            <div class="element" draggable="true" data-type="footer">Footer</div>
-            <div class="element" draggable="true" data-type="icon">Icon</div>
-            <div class="element" draggable="true" data-type="button">Button</div>
-            <div class="element" draggable="true" data-type="section">Section</div>
-            <div class="element" draggable="true" data-type="form">Form</div>
-            <div class="element" draggable="true" data-type="image">Image</div>
-            <div class="element" draggable="true" data-type="text">Text Block</div>
-            <div class="element" draggable="true" data-type="hero">Hero Section</div>
-            <div class="element" draggable="true" data-type="card">Card</div>
-            <div class="element" draggable="true" data-type="carousel">Carousel</div>
-            <div class="element" draggable="true" data-type="modal">Modal</div>
-        </div>
-        <div id="editor">
-            <div id="canvas" class="laptop edit-mode"></div>
-        </div>
-        <div id="view-mode">
-            <div id="preview"></div>
-            <div id="code-areas">
-                <div class="code-section">
-                    <textarea id="html-code" readonly></textarea>
-                    <button class="copy-btn" onclick="copyCode('html-code')">Copy HTML</button>
+    </header>
+
+    <div class="main-container">
+        <div class="components-panel">
+            <h2>Components</h2>
+            
+            <div class="component-category">
+                <h3>Structure</h3>
+                <div class="component-item" draggable="true" data-type="container">
+                    <i class="fas fa-square"></i>
+                    <span>Container</span>
                 </div>
-                <div class="code-section">
-                    <textarea id="css-code" readonly></textarea>
-                    <button class="copy-btn" onclick="copyCode('css-code')">Copy CSS</button>
+                <div class="component-item" draggable="true" data-type="div">
+                    <i class="fas fa-border-all"></i>
+                    <span>Div</span>
                 </div>
-                <div class="code-section">
-                    <textarea id="js-code" readonly></textarea>
-                    <button class="copy-btn" onclick="copyCode('js-code')">Copy JS</button>
+            </div>
+            
+            <div class="component-category">
+                <h3>Navigation</h3>
+                <div class="component-item" draggable="true" data-type="navbar">
+                    <i class="fas fa-bars"></i>
+                    <span>Navbar</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="menu">
+                    <i class="fas fa-list"></i>
+                    <span>Menu</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>Content</h3>
+                <div class="component-item" draggable="true" data-type="heading">
+                    <i class="fas fa-heading"></i>
+                    <span>Heading</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="paragraph">
+                    <i class="fas fa-paragraph"></i>
+                    <span>Paragraph</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="button">
+                    <i class="fas fa-hand-pointer"></i>
+                    <span>Button</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>Media</h3>
+                <div class="component-item" draggable="true" data-type="image">
+                    <i class="fas fa-image"></i>
+                    <span>Image</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="icon">
+                    <i class="fas fa-icons"></i>
+                    <span>Icon</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>Footer</h3>
+                <div class="component-item" draggable="true" data-type="footer">
+                    <i class="fas fa-window-maximize"></i>
+                    <span>Footer</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="workspace">
+            <div class="toolbar">
+                <div class="device-selector">
+                    <button class="device-btn active" data-device="desktop">
+                        <i class="fas fa-desktop"></i> Desktop
+                    </button>
+                    <button class="device-btn" data-device="tablet">
+                        <i class="fas fa-tablet-alt"></i> Tablet
+                    </button>
+                    <button class="device-btn" data-device="mobile">
+                        <i class="fas fa-mobile-alt"></i> Mobile
+                    </button>
+                </div>
+                
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="edit">
+                        <i class="fas fa-edit"></i> Edit Mode
+                    </button>
+                    <button class="mode-btn" data-mode="view">
+                        <i class="fas fa-eye"></i> View Mode
+                    </button>
+                </div>
+            </div>
+
+            <div class="preview-area">
+                <div class="preview-container desktop-size">
+                    <div class="preview-content">
+                        <div class="drop-zone">
+                            <div class="element-placeholder">
+                                Drag components here to start building
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="code-panel">
+        <div class="code-tabs">
+            <div class="code-tab active" data-tab="html">HTML</div>
+            <div class="code-tab" data-tab="css">CSS</div>
+            <div class="code-tab" data-tab="js">JavaScript</div>
+        </div>
+        
+        <div class="code-content">
+            <div class="code-container active" id="html-container">
+                <textarea class="code-area" readonly><!-- Generated HTML will appear here --></textarea>
+                <button class="copy-btn" data-copy="html">Copy HTML</button>
+            </div>
+            
+            <div class="code-container" id="css-container">
+                <textarea class="code-area" readonly>/* Generated CSS will appear here */</textarea>
+                <button class="copy-btn" data-copy="css">Copy CSS</button>
+            </div>
+            
+            <div class="code-container" id="js-container">
+                <textarea class="code-area" readonly>// Generated JavaScript will appear here</textarea>
+                <button class="copy-btn" data-copy="js">Copy JS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-notification" id="copyNotification">
+        Code copied to clipboard!
+    </div>
+
     <script>
-        const canvas = document.getElementById('canvas');
-        const preview = document.getElementById('preview');
-        const editor = document.getElementById('editor');
-        const viewMode = document.getElementById('view-mode');
-        const modeToggle = document.getElementById('mode-toggle');
-        const htmlCode = document.getElementById('html-code');
-        const cssCode = document.getElementById('css-code');
-        const jsCode = document.getElementById('js-code');
-        const deviceBtns = document.querySelectorAll('.device-btn');
-
-        let isEditMode = true;
-        let currentDevice = 'laptop';
-
-        // Element templates
-        const elementTemplates = {
-            navbar: '<nav class="navbar">Navbar Content</nav>',
-            footer: '<footer class="footer">Footer Content</footer>',
-            icon: '<i class="icon">Icon</i>',
-            button: '<button class="btn">Button</button>',
-            section: '<section class="section">Section Content</section>',
-            form: '<form class="form"><input type="text" placeholder="Input"></form>',
-            image: '<img src="placeholder.jpg" alt="Image" class="image">',
-            text: '<p class="text">Text Block</p>',
-            hero: '<section class="hero"><h1>Hero Title</h1><p>Hero Subtitle</p></section>',
-            card: '<div class="card"><h3>Card Title</h3><p>Card Content</p></div>',
-            carousel: '<div class="carousel"><div>Slide 1</div><div>Slide 2</div></div>',
-            modal: '<div class="modal"><div class="modal-content">Modal Content</div></div>'
-        };
-
-        // Corresponding CSS
-        const baseCSS = `
-.navbar { background: #333; color: #fff; padding: 10px; display: flex; justify-content: space-between; }
-.footer { background: #222; color: #fff; padding: 10px; text-align: center; }
-.icon { font-size: 24px; }
-.btn { background: #007bff; color: #fff; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; }
-.section { padding: 20px; border: 1px solid #ccc; }
-.form { display: flex; flex-direction: column; gap: 10px; }
-.image { max-width: 100%; }
-.text { font-size: 16px; }
-.hero { background: #f0f0f0; padding: 40px; text-align: center; }
-.card { border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
-.carousel { display: flex; overflow-x: auto; gap: 10px; }
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-.modal-content { background: #fff; color: #000; margin: 15% auto; padding: 20px; width: 70%; }
-`;
-
-        // Corresponding JS
-        const baseJS = `
-document.querySelectorAll('.btn').forEach(btn => {
-    btn.addEventListener('click', () => alert('Button clicked!'));
-});
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', () => modal.style.display = 'block');
-});
-`;
-
-        // Drag and drop setup
-        document.querySelectorAll('.element').forEach(el => {
-            el.addEventListener('dragstart', e => {
-                e.dataTransfer.setData('type', el.dataset.type);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const deviceButtons = document.querySelectorAll('.device-btn');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const codeTabs = document.querySelectorAll('.code-tab');
+            const codeContainers = document.querySelectorAll('.code-container');
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            const previewContainer = document.querySelector('.preview-container');
+            const dropZone = document.querySelector('.drop-zone');
+            const componentItems = document.querySelectorAll('.component-item');
+            const copyNotification = document.getElementById('copyNotification');
+            
+            // Current state
+            let currentDevice = 'desktop';
+            let currentMode = 'edit';
+            let currentElement = null;
+            
+            // Device sizing
+            deviceButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const device = button.getAttribute('data-device');
+                    
+                    // Update active button
+                    deviceButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // Update preview container size
+                    previewContainer.classList.remove('desktop-size', 'tablet-size', 'mobile-size');
+                    previewContainer.classList.add(device + '-size');
+                    
+                    currentDevice = device;
+                });
             });
-        });
-
-        canvas.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        canvas.addEventListener('drop', e => {
-            e.preventDefault();
-            const type = e.dataTransfer.getData('type');
-            if (type && elementTemplates[type]) {
-                const newElement = document.createElement('div');
-                newElement.classList.add('canvas-element');
-                newElement.innerHTML = elementTemplates[type];
-                newElement.contentEditable = true;
-
-                // Add edit panel
-                const editPanel = document.createElement('div');
-                editPanel.classList.add('edit-panel');
-                editPanel.innerHTML = `
-                    <input type="text" class="edit-text" placeholder="Edit text">
-                    <input type="color" class="edit-bg" title="Background Color">
-                    <input type="color" class="edit-text-color" title="Text Color">
-                    <select class="edit-font-size">
-                        <option value="12px">12px</option>
-                        <option value="16px">16px</option>
-                        <option value="20px">20px</option>
-                        <option value="24px">24px</option>
-                    </select>
-                    <button onclick="this.parentElement.parentElement.remove(); updateCode();">Delete</button>
-                `;
-                newElement.appendChild(editPanel);
-
-                canvas.appendChild(newElement);
-                updateCode();
-            }
-        });
-
-        // Editable element handlers
-        canvas.addEventListener('input', e => {
-            if (e.target.classList.contains('edit-text')) {
-                const parent = e.target.closest('.canvas-element');
-                const mainContent = parent.querySelector(':first-child');
-                mainContent.textContent = e.target.value;
-            }
-            updateCode();
-        });
-
-        canvas.addEventListener('change', e => {
-            const parent = e.target.closest('.canvas-element');
-            const mainContent = parent.querySelector(':first-child');
-            if (e.target.classList.contains('edit-bg')) {
-                mainContent.style.backgroundColor = e.target.value;
-            } else if (e.target.classList.contains('edit-text-color')) {
-                mainContent.style.color = e.target.value;
-            } else if (e.target.classList.contains('edit-font-size')) {
-                mainContent.style.fontSize = e.target.value;
-            }
-            updateCode();
-        });
-
-        // Device size switch
-        deviceBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                deviceBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentDevice = btn.dataset.size;
-                canvas.className = currentDevice + ' edit-mode';
-                preview.className = currentDevice;
-                if (!isEditMode) {
-                    updatePreview();
+            
+            // Mode switching
+            modeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const mode = button.getAttribute('data-mode');
+                    
+                    // Update active button
+                    modeButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    currentMode = mode;
+                    updateEditMode();
+                });
+            });
+            
+            // Code tabs
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    codeTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show corresponding code container
+                    codeContainers.forEach(container => {
+                        container.classList.remove('active');
+                        if (container.id === tabName + '-container') {
+                            container.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Copy buttons
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const type = button.getAttribute('data-copy');
+                    const codeArea = document.querySelector(`#${type}-container .code-area`);
+                    
+                    // Copy to clipboard
+                    codeArea.select();
+                    document.execCommand('copy');
+                    
+                    // Show notification
+                    copyNotification.style.display = 'block';
+                    setTimeout(() => {
+                        copyNotification.style.display = 'none';
+                    }, 2000);
+                });
+            });
+            
+            // Drag and drop functionality
+            componentItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    if (currentMode === 'edit') {
+                        e.dataTransfer.setData('text/plain', item.getAttribute('data-type'));
+                    }
+                });
+            });
+            
+            dropZone.addEventListener('dragover', (e) => {
+                if (currentMode === 'edit') {
+                    e.preventDefault();
+                    dropZone.style.backgroundColor = '#f0f0f0';
                 }
             });
-        });
-
-        // Mode toggle
-        modeToggle.addEventListener('click', () => {
-            isEditMode = !isEditMode;
-            if (isEditMode) {
-                editor.style.display = 'flex';
-                viewMode.style.display = 'none';
-                modeToggle.textContent = 'Switch to View Mode';
-                canvas.classList.add('edit-mode');
-            } else {
-                editor.style.display = 'none';
-                viewMode.style.display = 'flex';
-                modeToggle.textContent = 'Switch to Edit Mode';
-                canvas.classList.remove('edit-mode');
-                updatePreview();
+            
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.backgroundColor = '';
+            });
+            
+            dropZone.addEventListener('drop', (e) => {
+                if (currentMode === 'edit') {
+                    e.preventDefault();
+                    dropZone.style.backgroundColor = '';
+                    
+                    const componentType = e.dataTransfer.getData('text/plain');
+                    addComponent(componentType, e.clientX, e.clientY);
+                }
+            });
+            
+            // Add component to the drop zone
+            function addComponent(type, x, y) {
+                const element = document.createElement('div');
+                element.classList.add('element');
+                
+                // Create element based on type
+                switch(type) {
+                    case 'navbar':
+                        element.innerHTML = `
+                            <div class="navbar">
+                                <div class="logo">Your Logo</div>
+                                <div class="nav-links">
+                                    <a href="#">Home</a>
+                                    <a href="#">About</a>
+                                    <a href="#">Contact</a>
+                                </div>
+                            </div>
+                            <div class="element-actions">
+                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
+                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        break;
+                    case 'footer':
+                        element.innerHTML = `
+                            <div class="footer">
+                                <p>&copy; 2023 Your Company. All rights reserved.</p>
+                            </div>
+                            <div class="element-actions">
+                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
+                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        break;
+                    case 'button':
+                        element.innerHTML = `
+                            <button class="button">Click Me</button>
+                            <div class="element-actions">
+                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
+                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        break;
+                    case 'heading':
+                        element.innerHTML = `
+                            <h2>This is a heading</h2>
+                            <div class="element-actions">
+                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
+                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                        break;
+                    default:
+                        element.innerHTML = `
+                            <div>New ${type} component</div>
+                            <div class="element-actions">
+                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
+                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
+                            </div>
+                        `;
+                }
+                
+                // Add event listeners for actions
+                const deleteBtn = element.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    element.remove();
+                    updateCode();
+                });
+                
+                // Add to drop zone
+                dropZone.appendChild(element);
+                
+                // Remove placeholder if it exists
+                const placeholder = document.querySelector('.element-placeholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+                
+                updateCode();
             }
+            
+            // Update edit/view mode
+            function updateEditMode() {
+                const elements = document.querySelectorAll('.element');
+                elements.forEach(el => {
+                    const actions = el.querySelector('.element-actions');
+                    if (currentMode === 'edit') {
+                        actions.style.display = 'flex';
+                        el.style.cursor = 'move';
+                    } else {
+                        actions.style.display = 'none';
+                        el.style.cursor = 'default';
+                    }
+                });
+                
+                // Show/hide placeholder in edit mode
+                if (currentMode === 'edit' && dropZone.children.length === 0) {
+                    const placeholder = document.createElement('div');
+                    placeholder.classList.add('element-placeholder');
+                    placeholder.textContent = 'Drag components here to start building';
+                    dropZone.appendChild(placeholder);
+                }
+            }
+            
+            // Update code areas (simplified for demo)
+            function updateCode() {
+                // In a real implementation, this would generate actual code
+                const htmlCode = `<!-- Generated HTML code based on your design -->\n<div class="container">\n  <header>Your content here</header>\n</div>`;
+                const cssCode = `/* Generated CSS code based on your design */\nbody {\n  margin: 0;\n  padding: 0;\n}`;
+                const jsCode = `// Generated JavaScript code based on your design\ndocument.addEventListener('DOMContentLoaded', function() {\n  // Your code here\n});`;
+                
+                document.querySelector('#html-container .code-area').value = htmlCode;
+                document.querySelector('#css-container .code-area').value = cssCode;
+                document.querySelector('#js-container .code-area').value = jsCode;
+            }
+            
+            // Initial code update
+            updateCode();
         });
-
-        // Update code in textareas
-        function updateCode() {
-            htmlCode.value = canvas.innerHTML.replace(/<div class="edit-panel">.*?<\/div>/g, '');
-            cssCode.value = baseCSS + '\n' + Array.from(canvas.querySelectorAll('.canvas-element > :first-child')).map(el => {
-                return `.${el.className} {` + 
-                    (el.style.backgroundColor ? ` background-color: ${el.style.backgroundColor};` : '') +
-                    (el.style.color ? ` color: ${el.style.color};` : '') +
-                    (el.style.fontSize ? ` font-size: ${el.style.fontSize};` : '') +
-                    ' }';
-            }).join('\n');
-            jsCode.value = baseJS;
-        }
-
-        // Update preview
-        function updatePreview() {
-            preview.innerHTML = canvas.innerHTML.replace(/<div class="edit-panel">.*?<\/div>/g, '').replace(/ contenteditable="true"/g, '');
-            preview.className = currentDevice;
-
-            const style = document.createElement('style');
-            style.textContent = cssCode.value;
-            preview.appendChild(style);
-
-            const script = document.createElement('script');
-            script.textContent = jsCode.value;
-            preview.appendChild(script);
-        }
-
-        // Copy code
-        function copyCode(id) {
-            const textarea = document.getElementById(id);
-            textarea.select();
-            document.execCommand('copy');
-            alert('Code copied!');
-        }
-
-        // Listen for edits in canvas
-        canvas.addEventListener('input', updateCode);
     </script>
+</body>
+</html>
