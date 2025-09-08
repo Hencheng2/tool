@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Design Tool</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Modern Web Design Tool</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/phosphor.js"></script>
     <style>
         :root {
-            --dark-bg: #1a1a1a;
-            --dark-panel: #262626;
-            --dark-border: #333;
-            --text-color: #f0f0f0;
-            --accent-color: #00aaff;
-            --selected-border: #ffcc00;
+            --dark-bg: #111827;
+            --dark-panel: #1f2937;
+            --dark-border: #4b5563;
+            --text-color: #e5e7eb;
+            --secondary-text-color: #9ca3af;
+            --accent-color: #3b82f6;
+            --selected-border: #facc15;
         }
 
         * {
@@ -22,7 +24,7 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--dark-bg);
             color: var(--text-color);
             display: flex;
@@ -41,6 +43,7 @@
 
         header h1 {
             font-size: 1.5rem;
+            font-weight: 700;
         }
 
         .mode-toggles button {
@@ -49,7 +52,8 @@
             border: 1px solid var(--dark-border);
             padding: 0.5rem 1rem;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
+            border-radius: 0.5rem;
         }
 
         .mode-toggles button.active {
@@ -60,6 +64,7 @@
 
         .mode-toggles button:hover {
             background-color: var(--dark-border);
+            transform: translateY(-2px);
         }
 
         #main-container {
@@ -70,42 +75,55 @@
         .panel {
             background-color: var(--dark-panel);
             border: 1px solid var(--dark-border);
-            padding: 1rem;
+            padding: 1.5rem;
             overflow-y: auto;
-            width: 20%;
-            min-width: 250px;
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         #elements-panel {
             border-right: none;
+            border-radius: 0 0.5rem 0.5rem 0;
         }
 
         #edit-panel {
             border-left: none;
+            border-radius: 0.5rem 0 0 0.5rem;
         }
 
         #elements-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
 
         .selectable-element {
-            background-color: #333;
-            border: 1px solid #444;
-            padding: 10px;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 12px;
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.3s;
-            flex: 1 1 100px;
+            transition: background-color 0.3s, transform 0.1s;
+            flex: 1 1 calc(50% - 6px);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .selectable-element p {
+            font-size: 0.875rem;
+            color: var(--secondary-text-color);
+            margin-top: 0.5rem;
         }
 
         .selectable-element:hover {
-            background-color: #444;
+            background-color: #4b5563;
+            transform: translateY(-2px);
         }
 
         #work-space-container {
@@ -113,7 +131,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 1rem;
+            padding: 2rem;
             position: relative;
             background-color: var(--dark-bg);
         }
@@ -121,7 +139,7 @@
         #device-toggles {
             display: flex;
             gap: 10px;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             position: sticky;
             top: 1rem;
             z-index: 10;
@@ -134,6 +152,7 @@
             padding: 0.5rem 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
+            border-radius: 0.5rem;
         }
 
         #device-toggles button.active {
@@ -160,11 +179,17 @@
             transition: width 0.5s, height 0.5s;
             background-color: #fff;
             color: #000;
+            border-radius: 0.5rem;
         }
         
         #page-div > * {
             position: absolute;
             cursor: move;
+            transition: box-shadow 0.2s;
+        }
+
+        #page-div > *:hover {
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
         }
 
         .selected-element {
@@ -173,7 +198,7 @@
         }
 
         .placeholder-text {
-            color: #888;
+            color: var(--secondary-text-color);
             text-align: center;
             padding-top: 2rem;
         }
@@ -185,19 +210,21 @@
         .edit-field label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .edit-field input, .edit-field textarea, .edit-field select {
             width: 100%;
             padding: 0.5rem;
-            background-color: #333;
-            border: 1px solid #555;
+            background-color: #374151;
+            border: 1px solid #4b5563;
             color: var(--text-color);
+            border-radius: 0.25rem;
         }
 
         .edit-field input[type="color"] {
             height: 40px;
+            padding: 0;
         }
         
         .edit-field .edit-field-group {
@@ -208,13 +235,15 @@
         .edit-field-group input {
             flex: 1;
         }
-
+        
         #code-container {
             background-color: var(--dark-panel);
             border-top: 1px solid var(--dark-border);
             padding: 1rem;
             display: flex;
             gap: 1rem;
+            height: 250px;
+            flex-shrink: 0;
         }
 
         .code-block {
@@ -225,17 +254,20 @@
         .code-block h3 {
             text-align: center;
             margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
         }
 
         .code-block textarea {
             width: 100%;
-            height: 400px;
-            background-color: #111;
-            color: #00ff00;
-            border: 1px solid #333;
+            height: calc(100% - 30px);
+            background-color: #111827;
+            color: #10b981;
+            border: 1px solid #374151;
             padding: 1rem;
             font-family: 'Courier New', Courier, monospace;
             resize: none;
+            border-radius: 0.5rem;
         }
 
         .copy-btn {
@@ -248,10 +280,11 @@
             padding: 0.5rem 1rem;
             cursor: pointer;
             transition: background-color 0.3s;
+            border-radius: 0 0 0 0.5rem;
         }
 
         .copy-btn:hover {
-            background-color: #0088cc;
+            background-color: #2563eb;
         }
 
         #view-mode-container {
@@ -281,39 +314,6 @@
             cursor: pointer;
         }
 
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            position: relative;
-        }
-
-        .close-btn {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .close-btn:hover, .close-btn:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -327,85 +327,114 @@
     </header>
 
     <main id="main-container">
+        <!-- Elements Panel -->
         <aside id="elements-panel" class="panel">
             <h2>Elements</h2>
             <div id="elements-list">
                 <div class="selectable-element" data-type="button">
-                    <span class="material-icons">smart_button</span>
+                    <i class="ph-bold ph-hand-tap"></i>
                     <p>Button</p>
                 </div>
+                <div class="selectable-element" data-type="div">
+                    <i class="ph-bold ph-square"></i>
+                    <p>Div</p>
+                </div>
+                <div class="selectable-element" data-type="h1">
+                    <i class="ph-bold ph-text-h-one"></i>
+                    <p>Heading 1</p>
+                </div>
+                <div class="selectable-element" data-type="h2">
+                    <i class="ph-bold ph-text-h-two"></i>
+                    <p>Heading 2</p>
+                </div>
+                <div class="selectable-element" data-type="p">
+                    <i class="ph-bold ph-text-align-left"></i>
+                    <p>Paragraph</p>
+                </div>
+                <div class="selectable-element" data-type="a">
+                    <i class="ph-bold ph-link"></i>
+                    <p>Link</p>
+                </div>
+                <div class="selectable-element" data-type="input">
+                    <i class="ph-bold ph-text-input"></i>
+                    <p>Input</p>
+                </div>
                 <div class="selectable-element" data-type="nav">
-                    <span class="material-icons">navigation</span>
+                    <i class="ph-bold ph-list-dashes"></i>
                     <p>Navbar</p>
                 </div>
                 <div class="selectable-element" data-type="toggle">
-                    <span class="material-icons">toggle_on</span>
+                    <i class="ph-bold ph-toggle-left"></i>
                     <p>Toggle</p>
                 </div>
                 <div class="selectable-element" data-type="modal">
-                    <span class="material-icons">picture_in_picture_alt</span>
+                    <i class="ph-bold ph-picture-in-picture"></i>
                     <p>Modal</p>
                 </div>
                 <div class="selectable-element" data-type="card">
-                    <span class="material-icons">credit_card</span>
+                    <i class="ph-bold ph-credit-card"></i>
                     <p>Card</p>
                 </div>
                 <div class="selectable-element" data-type="form">
-                    <span class="material-icons">description</span>
+                    <i class="ph-bold ph-notebook"></i>
                     <p>Form</p>
                 </div>
                 <div class="selectable-element" data-type="image-container">
-                    <span class="material-icons">image</span>
-                    <p>Image Container</p>
+                    <i class="ph-bold ph-image"></i>
+                    <p>Image</p>
                 </div>
                 <div class="selectable-element" data-type="carousel">
-                    <span class="material-icons">view_carousel</span>
+                    <i class="ph-bold ph-git-pull-request"></i>
                     <p>Carousel</p>
                 </div>
                 <div class="selectable-element" data-type="footer">
-                    <span class="material-icons">vertical_align_bottom</span>
+                    <i class="ph-bold ph-text-align-bottom"></i>
                     <p>Footer</p>
                 </div>
                 <div class="selectable-element" data-type="accordion">
-                    <span class="material-icons">list_alt</span>
+                    <i class="ph-bold ph-list-plus"></i>
                     <p>Accordion</p>
                 </div>
                 <div class="selectable-element" data-type="social-icons">
-                    <span class="material-icons">share</span>
-                    <p>Social Icons</p>
+                    <i class="ph-bold ph-share-network"></i>
+                    <p>Social</p>
                 </div>
                 <div class="selectable-element" data-type="grid">
-                    <span class="material-icons">grid_on</span>
-                    <p>Grid Container</p>
+                    <i class="ph-bold ph-squares-four"></i>
+                    <p>Grid</p>
                 </div>
                 <div class="selectable-element" data-type="flex">
-                    <span class="material-icons">layers</span>
-                    <p>Flex Container</p>
+                    <i class="ph-bold ph-layout"></i>
+                    <p>Flex</p>
                 </div>
             </div>
         </aside>
 
+        <!-- Work Space -->
         <section id="work-space-container">
             <div id="device-toggles">
                 <button id="phone-btn" class="active" data-size="375px">
-                    <span class="material-icons">phone_android</span>
+                    <i class="ph-bold ph-device-mobile"></i>
                 </button>
                 <button id="tablet-btn" data-size="768px">
-                    <span class="material-icons">tablet_mac</span>
+                    <i class="ph-bold ph-device-tablet"></i>
                 </button>
                 <button id="laptop-btn" data-size="1280px">
-                    <span class="material-icons">laptop_mac</span>
+                    <i class="ph-bold ph-laptop"></i>
                 </button>
             </div>
             <div id="work-space">
                 <div id="page-div">
-                    </div>
+                    <!-- Elements will be added here -->
+                </div>
             </div>
         </section>
 
+        <!-- Edit Section -->
         <aside id="edit-panel" class="panel">
             <h2>Edit Properties</h2>
             <div id="edit-properties-content">
+                <!-- Properties will be populated dynamically -->
                 <p class="placeholder-text">Select an element to edit its properties.</p>
             </div>
         </aside>
@@ -429,12 +458,14 @@
         </div>
     </section>
 
+    <!-- View Mode Container (Initially Hidden) -->
     <div id="view-mode-container">
         <div class="view-header">
             <button id="view-edit-btn">Edit</button>
         </div>
         <div id="view-mode-content">
-            </div>
+            <!-- The final page will be rendered here -->
+        </div>
     </div>
 
     <script>
@@ -525,6 +556,10 @@
                     let newLeft = e.clientX - pageRect.left - dragOffset.x;
                     let newTop = e.clientY - pageRect.top - dragOffset.y;
 
+                    // Ensure element stays within bounds
+                    newLeft = Math.max(0, Math.min(newLeft, parentWidth - elementWidth));
+                    newTop = Math.max(0, Math.min(newTop, parentHeight - elementHeight));
+
                     const newLeftPercent = (newLeft / parentWidth) * 100;
                     const newTopPercent = (newTop / parentHeight) * 100;
 
@@ -567,7 +602,35 @@
                 switch (type) {
                     case 'button':
                         element = document.createElement('button');
-                        element.textContent = 'Click Me';
+                        element.textContent = 'Button';
+                        break;
+                    case 'div':
+                        element = document.createElement('div');
+                        element.style.width = '100px';
+                        element.style.height = '100px';
+                        element.style.backgroundColor = '#6b7280';
+                        break;
+                    case 'h1':
+                        element = document.createElement('h1');
+                        element.textContent = 'Heading 1';
+                        break;
+                    case 'h2':
+                        element = document.createElement('h2');
+                        element.textContent = 'Heading 2';
+                        break;
+                    case 'p':
+                        element = document.createElement('p');
+                        element.textContent = 'Paragraph text here.';
+                        break;
+                    case 'a':
+                        element = document.createElement('a');
+                        element.textContent = 'Link';
+                        element.href = '#';
+                        break;
+                    case 'input':
+                        element = document.createElement('input');
+                        element.type = 'text';
+                        element.placeholder = 'Enter text...';
                         break;
                     case 'nav':
                         element = document.createElement('nav');
@@ -575,8 +638,9 @@
                         element.style.display = 'flex';
                         element.style.justifyContent = 'space-around';
                         element.style.alignItems = 'center';
+                        element.style.width = '100%';
                         element.style.padding = '10px';
-                        element.style.backgroundColor = '#ccc';
+                        element.style.backgroundColor = '#9ca3af';
                         break;
                     case 'toggle':
                         element = document.createElement('div');
@@ -620,7 +684,8 @@
                         element.innerHTML = '<p>&copy; 2023 My Website</p>';
                         element.style.textAlign = 'center';
                         element.style.padding = '1rem';
-                        element.style.backgroundColor = '#f0f0f0';
+                        element.style.backgroundColor = '#9ca3af';
+                        element.style.width = '100%';
                         break;
                     case 'accordion':
                         element = document.createElement('div');
@@ -673,6 +738,7 @@
                     'Background Color': { type: 'color', prop: 'style.backgroundColor' },
                     'Border': { type: 'text', prop: 'style.border' },
                     'Border Radius': { type: 'text', prop: 'style.borderRadius' },
+                    'Box Shadow': { type: 'text', prop: 'style.boxShadow' },
                     'Opacity': { type: 'number', prop: 'style.opacity', min: 0, max: 1, step: 0.1 }
                 },
                 'text': {
@@ -680,13 +746,16 @@
                     'Font Size': { type: 'text', prop: 'style.fontSize' },
                     'Color': { type: 'color', prop: 'style.color' },
                     'Text Align': { type: 'select', prop: 'style.textAlign', options: ['left', 'center', 'right'] },
-                    'Font Weight': { type: 'select', prop: 'style.fontWeight', options: ['normal', 'bold', 'bolder', 'lighter'] }
+                    'Font Weight': { type: 'select', prop: 'style.fontWeight', options: ['normal', 'bold', 'bolder', 'lighter'] },
+                    'Letter Spacing': { type: 'text', prop: 'style.letterSpacing' },
+                    'Line Height': { type: 'text', prop: 'style.lineHeight' }
                 },
                 'button': {
                     'Text Content': { type: 'text', prop: 'textContent' },
                     'Background Color': { type: 'color', prop: 'style.backgroundColor' },
                     'Color': { type: 'color', prop: 'style.color' },
-                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
+                    'Border Radius': { type: 'text', prop: 'style.borderRadius' },
+                    'Cursor': { type: 'select', prop: 'style.cursor', options: ['auto', 'pointer', 'text', 'move', 'crosshair'] }
                 },
                 'img': {
                     'Source URL': { type: 'text', prop: 'src' },
@@ -694,6 +763,18 @@
                     'Width': { type: 'text', prop: 'style.width' },
                     'Height': { type: 'text', prop: 'style.height' },
                     'Object Fit': { type: 'select', prop: 'style.objectFit', options: ['fill', 'contain', 'cover', 'none', 'scale-down'] }
+                },
+                 'a': {
+                    'Text Content': { type: 'text', prop: 'textContent' },
+                    'Link URL': { type: 'text', prop: 'href' },
+                    'Color': { type: 'color', prop: 'style.color' },
+                    'Text Decoration': { type: 'select', prop: 'style.textDecoration', options: ['none', 'underline', 'overline', 'line-through'] }
+                },
+                'input': {
+                    'Placeholder': { type: 'text', prop: 'placeholder' },
+                    'Input Type': { type: 'select', prop: 'type', options: ['text', 'password', 'email', 'number', 'date', 'color'] },
+                    'Border': { type: 'text', prop: 'style.border' },
+                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
                 }
             };
 
@@ -711,7 +792,7 @@
                 if (propertyMap[elementType]) {
                     Object.assign(propsToShow, propertyMap[elementType]);
                 }
-                if (element.textContent && !propsToShow['Text Content'] && elementType !== 'img') {
+                if (element.textContent && !propsToShow['Text Content'] && elementType !== 'img' && elementType !== 'input') {
                     Object.assign(propsToShow, propertyMap.text);
                 }
 
@@ -738,23 +819,31 @@
                             opt.textContent = option;
                             input.appendChild(opt);
                         });
-                        input.value = element.style[prop.prop.split('.').pop()] || '';
+                        if (prop.prop.startsWith('style.')) {
+                            input.value = element.style[prop.prop.split('.').pop()] || '';
+                        } else {
+                            input.value = element[prop.prop] || '';
+                        }
                     } else {
                         input = document.createElement('input');
                         input.type = prop.type;
                         if (prop.type === 'text' || prop.type === 'number') {
-                            const styleProp = prop.prop.split('.').pop();
-                            const value = element.style[styleProp];
-                            if (value && value.includes('%')) {
-                                input.value = parseFloat(value);
+                            if (prop.prop.startsWith('style.')) {
+                                const styleProp = prop.prop.split('.').pop();
+                                const value = element.style[styleProp];
+                                if (value && value.includes('%')) {
+                                    input.value = parseFloat(value);
+                                } else {
+                                    input.value = value;
+                                }
                             } else {
-                                input.value = value;
+                                input.value = element[prop.prop];
                             }
                             if (prop.min !== undefined) input.min = prop.min;
                             if (prop.max !== undefined) input.max = prop.max;
                             if (prop.step !== undefined) input.step = prop.step;
                         } else if (prop.type === 'color') {
-                            input.value = rgbToHex(element.style.color || '#000000');
+                            input.value = rgbToHex(element.style[prop.prop.split('.').pop()] || '#000000');
                         }
                     }
                     input.id = inputId;
