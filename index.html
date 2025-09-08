@@ -30,6 +30,7 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         header {
@@ -39,11 +40,18 @@
             padding: 1rem 2rem;
             background-color: var(--dark-panel);
             border-bottom: 1px solid var(--dark-border);
+            flex-wrap: nowrap;
         }
 
         header h1 {
             font-size: 1.5rem;
             font-weight: 700;
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         .mode-toggles button {
@@ -67,63 +75,46 @@
             transform: translateY(-2px);
         }
 
-        #main-container {
-            display: flex;
-            flex: 1;
-        }
-
-        .panel {
-            background-color: var(--dark-panel);
-            border: 1px solid var(--dark-border);
-            padding: 1.5rem;
-            overflow-y: auto;
-            width: 250px;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        #elements-panel {
-            border-right: none;
-            border-radius: 0 0.5rem 0.5rem 0;
-        }
-
-        #edit-panel {
-            border-left: none;
-            border-radius: 0.5rem 0 0 0.5rem;
-        }
-
         #elements-list {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
             gap: 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 0.5rem;
+            -webkit-overflow-scrolling: touch;
         }
 
         .selectable-element {
             background-color: #374151;
             border: 1px solid #4b5563;
-            padding: 12px;
+            padding: 8px 12px;
             text-align: center;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.1s;
-            flex: 1 1 calc(50% - 6px);
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 0.5rem;
             border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         
         .selectable-element p {
             font-size: 0.875rem;
             color: var(--secondary-text-color);
-            margin-top: 0.5rem;
         }
 
         .selectable-element:hover {
             background-color: #4b5563;
             transform: translateY(-2px);
+        }
+
+        #main-container {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 1.5rem);
+            position: relative;
         }
 
         #work-space-container {
@@ -166,6 +157,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
         }
 
         #page-div {
@@ -180,7 +172,7 @@
             background-color: #fff;
             color: #000;
             border-radius: 0.5rem;
-            overflow: hidden; /* Ensure elements don't go outside */
+            overflow: hidden;
         }
         
         #page-div > * {
@@ -204,6 +196,18 @@
             padding-top: 2rem;
         }
 
+        .edit-panel {
+            background-color: var(--dark-panel);
+            border: 1px solid var(--dark-border);
+            padding: 1.5rem;
+            overflow-y: auto;
+            width: 250px;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            gap: 1rem;
+            border-radius: 0.5rem;
+        }
+        
         .edit-field {
             margin-bottom: 1rem;
         }
@@ -321,16 +325,7 @@
 
     <header>
         <h1>Web Design Tool</h1>
-        <div class="mode-toggles">
-            <button id="editModeBtn" class="active">Edit Mode</button>
-            <button id="viewModeBtn">View Mode</button>
-        </div>
-    </header>
-
-    <main id="main-container">
-        <!-- Elements Panel -->
-        <aside id="elements-panel" class="panel">
-            <h2>Elements</h2>
+        <div class="header-section">
             <div id="elements-list">
                 <div class="selectable-element" data-type="button">
                     <i class="ph-bold ph-hand-tap"></i>
@@ -342,15 +337,15 @@
                 </div>
                 <div class="selectable-element" data-type="h1">
                     <i class="ph-bold ph-text-h-one"></i>
-                    <p>Heading 1</p>
+                    <p>H1</p>
                 </div>
                 <div class="selectable-element" data-type="h2">
                     <i class="ph-bold ph-text-h-two"></i>
-                    <p>Heading 2</p>
+                    <p>H2</p>
                 </div>
                 <div class="selectable-element" data-type="p">
                     <i class="ph-bold ph-text-align-left"></i>
-                    <p>Paragraph</p>
+                    <p>Para</p>
                 </div>
                 <div class="selectable-element" data-type="a">
                     <i class="ph-bold ph-link"></i>
@@ -409,8 +404,14 @@
                     <p>Flex</p>
                 </div>
             </div>
-        </aside>
+            <div class="mode-toggles">
+                <button id="editModeBtn" class="active">Edit Mode</button>
+                <button id="viewModeBtn">View Mode</button>
+            </div>
+        </div>
+    </header>
 
+    <main id="main-container">
         <!-- Work Space -->
         <section id="work-space-container">
             <div id="device-toggles">
@@ -432,7 +433,7 @@
         </section>
 
         <!-- Edit Section -->
-        <aside id="edit-panel" class="panel">
+        <aside id="edit-panel" class="edit-panel">
             <h2>Edit Properties</h2>
             <div id="edit-properties-content">
                 <!-- Properties will be populated dynamically -->
@@ -473,6 +474,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const pageDiv = document.getElementById('page-div');
             const elementsList = document.getElementById('elements-list');
+            const editPanel = document.getElementById('edit-panel');
             const editPanelContent = document.getElementById('edit-properties-content');
             const deviceToggles = document.getElementById('device-toggles');
             const mainContainer = document.getElementById('main-container');
@@ -499,9 +501,6 @@
                 viewModeContainer.classList.remove('active');
                 editModeBtn.classList.add('active');
                 viewModeBtn.classList.remove('active');
-                if (selectedElement) {
-                    populateEditPanel(selectedElement);
-                }
             }
 
             editModeBtn.addEventListener('click', switchToEditMode);
@@ -534,8 +533,8 @@
                 });
             });
 
-            // Draggable Elements
-            pageDiv.addEventListener('mousedown', (e) => {
+            // Handle element selection and deslection on document clicks
+            document.addEventListener('mousedown', (e) => {
                 const clickedElement = e.target.closest('#page-div > *');
                 if (clickedElement) {
                     selectElement(clickedElement);
@@ -543,7 +542,9 @@
                     pageRect = pageDiv.getBoundingClientRect();
                     dragOffset.x = e.clientX - clickedElement.getBoundingClientRect().left;
                     dragOffset.y = e.clientY - clickedElement.getBoundingClientRect().top;
-                    e.preventDefault();
+                    e.stopPropagation(); // Prevents document from deselecting
+                } else if (!e.target.closest('#edit-panel') && !e.target.closest('#elements-list') && !isDragging) {
+                    deselectElement();
                 }
             });
 
@@ -567,7 +568,6 @@
                     selectedElement.style.left = `${newLeftPercent}%`;
                     selectedElement.style.top = `${newTopPercent}%`;
 
-                    // Update edit panel inputs in real-time
                     const topInput = document.getElementById('edit-Top---');
                     if (topInput) topInput.value = newTopPercent.toFixed(2);
                     const leftInput = document.getElementById('edit-Left---');
@@ -594,7 +594,17 @@
                 }
                 selectedElement = element;
                 selectedElement.classList.add('selected-element');
+                editPanel.style.display = 'flex';
                 populateEditPanel(selectedElement);
+            }
+
+            function deselectElement() {
+                if (selectedElement) {
+                    selectedElement.classList.remove('selected-element');
+                    selectedElement = null;
+                }
+                editPanel.style.display = 'none';
+                editPanelContent.innerHTML = '<p class="placeholder-text">Select an element to edit its properties.</p>';
             }
 
             // Element Creation
@@ -604,7 +614,7 @@
                     case 'button':
                         element = document.createElement('button');
                         element.textContent = 'Button';
-                        element.dataset.url = '#'; // Default URL for editing
+                        element.dataset.url = '#';
                         break;
                     case 'div':
                         element = document.createElement('div');
@@ -906,7 +916,6 @@
                         styleMap.set(classId, styleBlock);
                     }
                     
-                    // Handle specific element attributes and JS
                     if (el.tagName.toLowerCase() === 'button' && el.dataset.url) {
                         el.setAttribute('id', `button-${index}`);
                         jsSnippets += `
@@ -918,7 +927,6 @@ document.getElementById('button-${index}').addEventListener('click', () => {
                         el.setAttribute('href', el.href);
                     }
                     
-                    // Remove inline styles and data attributes for clean HTML output
                     const cleanedEl = el.cloneNode(true);
                     cleanedEl.removeAttribute('style');
                     if (cleanedEl.dataset.url) {
@@ -927,10 +935,8 @@ document.getElementById('button-${index}').addEventListener('click', () => {
                     
                     generatedHTML += cleanedEl.outerHTML + '\n';
                     
-                    // Re-add original styles and data attributes
                     el.setAttribute('style', originalStyle);
                     
-                    // Check for other JS-dependent elements
                     if (el.classList.contains('modal')) {
                         jsSnippets += `
 document.querySelectorAll('.modal').forEach(modal => {
@@ -948,7 +954,6 @@ document.querySelectorAll('.toggle').forEach(toggle => {
                     }
                 });
 
-                // Generate CSS from the map
                 generatedCSS += `#page-div > * { position: absolute; }\n\n`;
                 for (const [cls, style] of styleMap) {
                     generatedCSS += `.${cls} { ${style}; }\n`;
