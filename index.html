@@ -90,12 +90,12 @@
             gap: 10px;
         }
 
-        .draggable-element {
+        .selectable-element {
             background-color: #333;
             border: 1px solid #444;
             padding: 10px;
             text-align: center;
-            cursor: grab;
+            cursor: pointer;
             transition: background-color 0.3s;
             flex: 1 1 100px;
             display: flex;
@@ -104,7 +104,7 @@
             justify-content: center;
         }
 
-        .draggable-element:hover {
+        .selectable-element:hover {
             background-color: #444;
         }
 
@@ -298,55 +298,55 @@
         <aside id="elements-panel" class="panel">
             <h2>Elements</h2>
             <div id="elements-list">
-                <div class="draggable-element" data-type="button">
+                <div class="selectable-element" data-type="button">
                     <span class="material-icons">smart_button</span>
                     <p>Button</p>
                 </div>
-                <div class="draggable-element" data-type="nav">
+                <div class="selectable-element" data-type="nav">
                     <span class="material-icons">navigation</span>
                     <p>Navbar</p>
                 </div>
-                <div class="draggable-element" data-type="toggle">
+                <div class="selectable-element" data-type="toggle">
                     <span class="material-icons">toggle_on</span>
                     <p>Toggle</p>
                 </div>
-                <div class="draggable-element" data-type="modal">
+                <div class="selectable-element" data-type="modal">
                     <span class="material-icons">picture_in_picture_alt</span>
                     <p>Modal</p>
                 </div>
-                <div class="draggable-element" data-type="card">
+                <div class="selectable-element" data-type="card">
                     <span class="material-icons">credit_card</span>
                     <p>Card</p>
                 </div>
-                <div class="draggable-element" data-type="form">
+                <div class="selectable-element" data-type="form">
                     <span class="material-icons">description</span>
                     <p>Form</p>
                 </div>
-                <div class="draggable-element" data-type="image-container">
+                <div class="selectable-element" data-type="image-container">
                     <span class="material-icons">image</span>
                     <p>Image Container</p>
                 </div>
-                <div class="draggable-element" data-type="carousel">
+                <div class="selectable-element" data-type="carousel">
                     <span class="material-icons">view_carousel</span>
                     <p>Carousel</p>
                 </div>
-                <div class="draggable-element" data-type="footer">
+                <div class="selectable-element" data-type="footer">
                     <span class="material-icons">vertical_align_bottom</span>
                     <p>Footer</p>
                 </div>
-                <div class="draggable-element" data-type="accordion">
+                <div class="selectable-element" data-type="accordion">
                     <span class="material-icons">list_alt</span>
                     <p>Accordion</p>
                 </div>
-                <div class="draggable-element" data-type="social-icons">
+                <div class="selectable-element" data-type="social-icons">
                     <span class="material-icons">share</span>
                     <p>Social Icons</p>
                 </div>
-                <div class="draggable-element" data-type="grid">
+                <div class="selectable-element" data-type="grid">
                     <span class="material-icons">grid_on</span>
                     <p>Grid Container</p>
                 </div>
-                <div class="draggable-element" data-type="flex">
+                <div class="selectable-element" data-type="flex">
                     <span class="material-icons">layers</span>
                     <p>Flex Container</p>
                 </div>
@@ -443,33 +443,22 @@
             function renderViewMode() {
                 const generatedHTML = htmlCode.value;
                 const generatedCSS = `<style>${cssCode.value}</style>`;
-                const generatedJS = `<script>${jsCode.value}<\/script>`; // Escape for the innerHTML
+                const generatedJS = `<script>${jsCode.value}<\/script>`;
                 viewModeContent.innerHTML = generatedHTML + generatedCSS + generatedJS;
             }
 
-            // Drag and Drop
-            elementsList.querySelectorAll('.draggable-element').forEach(element => {
-                element.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', element.dataset.type);
-                });
-            });
-
-            pageDiv.addEventListener('dragover', (e) => {
-                e.preventDefault();
-            });
-
-            pageDiv.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const elementType = e.dataTransfer.getData('text/plain');
-                if (elementType) {
+            // Element Selection and Adding
+            elementsList.querySelectorAll('.selectable-element').forEach(element => {
+                element.addEventListener('click', () => {
+                    const elementType = element.dataset.type;
                     const newElement = createElement(elementType);
                     pageDiv.appendChild(newElement);
                     selectElement(newElement);
                     updateCode();
-                }
+                });
             });
 
-            // Element Selection
+            // Element Selection on Page
             pageDiv.addEventListener('click', (e) => {
                 const clickedElement = e.target.closest('#page-div > *');
                 if (clickedElement) {
@@ -706,29 +695,30 @@
                 let generatedHTML = '';
                 let generatedCSS = '';
                 let generatedJS = '';
+                const styleMap = new Map();
+                let jsSnippets = '';
 
-                Array.from(pageDiv.children).forEach(el => {
-                    const outerHTML = el.outerHTML;
-                    const style = el.getAttribute('style');
-                    let cleanHTML = outerHTML;
-                    if (style) {
-                        cleanHTML = outerHTML.replace(` style="${style}"`, '');
+                Array.from(pageDiv.children).forEach((el, index) => {
+                    const originalStyle = el.getAttribute('style') || '';
+                    const classId = `elem-${index}`;
+                    el.classList.add(classId);
+
+                    const styleProps = originalStyle.split(';').filter(s => s.trim() !== '');
+                    if (styleProps.length > 0) {
+                        const styleBlock = styleProps.map(prop => prop.trim()).join('; ');
+                        styleMap.set(classId, styleBlock);
                     }
-                    generatedHTML += cleanHTML + '\n';
-
-                    if (style) {
-                        const className = `element-${Math.random().toString(36).substring(2, 7)}`;
-                        el.classList.add(className);
-                        const styles = el.style.cssText;
-                        generatedCSS += `.${className} { ${styles} }\n`;
+                    
+                    // Remove inline styles for clean HTML output
+                    el.removeAttribute('style');
+                    generatedHTML += el.outerHTML + '\n';
+                    if (originalStyle) {
+                        el.setAttribute('style', originalStyle);
                     }
-                });
 
-                htmlCode.value = generatedHTML.trim();
-                cssCode.value = generatedCSS.trim();
-                generatedJS += `// JavaScript for interactive elements\n`;
-                if (pageDiv.querySelector('.modal')) {
-                    generatedJS += `
+                    // Check for JS-dependent elements
+                    if (el.classList.contains('modal')) {
+                        jsSnippets += `
 document.querySelectorAll('.modal').forEach(modal => {
     modal.style.display = 'block';
     const closeBtn = modal.querySelector('.close-btn');
@@ -736,15 +726,24 @@ document.querySelectorAll('.modal').forEach(modal => {
     window.onclick = (event) => { if (event.target === modal) { modal.style.display = 'none'; } }
 });
 `;
-                }
-                if (pageDiv.querySelector('.toggle')) {
-                    generatedJS += `
+                    }
+                    if (el.classList.contains('toggle')) {
+                        jsSnippets += `
 document.querySelectorAll('.toggle').forEach(toggle => {
     toggle.onclick = () => { toggle.classList.toggle('active'); }
 });
 `;
+                    }
+                });
+
+                // Generate CSS from the map
+                for (const [cls, style] of styleMap) {
+                    generatedCSS += `.${cls} { ${style}; }\n`;
                 }
-                jsCode.value = generatedJS.trim();
+
+                htmlCode.value = generatedHTML.trim();
+                cssCode.value = generatedCSS.trim();
+                jsCode.value = jsSnippets.trim();
             }
             
             // Copy to Clipboard
