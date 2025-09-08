@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag-and-Drop Webpage Builder</title>
+    <style>
+        /* Dark mode by default */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Modern look with smooth transitions */
+        * {
+            transition: all 0.3s ease;
+        }
+
+        /* Header for tools */
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
+
+        #devices {
+            display: flex;
+            gap: 10px;
+        }
+
+        .device-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .device-btn:hover {
+            background-color: #444;
+        }
+
+        .device-btn.active {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        #mode-toggle {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #mode-toggle:hover {
+            background-color: #444;
+        }
+
+        /* Main content area */
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar for elements */
+        #sidebar {
+            width: 200px;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
+
+        .element {
+            background-color: #333;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: grab;
+            border-radius: 5px;
+            user-select: none;
+        }
+
+        .element:hover {
+            background-color: #444;
+        }
+
+        /* Canvas area */
+        #editor {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        #canvas {
+            background-color: #fff;
+            color: #000;
+            min-height: 500px;
+            width: 100%;
+            max-width: 1200px; /* Laptop default */
+            border: 1px solid #555;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        #canvas.edit-mode {
+            min-height: 100%;
+        }
+
+        /* Device sizes */
+        #canvas.laptop {
+            max-width: 1200px;
+        }
+
+        #canvas.tablet {
+            max-width: 768px;
+        }
+
+        #canvas.phone {
+            max-width: 375px;
+        }
+
+        /* View mode */
+        #view-mode {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #preview {
+            background-color: #fff;
+            color: #000;
+            min-height: 500px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            border: 1px solid #555;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* Code areas */
+        #code-areas {
+            display: flex;
+            gap: 10px;
+            height: 200px;
+        }
+
+        .code-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            flex: 1;
+            background-color: #1e1e1e;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 10px;
+            font-family: monospace;
+            resize: none;
+            border-radius: 5px;
+        }
+
+        .copy-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .copy-btn:hover {
+            background-color: #444;
+        }
+
+        /* Draggable elements in canvas */
+        .canvas-element {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+            cursor: move;
+        }
+
+        .canvas-element:hover {
+            border-color: #007bff;
+        }
+
+        /* Edit handles */
+        .edit-handle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff0000;
+            color: #fff;
+            padding: 2px 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .canvas-element:hover .edit-handle {
+            display: block;
+        }
+
+        /* Responsive design for the tool itself */
+        @media (max-width: 768px) {
+            #main {
+                flex-direction: column;
+            }
+
+            #sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #333;
+                overflow-x: auto;
+            }
+
+            #editor, #view-mode {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div id="devices">
+            <button class="device-btn active" data-size="laptop">Laptop</button>
+            <button class="device-btn" data-size="tablet">Tablet</button>
+            <button class="device-btn" data-size="phone">Phone</button>
+        </div>
+        <button id="mode-toggle">Switch to View Mode</button>
+    </div>
+    <div id="main">
+        <div id="sidebar">
+            <!-- Draggable elements -->
+            <div class="element" draggable="true" data-type="navbar">Navbar</div>
+            <div class="element" draggable="true" data-type="footer">Footer</div>
+            <div class="element" draggable="true" data-type="icon">Icon</div>
+            <div class="element" draggable="true" data-type="button">Button</div>
+            <div class="element" draggable="true" data-type="section">Section</div>
+            <div class="element" draggable="true" data-type="form">Form</div>
+            <div class="element" draggable="true" data-type="image">Image</div>
+            <div class="element" draggable="true" data-type="text">Text Block</div>
+            <!-- Add more advanced elements as needed -->
+        </div>
+        <div id="editor">
+            <div id="canvas" class="laptop edit-mode"></div>
+        </div>
+        <div id="view-mode">
+            <div id="preview"></div>
+            <div id="code-areas">
+                <div class="code-section">
+                    <textarea id="html-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('html-code')">Copy HTML</button>
+                </div>
+                <div class="code-section">
+                    <textarea id="css-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('css-code')">Copy CSS</button>
+                </div>
+                <div class="code-section">
+                    <textarea id="js-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('js-code')">Copy JS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const preview = document.getElementById('preview');
+        const editor = document.getElementById('editor');
+        const viewMode = document.getElementById('view-mode');
+        const modeToggle = document.getElementById('mode-toggle');
+        const htmlCode = document.getElementById('html-code');
+        const cssCode = document.getElementById('css-code');
+        const jsCode = document.getElementById('js-code');
+        const deviceBtns = document.querySelectorAll('.device-btn');
+
+        let isEditMode = true;
+        let currentDevice = 'laptop';
+
+        // Element templates (HTML snippets)
+        const elementTemplates = {
+            navbar: '<nav class="navbar">Navbar Content</nav>',
+            footer: '<footer class="footer">Footer Content</footer>',
+            icon: '<i class="icon">Icon</i>',
+            button: '<button class="btn">Button</button>',
+            section: '<section class="section">Section Content</section>',
+            form: '<form class="form"><input type="text" placeholder="Input"></form>',
+            image: '<img src="placeholder.jpg" alt="Image" class="image">',
+            text: '<p class="text">Text Block</p>'
+        };
+
+        // Corresponding CSS (basic)
+        const baseCSS = `
+.navbar { background: #333; color: #fff; padding: 10px; }
+.footer { background: #222; color: #fff; padding: 10px; text-align: center; }
+.icon { font-size: 24px; }
+.btn { background: #007bff; color: #fff; padding: 5px 10px; border: none; cursor: pointer; }
+.section { padding: 20px; border: 1px solid #ccc; }
+.form { display: flex; flex-direction: column; }
+.image { max-width: 100%; }
+.text { font-size: 16px; }
+`;
+
+        // Basic JS for interactions (e.g., button click)
+        const baseJS = `
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => alert('Button clicked!'));
+});
+`;
+
+        // Drag and drop setup
+        document.querySelectorAll('.element').forEach(el => {
+            el.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('type', el.dataset.type);
+            });
+        });
+
+        canvas.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if (type && elementTemplates[type]) {
+                const newElement = document.createElement('div');
+                newElement.classList.add('canvas-element');
+                newElement.innerHTML = elementTemplates[type];
+                newElement.contentEditable = true; // Allow editing text
+
+                // Add edit handle (delete)
+                const editHandle = document.createElement('span');
+                editHandle.classList.add('edit-handle');
+                editHandle.textContent = 'X';
+                editHandle.onclick = () => newElement.remove();
+                newElement.appendChild(editHandle);
+
+                canvas.appendChild(newElement);
+                updateCode();
+            }
+        });
+
+        // Make elements sortable/draggable within canvas
+        canvas.addEventListener('dragstart', e => {
+            if (e.target.classList.contains('canvas-element')) {
+                e.dataTransfer.setData('text/plain', ''); // Required for drag
+            }
+        });
+
+        canvas.addEventListener('dragover', e => {
+            if (e.target.classList.contains('canvas-element')) {
+                e.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('drop', e => {
+            if (e.target.classList.contains('canvas-element')) {
+                const dragged = document.querySelector('.dragging'); // Add .dragging on dragstart if needed
+                if (dragged) {
+                    canvas.insertBefore(dragged, e.target);
+                }
+            }
+            updateCode();
+        });
+
+        // Device size switch
+        deviceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                deviceBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDevice = btn.dataset.size;
+                canvas.className = currentDevice + ' edit-mode';
+                preview.className = currentDevice;
+                if (!isEditMode) {
+                    updatePreview();
+                }
+            });
+        });
+
+        // Mode toggle
+        modeToggle.addEventListener('click', () => {
+            isEditMode = !isEditMode;
+            if (isEditMode) {
+                editor.style.display = 'flex';
+                viewMode.style.display = 'none';
+                modeToggle.textContent = 'Switch to View Mode';
+                canvas.classList.add('edit-mode');
+            } else {
+                editor.style.display = 'none';
+                viewMode.style.display = 'flex';
+                modeToggle.textContent = 'Switch to Edit Mode';
+                canvas.classList.remove('edit-mode');
+                updatePreview();
+            }
+        });
+
+        // Update code in textareas
+        function updateCode() {
+            htmlCode.value = canvas.innerHTML.replace(/<span class="edit-handle">X<\/span>/g, ''); // Remove handles
+            cssCode.value = baseCSS; // Extend if needed
+            jsCode.value = baseJS; // Extend if needed
+        }
+
+        // Update preview
+        function updatePreview() {
+            preview.innerHTML = canvas.innerHTML.replace(/<span class="edit-handle">X<\/span>/g, '').replace(/ contenteditable="true"/g, '');
+            preview.className = currentDevice;
+
+            // Inject CSS and JS into preview (for demo)
+            const style = document.createElement('style');
+            style.textContent = cssCode.value;
+            preview.appendChild(style);
+
+            const script = document.createElement('script');
+            script.textContent = jsCode.value;
+            preview.appendChild(script);
+        }
+
+        // Copy code
+        function copyCode(id) {
+            const textarea = document.getElementById(id);
+            textarea.select();
+            document.execCommand('copy');
+            alert('Code copied!');
+        }
+
+        // Listen for edits in canvas
+        canvas.addEventListener('input', updateCode);
+    </script>
+</body>
+</html>
