@@ -2,531 +2,377 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Visual Webpage Builder — Edit / View Modes</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Webpage Designer — Edit / View</title>
   <style>
     :root{
-      --bg:#0b0f14; --panel:#0f1720; --muted:#9aa5b1; --accent:#6ee7b7; --glass: rgba(255,255,255,0.03);
-      --radius:12px; --gap:12px; --card:#0f1720;
+      --bg:#0b0f16; --panel:#0f1720; --muted:#98a0aa; --accent:#7c5cff; --glass:rgba(255,255,255,0.04);
+      --success:#29d28f; --danger:#ff6b6b; --radius:10px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono";
     }
     *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;-webkit-font-smoothing:antialiased;color:#e6eef6;background:linear-gradient(180deg,#071018 0%, #081218 100%)}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#e6eef6;background:linear-gradient(180deg,#061018 0%, #071829 100%);}
 
-    /* Shell */
-    .app{display:flex;height:100vh;gap:var(--gap);padding:18px}
-    .left,.right{background:var(--panel);border-radius:14px;padding:14px;box-shadow:0 6px 18px rgba(2,6,23,0.6);} 
-    .left{width:320px;display:flex;flex-direction:column;gap:12px}
-    .center{flex:1;display:flex;flex-direction:column;gap:12px}
-    .right{width:420px;display:flex;flex-direction:column;gap:12px}
+    /* top toolbar */
+    .toolbar{height:64px;display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,0.03)}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand .logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#4fb1ff);display:flex;align-items:center;justify-content:center;color:#071329;font-weight:800}
+    .toolbar .controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+    button,select,input{font:inherit}
+    .seg{display:inline-flex;background:var(--panel);border-radius:8px;padding:6px;border:1px solid rgba(255,255,255,0.03)}
+    .seg button{background:transparent;border:0;color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer}
+    .seg button.active{background:linear-gradient(90deg,rgba(124,92,255,0.18),rgba(79,177,255,0.08));color:white}
 
-    /* Header */
-    .topbar{display:flex;align-items:center;gap:10px}
-    .logo{font-weight:700;color:var(--accent);font-size:14px}
-    .modes{margin-left:auto;display:flex;gap:6px}
-    .btn{background:var(--glass);color:var(--muted);padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);cursor:pointer}
-    .btn.active{background:linear-gradient(90deg, rgba(110,231,183,0.12), rgba(110,231,183,0.04));color:var(--accent);border:1px solid rgba(110,231,183,0.12)}
+    /* layout */
+    .app{display:grid;grid-template-columns:260px 1fr 320px;gap:14px;padding:16px;height:calc(100% - 64px)}
+    .panel{background:var(--panel);border-radius:var(--radius);padding:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(2,6,23,0.6)}
 
-    /* Palette */
-    .palette{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .element-card{background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);padding:8px;border-radius:10px;display:flex;flex-direction:column;gap:8px;cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
-    .element-card small{color:var(--muted)}
+    /* left palette */
+    .palette h3{margin:6px 0 12px;color:var(--muted);font-size:13px}
+    .palette .items{display:flex;flex-direction:column;gap:8px}
+    .draggable{background:var(--glass);padding:10px;border-radius:8px;cursor:pointer;border:1px dashed rgba(255,255,255,0.02)}
 
-    /* Workspace area */
-    .canvas-shell{display:flex;flex-direction:column;gap:10px;align-items:center}
-    .screen-toggles{display:flex;gap:8px}
-    .screen-btn{padding:6px 8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer;color:var(--muted)}
-    .screen-btn.active{color:var(--accent);border:1px solid rgba(110,231,183,0.12)}
+    /* center workspace */
+    .workspace{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:flex-start}
+    .viewport-controls{display:flex;gap:8px;align-items:center}
+    .canvas-wrap{width:100%;display:flex;align-items:center;justify-content:center}
+    .device{background:#fff;border-radius:12px;overflow:auto;border:4px solid rgba(0,0,0,0.05);box-shadow:0 8px 20px rgba(2,6,23,0.6);transition:width 200ms, height 200ms;}
+    .device .page{min-height:400px;padding:24px;background:white;color:#071329}
 
-    .viewport{width:100%;max-width:1100px;display:flex;justify-content:center}
-    .page-frame{background:linear-gradient(180deg,#071421,#07101a);border-radius:10px;padding:18px;border:1px solid rgba(255,255,255,0.03);width:100%;height:640px;box-shadow:0 20px 40px rgba(2,6,23,0.6);overflow:auto;position:relative}
+    /* small devices */
+    .device.phone{width:380px;height:760px}
+    .device.tablet{width:820px;height:980px}
+    .device.laptop{width:1100px;height:760px}
 
-    /* device sizes */
-    .device-desktop .page-frame{width:100%;max-width:1000px}
-    .device-laptop .page-frame{width:900px}
-    .device-tablet .page-frame{width:720px}
-    .device-phone .page-frame{width:380px;height:780px}
+    /* editing outline */
+    .page [data-selected]{outline:3px solid rgba(124,92,255,0.24);outline-offset:4px}
 
-    /* editable page (the actual output) */
-    #page{min-height:540px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:8px;padding:18px;color:#eef6ff}
-    #page [data-selectable]{outline:2px dashed transparent;padding:6px;border-radius:8px}
-    #page [data-selectable].selected{outline:2px dashed rgba(110,231,183,0.18);background:rgba(110,231,183,0.02)}
-
-    /* Properties panel */
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;min-height:120px}
-    .prop-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-    .prop-row label{font-size:12px;color:var(--muted);min-width:80px}
-    .prop-row input,.prop-row select,.prop-row textarea{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e6eef6}
+    /* properties panel */
+    .props h3{margin:6px 0;color:var(--muted);font-size:13px}
+    .prop-row{display:flex;gap:8px;align-items:center;margin:8px 0}
+    .prop-row label{width:90px;color:var(--muted);font-size:13px}
+    .prop-row input,.prop-row select,.prop-row textarea{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#dbe9ff}
 
     /* code areas */
-    .code-area{display:flex;flex-direction:column;gap:8px}
-    .code-area textarea{height:120px;background:#07131a;border-radius:8px;padding:10px;color:#bfe7d6;border:1px solid rgba(255,255,255,0.03);resize:vertical}
-    .code-actions{display:flex;justify-content:space-between;align-items:center}
+    .code-boxes{display:flex;gap:8px;margin-top:10px}
+    .code-box{flex:1;display:flex;flex-direction:column}
+    .code-box textarea{min-height:160px;background:#071026;color:#dbe9ff;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.03);resize:vertical;font-family:var(--mono);font-size:12px}
+    .code-actions{display:flex;gap:6px;align-items:center;margin-top:6px}
+    .copy-btn{background:linear-gradient(90deg,var(--accent),#4fb1ff);border:0;padding:8px 10px;border-radius:8px;color:white;cursor:pointer}
 
-    /* toolbar small */
-    .small{font-size:13px;color:var(--muted)}
+    /* utility */
+    .muted{color:var(--muted);font-size:13px}
+    .small{font-size:12px;color:var(--muted)}
 
-    /* modal preview helper */
-    .modal-backdrop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
-    .modal-backdrop.show{display:flex}
-    .modal{background:#071522;padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);min-width:320px}
+    /* view mode */
+    .view-mode .app{grid-template-columns:0 1fr 0}
+    .hidden{display:none}
 
-    footer{font-size:12px;color:var(--muted);text-align:center;padding-top:6px}
-
-    /* responsive layout for the builder itself */
-    @media (max-width:1100px){.left{display:none}.right{display:none}.center{flex:1}}
+    /* responsive for small screens */
+    @media (max-width:980px){.app{grid-template-columns:1fr;grid-auto-rows:auto}} 
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="left">
-      <div class="topbar">
-        <div class="logo">Builder • Dark</div>
-        <div class="modes">
-          <button id="mode-edit" class="btn active">Edit</button>
-          <button id="mode-view" class="btn">View</button>
-        </div>
+  <div class="toolbar">
+    <div class="brand"><div class="logo">WD</div><div style="line-height:1"><div style="font-size:14px">Webpage Designer</div><div class="small">Edit & View — Dark</div></div></div>
+    <div class="controls">
+      <div class="seg" role="tablist">
+        <button id="modeEdit" class="active">Edit</button>
+        <button id="modeView">View</button>
       </div>
-
-      <div class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <div class="small">Elements</div>
-          <div class="small">Drag or click to add</div>
-        </div>
-        <div class="palette" id="palette">
-          <div class="element-card" data-type="navbar">
-            <strong>Navbar</strong>
-            <small>Responsive top navigation</small>
-          </div>
-          <div class="element-card" data-type="hero">
-            <strong>Hero / Header</strong>
-            <small>Title + subtitle + cta</small>
-          </div>
-          <div class="element-card" data-type="card">
-            <strong>Card</strong>
-            <small>Image + content</small>
-          </div>
-          <div class="element-card" data-type="button">
-            <strong>Button</strong>
-            <small>Primary action</small>
-          </div>
-          <div class="element-card" data-type="modal">
-            <strong>Modal</strong>
-            <small>Dialog / popup</small>
-          </div>
-          <div class="element-card" data-type="form">
-            <strong>Form</strong>
-            <small>Inputs + submit</small>
-          </div>
-          <div class="element-card" data-type="toggle">
-            <strong>Toggle</strong>
-            <small>On/off switch</small>
-          </div>
-          <div class="element-card" data-type="footer">
-            <strong>Footer</strong>
-            <small>Page footer</small>
-          </div>
-        </div>
+      <div class="seg" style="margin-left:8px">
+        <button data-device="phone">📱</button>
+        <button data-device="tablet">� tablet</button>
+        <button data-device="laptop" class="active">💻</button>
       </div>
-
-      <div class="panel">
-        <div class="small" style="margin-bottom:8px">Screen</div>
-        <div class="screen-toggles">
-          <button class="screen-btn active" data-device="device-desktop">Desktop</button>
-          <button class="screen-btn" data-device="device-laptop">Laptop</button>
-          <button class="screen-btn" data-device="device-tablet">Tablet</button>
-          <button class="screen-btn" data-device="device-phone">Phone</button>
-        </div>
-      </div>
-
-      <div class="panel small">
-        <div style="display:flex;justify-content:space-between;align-items:center"><strong>Hints</strong></div>
-        <div style="margin-top:8px;color:var(--muted);font-size:13px">Click an element on the page to edit. Use the palette to insert common elements. Copy generated HTML/CSS/JS from the right panel.</div>
-      </div>
-    </div>
-
-    <div class="center">
-      <div class="canvas-shell">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="small">Preview</div>
-          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
-            <button id="show-code" class="btn">Export</button>
-            <div class="small">Mode: <span id="mode-indicator">Edit</span></div>
-          </div>
-        </div>
-
-        <div class="viewport device-desktop" id="viewport">
-          <div class="page-frame">
-            <div id="page" contenteditable="false">
-              <!-- default starter page -->
-              <nav data-selectable data-type="navbar" style="display:flex;justify-content:space-between;align-items:center;padding:12px 6px;background:transparent">
-                <div style="font-weight:700">Brand</div>
-                <div style="display:flex;gap:8px"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></div>
-              </nav>
-
-              <section data-selectable data-type="hero" style="padding:40px 10px">
-                <h1 contenteditable="true">Welcome to your page</h1>
-                <p contenteditable="true">A short subtitle goes here. Use the right panel to edit properties.</p>
-                <div style="margin-top:12px"><button data-selectable data-type="button">Get started</button></div>
-              </section>
-
-              <section style="display:flex;gap:12px;flex-wrap:wrap">
-                <article data-selectable data-type="card" style="flex:1;min-width:220px;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
-                  <h3 contenteditable="true">Card title</h3>
-                  <p contenteditable="true">Card body text goes here.</p>
-                  <button data-selectable data-type="button">Read more</button>
-                </article>
-
-                <article data-selectable data-type="card" style="flex:1;min-width:220px;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
-                  <h3 contenteditable="true">Another card</h3>
-                  <p contenteditable="true">More supporting text.</p>
-                  <button data-selectable data-type="button">Action</button>
-                </article>
-              </section>
-
-              <footer data-selectable data-type="footer" style="padding:20px 6px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.02);">
-                <small>© Your Company</small>
-              </footer>
-
-              <!-- modal placeholder -->
-              <div id="builder-modal" style="display:none"></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <footer>Quick builder — dark theme • HTML/CSS/JS export</footer>
-    </div>
-
-    <div class="right">
-      <div class="panel">
-        <div class="small" style="margin-bottom:8px">Selected element</div>
-        <div id="properties">
-          <div class="small" style="color:var(--muted)">No element selected</div>
-        </div>
-      </div>
-
-      <div class="panel code-area">
-        <div class="code-actions">
-          <div class="small">HTML</div>
-          <div>
-            <button class="btn" data-copy-target="#html-code">Copy</button>
-          </div>
-        </div>
-        <textarea id="html-code" readonly></textarea>
-
-        <div class="code-actions">
-          <div class="small">CSS</div>
-          <div>
-            <button class="btn" data-copy-target="#css-code">Copy</button>
-          </div>
-        </div>
-        <textarea id="css-code" readonly></textarea>
-
-        <div class="code-actions">
-          <div class="small">JS</div>
-          <div>
-            <button class="btn" data-copy-target="#js-code">Copy</button>
-          </div>
-        </div>
-        <textarea id="js-code" readonly></textarea>
-      </div>
-
-      <div class="panel small">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div>Export / Preview</div>
-          <div style="display:flex;gap:8px">
-            <button id="open-preview" class="btn">Open Live Preview</button>
-          </div>
-        </div>
-      </div>
+      <button id="previewBtn" style="margin-left:8px" class="seg">Live Preview</button>
     </div>
   </div>
 
-  <!-- modal backdrop for previewing page behaviors -->
-  <div id="modal-backdrop" class="modal-backdrop"><div class="modal"><div id="modal-content"></div><div style="text-align:right;margin-top:8px"><button id="close-modal" class="btn">Close</button></div></div></div>
+  <div class="app" id="appRoot">
+    <aside class="panel palette">
+      <h3>Elements</h3>
+      <div class="items">
+        <div class="draggable" data-type="nav">Navbar</div>
+        <div class="draggable" data-type="hero">Hero (heading + CTA)</div>
+        <div class="draggable" data-type="section">Section</div>
+        <div class="draggable" data-type="card">Card</div>
+        <div class="draggable" data-type="button">Button</div>
+        <div class="draggable" data-type="form">Form</div>
+        <div class="draggable" data-type="modal">Modal</div>
+        <div class="draggable" data-type="footer">Footer</div>
+        <div class="draggable" data-type="image">Image</div>
+        <div class="draggable" data-type="list">List</div>
+        <div class="draggable" data-type="toggle">Toggle</div>
+      </div>
+      <hr style="margin:12px 0;border:0;border-top:1px solid rgba(255,255,255,0.02)">
+      <div class="small muted">Tip: click an element inside the page to select it and edit properties.</div>
+    </aside>
+
+    <main class="workspace">
+      <div class="viewport-controls">
+        <div class="muted">Device:</div>
+        <div class="seg" id="deviceSeg">
+          <button data-device="phone">Phone</button>
+          <button data-device="tablet">Tablet</button>
+          <button data-device="laptop" class="active">Laptop</button>
+        </div>
+        <div style="width:8px"></div>
+        <button id="clearBtn" class="seg">Clear Page</button>
+      </div>
+
+      <div class="canvas-wrap">
+        <div id="device" class="device laptop panel">
+          <div id="page" class="page" contenteditable="false" spellcheck="false" style="background:linear-gradient(180deg,#ffffff,#fbfdff);">
+            <!-- default page structure -->
+            <header style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:18px">
+              <div style="font-weight:700">Brand</div>
+              <nav style="display:flex;gap:12px"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></nav>
+            </header>
+            <main>
+              <section style="padding:24px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f7fbff);box-shadow:0 6px 18px rgba(12,20,30,0.04)">
+                <h1>Welcome — Edit me!</h1>
+                <p class="muted">Use the left panel to add elements. Select an element to edit properties on the right.</p>
+                <button data-generated="true">Call to action</button>
+              </section>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:100%">
+        <div class="code-boxes">
+          <div class="code-box panel">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">HTML</div><div class="code-actions"><button id="copyHtml" class="copy-btn">Copy</button></div></div>
+            <textarea id="htmlCode" readonly></textarea>
+          </div>
+          <div class="code-box panel">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">CSS</div><div class="code-actions"><button id="copyCss" class="copy-btn">Copy</button></div></div>
+            <textarea id="cssCode" readonly></textarea>
+          </div>
+          <div class="code-box panel">
+            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">JS</div><div class="code-actions"><button id="copyJs" class="copy-btn">Copy</button></div></div>
+            <textarea id="jsCode" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="panel props">
+      <h3>Properties</h3>
+      <div id="noSelection" class="small muted">No element selected — click inside the page to select an element.</div>
+      <div id="propEditor" class="hidden">
+        <div class="prop-row"><label>Tag</label><input id="propTag" readonly></div>
+        <div class="prop-row"><label>Text</label><input id="propText"></div>
+        <div class="prop-row"><label>Href</label><input id="propHref" placeholder="/path or https://" /></div>
+        <div class="prop-row"><label>Font size</label><input id="propFontSize" type="number" min="8" max="96"></div>
+        <div class="prop-row"><label>BG color</label><input id="propBg" type="color"></div>
+        <div class="prop-row"><label>Text color</label><input id="propColor" type="color"></div>
+        <div class="prop-row"><label>Classes</label><input id="propClass" placeholder="space-separated" /></div>
+        <div class="prop-row"><label>Custom CSS</label><textarea id="propCss" placeholder="e.g. padding:12px;"></textarea></div>
+        <div style="display:flex;gap:8px;margin-top:10px"><button id="applyProps" class="copy-btn">Apply</button><button id="deleteElem" class="copy-btn" style="background:var(--danger)">Delete</button></div>
+      </div>
+
+      <hr style="margin:12px 0;border:0;border-top:1px solid rgba(255,255,255,0.02)">
+      <div class="small muted">Preview controls</div>
+      <div style="margin-top:6px"><label class="small muted">Background</label><input id="pageBg" type="color" value="#ffffff" style="width:100%;margin-top:6px"></div>
+    </aside>
+  </div>
 
   <script>
-    // Simple builder logic: insertion, selection, properties, screen toggles, export
-    const palette = document.getElementById('palette');
+    // --- Core state ---
+    const appRoot = document.getElementById('appRoot');
+    const deviceEl = document.getElementById('device');
     const page = document.getElementById('page');
-    const properties = document.getElementById('properties');
-    const modeIndicator = document.getElementById('mode-indicator');
-    const modeEditBtn = document.getElementById('mode-edit');
-    const modeViewBtn = document.getElementById('mode-view');
-    const viewport = document.getElementById('viewport');
-    const screenButtons = document.querySelectorAll('.screen-btn');
-    const htmlCode = document.getElementById('html-code');
-    const cssCode = document.getElementById('css-code');
-    const jsCode = document.getElementById('js-code');
-    const copyButtons = document.querySelectorAll('[data-copy-target]');
-    const openPreviewBtn = document.getElementById('open-preview');
-    const showCodeBtn = document.getElementById('show-code');
-    const modalBackdrop = document.getElementById('modal-backdrop');
-    const modalContent = document.getElementById('modal-content');
-    const closeModal = document.getElementById('close-modal');
+    const modeEdit = document.getElementById('modeEdit');
+    const modeView = document.getElementById('modeView');
+    const deviceSeg = document.getElementById('deviceSeg');
+    const propEditor = document.getElementById('propEditor');
+    const noSel = document.getElementById('noSelection');
+    const pageBg = document.getElementById('pageBg');
 
-    let selectedEl = null;
-    let mode = 'edit';
+    let selected = null;
 
-    function setMode(m){
-      mode = m; modeIndicator.textContent = m[0].toUpperCase()+m.slice(1);
-      document.body.querySelectorAll('.btn').forEach(b=>b.classList.remove('active'));
-      if(m==='edit') modeEditBtn.classList.add('active'); else modeViewBtn.classList.add('active');
-      // toggle contenteditable and selection behavior
-      if(m==='view'){
-        page.querySelectorAll('[data-selectable]').forEach(e=>e.classList.remove('selected'));
-        selectedEl = null; renderProperties();
-        page.setAttribute('contenteditable','false');
-      } else {
-        page.setAttribute('contenteditable','false');
-      }
-    }
-    setMode('edit');
-
-    // Insert element from palette
-    palette.addEventListener('click', e=>{
-      const card = e.target.closest('.element-card'); if(!card) return;
-      const type = card.getAttribute('data-type');
-      insertElement(type);
-      generateAllCode();
-    });
-
-    function insertElement(type){
-      let el;
-      switch(type){
-        case 'navbar':
-          el = document.createElement('nav'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','navbar');
-          el.innerHTML = '<div style="font-weight:700">Brand</div><div style="display:flex;gap:8px"><a href="#">Home</a><a href="#">Features</a><a href="#">Pricing</a></div>';
-          break;
-        case 'hero':
-          el = document.createElement('section'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','hero');
-          el.innerHTML = '<h1 contenteditable="true">Hero heading</h1><p contenteditable="true">Short description</p><button data-selectable data-type="button">Call to action</button>';
-          break;
-        case 'card':
-          el = document.createElement('article'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','card');
-          el.style.padding='12px'; el.style.background='rgba(255,255,255,0.02)'; el.style.borderRadius='10px'; el.innerHTML='<h3 contenteditable="true">Card title</h3><p contenteditable="true">Card text</p><button data-selectable data-type="button">Action</button>';
-          break;
-        case 'button':
-          el = document.createElement('button'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','button'); el.textContent='Button';
-          break;
-        case 'modal':
-          const uid = 'modal-'+Date.now();
-          el = document.createElement('div'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','modal');
-          el.innerHTML = `<button class=\"open-modal\">Open modal</button><div class=\"_modal-instance\" data-modal-id=\"${uid}\" style=\"display:none\">\n  <h3 contenteditable=\"true\">Modal title</h3>\n  <p contenteditable=\"true\">Modal content</p>\n</div>`;
-          break;
-        case 'form':
-          el = document.createElement('form'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','form');
-          el.innerHTML = '<label> Email <input placeholder="you@company.com"/></label><br/><button type="submit">Submit</button>';
-          break;
-        case 'toggle':
-          el = document.createElement('label'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','toggle');
-          el.innerHTML = '<input type="checkbox"/> <span>Toggle</span>';
-          break;
-        case 'footer':
-          el = document.createElement('footer'); el.setAttribute('data-selectable',''); el.setAttribute('data-type','footer'); el.innerHTML='<small>© Company</small>';
-          break;
-        default:
-          el = document.createElement('div'); el.setAttribute('data-selectable',''); el.textContent = 'New block';
-      }
-      page.appendChild(el);
-      attachSelectable(el);
-    }
-
-    // Selection handling
-    function attachSelectable(root){
-      root.querySelectorAll('[data-selectable]').forEach(el=>{
-        el.addEventListener('click', e=>{
-          e.stopPropagation();
-          if(mode==='view') return; // no selecting in view mode
-          if(selectedEl) selectedEl.classList.remove('selected');
-          selectedEl = el; el.classList.add('selected');
-          renderProperties();
-        });
-      });
-      // also make the element root selectable
-      if(root.hasAttribute && root.hasAttribute('data-selectable')){
-        const el = root;
-        el.addEventListener('click', e=>{
-          e.stopPropagation();
-          if(mode==='view') return;
-          if(selectedEl) selectedEl.classList.remove('selected');
-          selectedEl = el; el.classList.add('selected'); renderProperties();
-        });
-      }
-    }
-
-    // make existing selectable items attach events
-    document.querySelectorAll('[data-selectable]').forEach(el=>attachSelectable(el));
-
-    // deselect when clicking outside
-    document.addEventListener('click', e=>{
-      if(selectedEl){ selectedEl.classList.remove('selected'); selectedEl = null; renderProperties(); }
-    });
-
-    // render properties panel
-    function renderProperties(){
-      if(!selectedEl){ properties.innerHTML = '<div class="small" style="color:var(--muted)">No element selected</div>'; return; }
-      const type = selectedEl.getAttribute('data-type')||selectedEl.tagName.toLowerCase();
-      properties.innerHTML = '';
-
-      // title
-      const title = document.createElement('div'); title.className='small'; title.style.fontWeight='600'; title.textContent = 'Type: '+type; properties.appendChild(title);
-
-      // text content
-      const textRow = document.createElement('div'); textRow.className='prop-row';
-      const label = document.createElement('label'); label.textContent='Text';
-      const input = document.createElement('input'); input.value = selectedEl.innerText.trim();
-      input.addEventListener('input', ()=>{ // only change text nodes if element doesn't have complex children
-        // if element has contenteditable children keep them
-        if(selectedEl.querySelector('[contenteditable]')) return;
-        selectedEl.textContent = input.value;
-        generateAllCode();
-      });
-      textRow.appendChild(label); textRow.appendChild(input); properties.appendChild(textRow);
-
-      // background color
-      const bgRow = document.createElement('div'); bgRow.className='prop-row';
-      const lbl2 = document.createElement('label'); lbl2.textContent='Background';
-      const bgInput = document.createElement('input'); bgInput.type='color';
-      // try to compute current background
-      const bg = window.getComputedStyle(selectedEl).backgroundColor;
-      function rgbaToHex(rgb){
-        if(!rgb) return '#000000';
-        const nums = rgb.replace(/rgba?\(|\s+|\)/g,'').split(',');
-        const r = parseInt(nums[0]||0), g = parseInt(nums[1]||0), b = parseInt(nums[2]||0);
-        return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-      }
-      try{ bgInput.value = rgbaToHex(bg); }catch(e){ bgInput.value='#000000'; }
-      bgInput.addEventListener('input', ()=>{ selectedEl.style.background = bgInput.value; generateAllCode(); });
-      bgRow.appendChild(lbl2); bgRow.appendChild(bgInput); properties.appendChild(bgRow);
-
-      // text size
-      const sizeRow = document.createElement('div'); sizeRow.className='prop-row';
-      const l3 = document.createElement('label'); l3.textContent='Font size';
-      const sizeInput = document.createElement('input'); sizeInput.type='number'; sizeInput.value = parseInt(window.getComputedStyle(selectedEl).fontSize)||16;
-      sizeInput.addEventListener('input', ()=>{ selectedEl.style.fontSize = sizeInput.value+'px'; generateAllCode(); });
-      sizeRow.appendChild(l3); sizeRow.appendChild(sizeInput); properties.appendChild(sizeRow);
-
-      // link for anchors / buttons
-      if(selectedEl.tagName.toLowerCase()==='a' || (selectedEl.getAttribute('data-type')==='button')){
-        const linkRow = document.createElement('div'); linkRow.className='prop-row';
-        const l4 = document.createElement('label'); l4.textContent='URL';
-        const linkInput = document.createElement('input'); linkInput.placeholder='https://';
-        linkInput.value = selectedEl.getAttribute('href')||selectedEl.getAttribute('data-href')||'';
-        linkInput.addEventListener('input', ()=>{ if(selectedEl.tagName.toLowerCase()==='a') selectedEl.href = linkInput.value; else selectedEl.setAttribute('data-href', linkInput.value); generateAllCode(); });
-        linkRow.appendChild(l4); linkRow.appendChild(linkInput); properties.appendChild(linkRow);
-      }
-
-      // alignment
-      const alignRow = document.createElement('div'); alignRow.className='prop-row';
-      const l5 = document.createElement('label'); l5.textContent='Align';
-      const sel = document.createElement('select'); ['inherit','left','center','right'].forEach(v=>{ const opt=document.createElement('option'); opt.value=v; opt.textContent=v; sel.appendChild(opt)});
-      sel.value = window.getComputedStyle(selectedEl).textAlign || 'inherit';
-      sel.addEventListener('change', ()=>{ selectedEl.style.textAlign = sel.value; generateAllCode(); });
-      alignRow.appendChild(l5); alignRow.appendChild(sel); properties.appendChild(alignRow);
-
-      // delete
-      const delRow = document.createElement('div'); delRow.style.display='flex'; delRow.style.justifyContent='flex-end';
-      const delBtn = document.createElement('button'); delBtn.className='btn'; delBtn.textContent='Delete';
-      delBtn.addEventListener('click', ()=>{ selectedEl.remove(); selectedEl=null; renderProperties(); generateAllCode(); }); delRow.appendChild(delBtn); properties.appendChild(delRow);
-    }
-
-    // attach for current elements
-    function initAttach(){ document.querySelectorAll('[data-selectable]').forEach(el=>attachSelectable(el)); }
-    initAttach();
-
-    // screen toggles
-    screenButtons.forEach(b=>b.addEventListener('click', ()=>{
-      screenButtons.forEach(x=>x.classList.remove('active'));
-      b.classList.add('active'); const device = b.getAttribute('data-device');
-      document.querySelectorAll('.viewport').forEach(v=>v.className='viewport');
-      viewport.className = 'viewport '+device;
-    }));
-
-    // copy button logic
-    copyButtons.forEach(btn=>btn.addEventListener('click', ()=>{
-      const target = document.querySelector(btn.getAttribute('data-copy-target'));
-      target.select(); document.execCommand('copy'); btn.textContent='Copied'; setTimeout(()=>btn.textContent='Copy',1000);
-    }));
-
-    // export / generate code
-    function generateAllCode(){
-      // HTML: innerHTML of page but cleaned of builder-only attributes
+    // helper: sanitize attribute set for exported HTML
+    function serializeHTML(){
+      // clone page and remove UI helpers
       const clone = page.cloneNode(true);
-      // remove selection markers and builder IDs
-      clone.querySelectorAll('[data-selectable]').forEach(node=>{
-        node.removeAttribute('data-selectable'); node.removeAttribute('data-type'); node.classList.remove('selected');
-        if(node.hasAttribute('data-href')){ const h = node.getAttribute('data-href'); if(node.tagName.toLowerCase()!=='a'){ const a = document.createElement('a'); a.href = h; a.innerHTML = node.innerHTML; node.parentNode.replaceChild(a,node); } else { node.href = h; } }
-      });
-      // pick up modal instances
-      // create CSS: minimal to include builder basics for export
-      const exportedHTML = '<!doctype html>\n<html>\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<link rel="stylesheet" href="styles.css">\n</head>\n<body>\n'+clone.innerHTML+'\n<script src="script.js"></script>\n</body>\n</html>';
-
-      const exportedCSS = `/* Basic exported styles (minimal) */\nbody{font-family:Inter,system-ui,Arial;line-height:1.4;background:#07101a;color:#e9f3ff;padding:20px}\nbutton{background:#147a5a;color:white;padding:8px 12px;border-radius:8px;border:none}\nnav a{margin-left:8px;color:inherit;text-decoration:none}\n.card{background:rgba(255,255,255,0.02);padding:12px;border-radius:10px}\n`;
-
-      const exportedJS = `// Minimal exported JS to support modals and data-href buttons\ndocument.addEventListener('click', function(e){
-  if(e.target.matches('[data-href]')){
-    const url = e.target.getAttribute('data-href'); if(url) window.location.href = url;
-  }
-  if(e.target.matches('.open-modal')){
-    const inst = e.target.parentNode.querySelector('._modal-instance'); if(inst){ const modal = document.createElement('div'); modal.style.position='fixed';modal.style.inset=0;modal.style.display='flex';modal.style.alignItems='center';modal.style.justifyContent='center';modal.style.background='rgba(0,0,0,0.6)'; modal.innerHTML = '<div style="background:#fff;color:#000;padding:20px;border-radius:10px;max-width:90%">'+inst.innerHTML+'<div style="text-align:right;margin-top:12px"><button id=\"_close\">Close</button></div></div>'; document.body.appendChild(modal); modal.querySelector('#_close').addEventListener('click', ()=>modal.remove()); }
-  }
-});`;
-
-      htmlCode.value = exportedHTML;
-      cssCode.value = exportedCSS;
-      jsCode.value = exportedJS;
+      // remove data-generated attributes etc
+      clone.querySelectorAll('[data-generated]').forEach(n=>n.removeAttribute('data-generated'));
+      // return inner html wrapped
+      return '<div id="page-root">'+clone.innerHTML+'</div>';
     }
 
-    // initial generation
-    generateAllCode();
+    function generateCSS(){
+      // For simplicity return a small base CSS + any custom styles stored on elements via data-custom-css
+      let css = `body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;padding:0;color:#071329}#page-root{padding:24px;background:${pageBg.value}}\n`;
+      // collect custom css
+      page.querySelectorAll('[data-custom-css]').forEach((el,i)=>{
+        const uid = el.getAttribute('data-uid') || ('gen'+i);
+        css += `/* styles for ${el.tagName.toLowerCase()} (uid:${uid}) */\n`;
+        css += `#page-root [data-uid="${uid}"]{${el.getAttribute('data-custom-css')}}\n`;
+      });
+      return css;
+    }
+    function generateJS(){
+      // simple hooks: collect elements that have data-action attributes
+      let js = `// Simple interactivity hooks\ndocument.addEventListener('DOMContentLoaded',function(){\n`;
+      page.querySelectorAll('[data-action]').forEach((el)=>{
+        const action = el.getAttribute('data-action');
+        const uid = el.getAttribute('data-uid');
+        if(action==='openModal'){
+          const target = el.getAttribute('data-target');
+          js += `  document.querySelector('[data-uid="${uid}"]').addEventListener('click',function(){document.querySelector('${target}').style.display='block'});\n`;
+        }
+      });
+      js += '});\n';
+      return js;
+    }
 
-    // open live preview — opens a new window with the generated HTML/CSS/JS inlined
-    openPreviewBtn.addEventListener('click', ()=>{
-      const w = window.open();
-      const html = htmlCode.value.replace('<link rel="stylesheet" href="styles.css">', '<style>'+cssCode.value+'</style>').replace('<script src="script.js"></script>', '<script>'+jsCode.value+'<\/script>');
-      w.document.open(); w.document.write(html); w.document.close();
-    });
+    function refreshCode(){
+      document.getElementById('htmlCode').value = serializeHTML();
+      document.getElementById('cssCode').value = generateCSS();
+      document.getElementById('jsCode').value = generateJS();
+    }
 
-    // show code toggles
-    showCodeBtn.addEventListener('click', ()=>{
-      // simple scroll to right panel
-      document.querySelector('.right').scrollIntoView({behavior:'smooth'});
-    });
+    // set device width
+    deviceSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+      deviceSeg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      const d = b.getAttribute('data-device');
+      deviceEl.classList.remove('phone','tablet','laptop');
+      deviceEl.classList.add(d);
+    }));
 
-    // modal backdrop close
-    closeModal.addEventListener('click', ()=>{ modalBackdrop.classList.remove('show'); modalContent.innerHTML=''; });
+    // mode toggle
+    modeEdit.addEventListener('click',()=>{modeEdit.classList.add('active');modeView.classList.remove('active');appRoot.classList.remove('view-mode');});
+    modeView.addEventListener('click',()=>{modeView.classList.add('active');modeEdit.classList.remove('active');appRoot.classList.add('view-mode');});
 
-    // hook into dynamic modal open from builder elements
-    page.addEventListener('click', e=>{
-      if(e.target.classList.contains('open-modal')){
-        e.stopPropagation(); const inst = e.target.parentNode.querySelector('._modal-instance'); if(inst){ modalContent.innerHTML = inst.innerHTML; modalBackdrop.classList.add('show'); }
+    // palette actions -> append element
+    document.querySelectorAll('.draggable').forEach(el=>el.addEventListener('click',()=>{
+      const type = el.getAttribute('data-type');
+      addElement(type);
+    }));
+
+    function uid(){return 'u'+Math.random().toString(36).slice(2,9)}
+
+    function addElement(type){
+      let el;
+      if(type==='nav'){
+        el = document.createElement('nav');
+        el.innerHTML = `<strong>Brand</strong><span style=\"margin-left:12px\"><a href=\"#\">Home</a> <a href=\"#\">About</a></span>`;
+      }else if(type==='hero'){
+        el = document.createElement('section');
+        el.innerHTML = `<h2>Hero title</h2><p class=\"muted\">Short description</p><button data-generated=\"true\">Get started</button>`;
+      }else if(type==='section'){
+        el = document.createElement('section'); el.innerHTML = `<h3>Section</h3><p>Some text here</p>`;
+      }else if(type==='card'){
+        el = document.createElement('div'); el.innerHTML = `<h4>Card</h4><p>Card body</p><button>Action</button>`; el.style.border='1px solid rgba(0,0,0,0.06)'; el.style.padding='12px'; el.style.borderRadius='8px';
+      }else if(type==='button'){
+        el = document.createElement('button'); el.textContent='Click me';
+      }else if(type==='form'){
+        el = document.createElement('form'); el.innerHTML=`<input placeholder=\"Name\"/><input placeholder=\"Email\"/><button>Submit</button>`; el.addEventListener('submit',(e)=>e.preventDefault());
+      }else if(type==='modal'){
+        el = document.createElement('div'); el.innerHTML=`<div class=\"modal-inner\"><h3>Modal Title</h3><p>Modal content</p><button data-action=\"closeModal\">Close</button></div>`; el.style.display='none'; el.style.position='fixed'; el.style.left='20%'; el.style.top='20%'; el.style.background='white'; el.style.padding='18px'; el.style.zIndex=999;
+      }else if(type==='footer'){
+        el = document.createElement('footer'); el.innerHTML=`<small>© ${new Date().getFullYear()} Brand</small>`;
+      }else if(type==='image'){
+        el = document.createElement('img'); el.src='https://via.placeholder.com/600x300?text=Image'; el.style.maxWidth='100%';
+      }else if(type==='list'){
+        el = document.createElement('ul'); el.innerHTML='<li>Item 1</li><li>Item 2</li>';
+      }else if(type==='toggle'){
+        el = document.createElement('label'); el.innerHTML=`<input type=\"checkbox\" /> Toggle`;
+      }else{
+        el = document.createElement('div'); el.textContent='Element';
       }
-      // open data-href
-      if(e.target.hasAttribute('data-href') && mode==='view'){
-        window.location.href = e.target.getAttribute('data-href');
-      }
+      const id = uid();
+      el.setAttribute('data-uid',id);
+      el.setAttribute('tabindex',0);
+      el.addEventListener('click',elSelect);
+      // mark as generated for cleanup
+      el.setAttribute('data-generated','true');
+      page.appendChild(el);
+      refreshCode();
+    }
+
+    // clear page
+    document.getElementById('clearBtn').addEventListener('click',()=>{
+      if(confirm('Clear the page content and reset to blank?')){ page.innerHTML=''; refreshCode(); }
+    })
+
+    // selection
+    function elSelect(e){
+      e.stopPropagation();
+      if(selected) selected.removeAttribute('data-selected');
+      selected = e.currentTarget;
+      selected.setAttribute('data-selected','true');
+      showProps(selected);
+    }
+    page.addEventListener('click',()=>{ if(selected){selected.removeAttribute('data-selected'); selected=null; hideProps()} });
+
+    function showProps(el){
+      noSel.classList.add('hidden'); propEditor.classList.remove('hidden');
+      document.getElementById('propTag').value = el.tagName.toLowerCase();
+      document.getElementById('propText').value = el.innerText || '';
+      document.getElementById('propHref').value = el.getAttribute('href')||'';
+      document.getElementById('propFontSize').value = parseInt(window.getComputedStyle(el).fontSize) || '';
+      document.getElementById('propBg').value = rgbToHex(window.getComputedStyle(el).backgroundColor) || '#ffffff';
+      document.getElementById('propColor').value = rgbToHex(window.getComputedStyle(el).color) || '#000000';
+      document.getElementById('propClass').value = el.className || '';
+      document.getElementById('propCss').value = el.getAttribute('data-custom-css') || '';
+    }
+    function hideProps(){ noSel.classList.remove('hidden'); propEditor.classList.add('hidden'); }
+
+    // apply properties
+    document.getElementById('applyProps').addEventListener('click',()=>{
+      if(!selected) return;
+      const txt = document.getElementById('propText').value;
+      const href = document.getElementById('propHref').value;
+      const fs = document.getElementById('propFontSize').value;
+      const bg = document.getElementById('propBg').value;
+      const color = document.getElementById('propColor').value;
+      const classes = document.getElementById('propClass').value;
+      const custom = document.getElementById('propCss').value;
+      // apply
+      if('href' in selected) selected.setAttribute('href',href);
+      selected.innerText = txt;
+      if(fs) selected.style.fontSize = fs+'px';
+      selected.style.background = bg;
+      selected.style.color = color;
+      selected.className = classes;
+      if(custom){ selected.setAttribute('data-custom-css',custom); } else { selected.removeAttribute('data-custom-css') }
+      refreshCode();
     });
 
-    // selection events for newly added content (mutation observer)
-    const mo = new MutationObserver(muts=>{ muts.forEach(m=>{ m.addedNodes && m.addedNodes.forEach(n=>{ if(n.nodeType===1) attachSelectable(n); }); }); generateAllCode(); });
-    mo.observe(page, {childList:true, subtree:true});
+    // delete
+    document.getElementById('deleteElem').addEventListener('click',()=>{
+      if(!selected) return; selected.remove(); selected=null; hideProps(); refreshCode();
+    });
 
-    // keyboard shortcuts: delete selected
-    document.addEventListener('keydown', e=>{ if(e.key==='Delete' && selectedEl){ selectedEl.remove(); selectedEl=null; renderProperties(); generateAllCode(); } });
+    // page background
+    pageBg.addEventListener('input',()=>{ page.style.background=pageBg.value; refreshCode(); });
 
-    // keep code updated when contenteditable children change
-    page.addEventListener('input', ()=>generateAllCode());
+    // copy actions
+    function copyText(id){ const t=document.getElementById(id); t.select(); document.execCommand('copy'); }
+    document.getElementById('copyHtml').addEventListener('click',()=>copyText('htmlCode'));
+    document.getElementById('copyCss').addEventListener('click',()=>copyText('cssCode'));
+    document.getElementById('copyJs').addEventListener('click',()=>copyText('jsCode'));
 
-    // simple save/load from localStorage
-    window.addEventListener('beforeunload', ()=>{ localStorage.setItem('builder_html', page.innerHTML); });
-    (function(){ const saved = localStorage.getItem('builder_html'); if(saved) page.innerHTML = saved; initAttach(); generateAllCode(); })();
+    // utilities
+    function componentToHex(c) { const hex = c.toString(16); return hex.length==1 ? '0'+hex : hex; }
+    function rgbToHex(rgb){ if(!rgb) return '#ffffff'; const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); if(!m) return '#ffffff'; return '#'+componentToHex(parseInt(m[1]))+componentToHex(parseInt(m[2]))+componentToHex(parseInt(m[3])); }
 
-    // mode switch
-    modeEditBtn.addEventListener('click', ()=>setMode('edit'));
-    modeViewBtn.addEventListener('click', ()=>setMode('view'));
+    // initial refresh
+    refreshCode();
 
+    // prevent selection blur when editing inputs
+    document.querySelectorAll('input,textarea,button').forEach(i=>i.addEventListener('click',(e)=>e.stopPropagation()));
+
+    // live preview button toggles view mode
+    document.getElementById('previewBtn').addEventListener('click',()=>{ modeView.click(); });
+
+    // when JS changes: keep code updated
+    const obs = new MutationObserver((m)=>refreshCode());
+    obs.observe(page,{childList:true,subtree:true,attributes:true,characterData:true});
   </script>
 </body>
 </html>
