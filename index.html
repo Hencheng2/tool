@@ -1,940 +1,226 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Visual Page Builder — Expanded Hardcoded Palette</title>
-
+  <meta charset="UTF-8">
+  <title>Visual Page Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* ===========================
-       Builder UI (dark) - human readable styles
-       =========================== */
-    :root{
-      --bg:#071018; --panel:#0f1720; --muted:#9aa8b2; --accent:#6c5ce7;
-      --card:#0b1220; --white:#e6eef3; --danger:#ff6b6b; --success:#4caf50;
+    /* ===== Base Styles ===== */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #0b1220; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+    h3 { font-size: 14px; margin: 6px 0; }
+    button { cursor: pointer; }
+
+    /* ===== Sidebar (Palette) ===== */
+    #palette {
+      width: 260px; background: #111827; color: #fff;
+      overflow-y: auto; padding: 10px; border-right: 1px solid #222;
     }
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#03060a,#071018);color:var(--white);padding:12px;box-sizing:border-box}
-    h1{margin:0;font-size:18px}
-    .app{display:grid;grid-template-columns:320px 1fr 420px;gap:12px;height:calc(100vh - 24px)}
-    .panel{background:var(--panel);border-radius:10px;padding:12px;box-shadow:0 8px 30px rgba(2,6,11,0.6);overflow:auto}
-    h2{font-size:14px;margin:0 0 8px 0;color:var(--white)}
-    .small{font-size:12px;color:var(--muted)}
-    /* Palette */
-    .category{border:1px solid rgba(255,255,255,0.03);margin-bottom:10px;border-radius:8px;overflow:hidden}
-    .category .head{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#081018;cursor:pointer}
-    .category .title{font-weight:600;font-size:13px}
-    .category .list{padding:8px;display:flex;flex-wrap:wrap;gap:8px;background:linear-gradient(0deg,#07121a,transparent)}
-    .palette-item{padding:8px 10px;border-radius:6px;background:#0b1220;border:1px solid rgba(255,255,255,0.03);cursor:grab;font-size:13px;min-width:120px;text-align:center}
-    .palette-item:active{cursor:grabbing}
-    /* Canvas */
-    .canvas-wrap{display:flex;flex-direction:column;gap:8px;height:100%}
-    .canvas-top{display:flex;justify-content:space-between;align-items:center}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    .controls button{background:#07141a;border:1px solid rgba(255,255,255,0.03);color:var(--white);padding:6px 8px;border-radius:6px;cursor:pointer}
-    .controls button.primary{background:var(--accent);border:0}
-    .device-frame{display:flex;justify-content:center;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg,#ffffff03,#00000010)}
-    .stage-viewport{background:var(--white);border-radius:6px;overflow:auto;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04)}
-    .stage-empty{padding:26px;color:#6f7c86;text-align:center}
-    .element-box{position:relative;padding:8px;margin:8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:#ffffff;color:#0b1220}
-    .element-selected{outline:3px solid rgba(108,92,231,0.75)}
-    .inner-dropzone{border:1px dashed rgba(0,0,0,0.06);padding:6px;border-radius:6px;margin-top:6px;min-height:8px}
-    .ruler{position:absolute;left:0;right:0;height:22px;top:0;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);color:#6f7c86;font-size:11px;display:flex;align-items:center;padding-left:6px;border-bottom:1px solid rgba(255,255,255,0.02)}
-    /* Inspector */
-    .inspector .field{margin-bottom:8px}
-    .inspector label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-    .inspector input[type="text"], .inspector input[type="url"], .inspector input[type="number"], .inspector textarea, .inspector select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#071419;color:var(--white);box-sizing:border-box;font-size:13px}
-    .inspector input[type="color"]{height:36px;padding:4px}
-    .inspector textarea{min-height:64px;resize:vertical}
-    .layers{max-height:220px;overflow:auto;margin-top:8px}
-    .layer-item{display:flex;justify-content:space-between;align-items:center;padding:6px;border-radius:8px;margin-bottom:6px;background:#07141a;font-size:13px;cursor:pointer}
-    .layer-item.active{background:linear-gradient(90deg, rgba(108,92,231,0.18), rgba(93,211,158,0.05))}
-    /* Code area */
-    .code-area{display:flex;gap:8px;margin-top:12px}
-    .code-box{flex:1;background:#07141a;border-radius:8px;padding:8px;display:flex;flex-direction:column;height:220px}
-    .code-box textarea{flex:1;background:#02070a;border-radius:6px;padding:8px;color:#cfe7e2;border:0;resize:vertical;font-family:monospace;font-size:12px}
-    .code-actions{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}
-    .btn{padding:8px 10px;border-radius:8px;border:0;background:#0a1220;color:var(--white);cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
-    @media (max-width:1150px){ .app{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto} .panel{max-height:360px} }
-    /* Minimal exported UI classes (for exported pages) */
-    .ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none}
-    .ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff}
-    .ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff}
-    .ui-grid{display:grid;gap:12px}
-    .ui-grid-2{grid-template-columns:1fr 1fr}
-    .ui-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eee;color:#333;font-size:12px}
-    .ui-avatar img{width:100%;height:100%;object-fit:cover}
-    .ui-form input,.ui-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px}
+    .category { margin-bottom: 10px; }
+    .category h3 { background: #1f2937; padding: 6px; cursor: pointer; }
+    .elements { padding-left: 10px; display: none; }
+    .element { background: #374151; margin: 4px 0; padding: 6px; border-radius: 4px; cursor: grab; }
+    .element:hover { background: #4b5563; }
+    .category.active .elements { display: block; }
+
+    /* ===== Canvas ===== */
+    #canvas {
+      flex: 1; background: #1e293b; margin: 10px; border: 2px dashed #334155;
+      overflow: auto; padding: 20px; position: relative;
+    }
+    .drop-target { min-height: 80px; }
+    .selected { outline: 2px solid #3b82f6; }
+
+    /* ===== Inspector ===== */
+    #inspector {
+      width: 300px; background: #111827; color: #fff;
+      border-left: 1px solid #222; padding: 10px; overflow-y: auto;
+    }
+    #inspector label { display: block; margin: 6px 0 2px; font-size: 13px; }
+    #inspector input, #inspector select, #inspector textarea {
+      width: 100%; padding: 6px; background: #1f2937; color: #fff; border: 1px solid #374151; border-radius: 4px;
+    }
+
+    /* ===== Output ===== */
+    #output {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: #0f172a; color: #fff; display: flex; border-top: 2px solid #222;
+    }
+    .code-block { flex: 1; display: flex; flex-direction: column; }
+    .code-block textarea { flex: 1; background: #1e293b; color: #fff; font-family: monospace; padding: 6px; }
+    .code-block button { background: #3b82f6; border: none; padding: 6px; color: #fff; cursor: pointer; }
   </style>
 </head>
 <body>
-  <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
-    <h1 style="margin:0">Visual Page Builder — Expanded Palette (Hardcoded)</h1>
-    <div class="small">Drag elements to the canvas • Elements are nestable • Inspector supports styling & links</div>
+
+  <!-- Palette -->
+  <div id="palette">
+    <div class="category">
+      <h3>Icons</h3>
+      <div class="elements">
+        <div class="element" draggable="true" data-html="<span>🏠 Home</span>">Home Icon</div>
+        <div class="element" draggable="true" data-html="<span>🔍 Search</span>">Search Icon</div>
+        <div class="element" draggable="true" data-html="<span>❤️ Like</span>">Heart Icon</div>
+      </div>
+    </div>
+    <div class="category">
+      <h3>Navigation</h3>
+      <div class="elements">
+        <div class="element" draggable="true" data-html="<nav style='display:flex;gap:10px;'><a href='#'>Home</a><a href='#'>About</a><a href='#'>Contact</a></nav>">Top Nav</div>
+        <div class="element" draggable="true" data-html="<div style='width:200px;background:#222;padding:10px;'><a href='#'>Dashboard</a></div>">Sidebar</div>
+      </div>
+    </div>
+    <div class="category">
+      <h3>Buttons</h3>
+      <div class="elements">
+        <div class="element" draggable="true" data-html="<button style='padding:10px 20px;background:#3b82f6;color:#fff;border:none;border-radius:4px;'>Click Me</button>">Primary Button</div>
+        <div class="element" draggable="true" data-html="<button style='padding:10px 20px;background:transparent;color:#3b82f6;border:1px solid #3b82f6;border-radius:4px;'>Secondary</button>">Secondary Button</div>
+      </div>
+    </div>
+    <div class="category">
+      <h3>Forms</h3>
+      <div class="elements">
+        <div class="element" draggable="true" data-html="<input type='text' placeholder='Enter text' style='padding:8px;border:1px solid #666;border-radius:4px;'>">Text Input</div>
+        <div class="element" draggable="true" data-html="<textarea placeholder='Message' style='padding:8px;border:1px solid #666;border-radius:4px;'></textarea>">Textarea</div>
+      </div>
+    </div>
+    <div class="category">
+      <h3>Cards</h3>
+      <div class="elements">
+        <div class="element" draggable="true" data-html="<div style='border:1px solid #555;border-radius:6px;padding:10px;'><h4>Card Title</h4><p>Some description here.</p></div>">Simple Card</div>
+      </div>
+    </div>
   </div>
 
-  <div class="app">
-    <!-- LEFT: Hardcoded palette (categorized) -->
-    <aside class="panel">
-      <h2>Palette</h2>
-
-      <!-- Icons -->
-      <div class="category">
-        <div class="head"><div class="title">Icons</div><div class="small">+</div></div>
-        <div class="list" style="display:flex;flex-wrap:wrap">
-          <div class="palette-item" draggable="true" data-type="icon_glyph">Glyph Icon (house)</div>
-          <div class="palette-item" draggable="true" data-type="icon_material">Material Icon (placeholder)</div>
-          <div class="palette-item" draggable="true" data-type="icon_font">Font-Based Icon (placeholder)</div>
-          <div class="palette-item" draggable="true" data-type="icon_emoji">Emoji Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_animated">Animated Icon (pulse)</div>
-          <div class="palette-item" draggable="true" data-type="icon_social">Social Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_action">Action Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_status">Status Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_nav">Navigation Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_duotone">Duotone Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_neumo">Neumorphic Icon</div>
-          <div class="palette-item" draggable="true" data-type="icon_weather">Weather Icon</div>
-        </div>
-      </div>
-
-      <!-- Navigation -->
-      <div class="category">
-        <div class="head"><div class="title">Navigation</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="nav_top">Top Navigation Bar</div>
-          <div class="palette-item" draggable="true" data-type="nav_hamburger">Hamburger Menu</div>
-          <div class="palette-item" draggable="true" data-type="nav_sidebar">Sidebar</div>
-          <div class="palette-item" draggable="true" data-type="nav_bottom">Bottom Navigation</div>
-          <div class="palette-item" draggable="true" data-type="nav_tabs">Tab Bar</div>
-          <div class="palette-item" draggable="true" data-type="nav_breadcrumbs">Breadcrumbs</div>
-          <div class="palette-item" draggable="true" data-type="nav_mega">Mega Menu</div>
-          <div class="palette-item" draggable="true" data-type="nav_fab">Floating Action Button (FAB)</div>
-          <div class="palette-item" draggable="true" data-type="nav_sticky">Sticky Navigation</div>
-          <div class="palette-item" draggable="true" data-type="nav_pagination">Pagination</div>
-          <div class="palette-item" draggable="true" data-type="nav_dropdown">Dropdown Menu</div>
-          <div class="palette-item" draggable="true" data-type="nav_accordion">Accordion Menu</div>
-          <div class="palette-item" draggable="true" data-type="nav_steps">Step Indicators</div>
-          <div class="palette-item" draggable="true" data-type="nav_backtotop">Back-to-Top Button</div>
-        </div>
-      </div>
-
-      <!-- Fonts -->
-      <div class="category">
-        <div class="head"><div class="title">Fonts</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="font_inter">Inter (system)</div>
-          <div class="palette-item" draggable="true" data-type="font_roboto">Roboto</div>
-          <div class="palette-item" draggable="true" data-type="font_montserrat">Montserrat</div>
-          <div class="palette-item" draggable="true" data-type="font_serif">Georgia (Serif)</div>
-          <div class="palette-item" draggable="true" data-type="font_mono">Fira Code (Monospace)</div>
-        </div>
-      </div>
-
-      <!-- Buttons -->
-      <div class="category">
-        <div class="head"><div class="title">Buttons</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="btn_primary">Primary Button</div>
-          <div class="palette-item" draggable="true" data-type="btn_secondary">Secondary Button</div>
-          <div class="palette-item" draggable="true" data-type="btn_icon">Icon Button</div>
-          <div class="palette-item" draggable="true" data-type="btn_toggle">Toggle Button</div>
-          <div class="palette-item" draggable="true" data-type="btn_ghost">Ghost Button</div>
-          <div class="palette-item" draggable="true" data-type="btn_split">Split Button</div>
-        </div>
-      </div>
-
-      <!-- Forms -->
-      <div class="category">
-        <div class="head"><div class="title">Forms</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="form_input">Text Input</div>
-          <div class="palette-item" draggable="true" data-type="form_textarea">Textarea</div>
-          <div class="palette-item" draggable="true" data-type="form_select">Dropdown / Select</div>
-          <div class="palette-item" draggable="true" data-type="form_checkbox">Checkbox</div>
-          <div class="palette-item" draggable="true" data-type="form_radio">Radio</div>
-          <div class="palette-item" draggable="true" data-type="form_file">File Upload</div>
-          <div class="palette-item" draggable="true" data-type="form_search">Search Bar</div>
-          <div class="palette-item" draggable="true" data-type="form_slider">Slider</div>
-          <div class="palette-item" draggable="true" data-type="form_validation">Validation Indicator</div>
-        </div>
-      </div>
-
-      <!-- Cards -->
-      <div class="category">
-        <div class="head"><div class="title">Cards & Content</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="card_content">Content Card</div>
-          <div class="palette-item" draggable="true" data-type="card_profile">Profile Card</div>
-          <div class="palette-item" draggable="true" data-type="card_feature">Feature Card</div>
-        </div>
-      </div>
-
-      <!-- Modals, toasts -->
-      <div class="category">
-        <div class="head"><div class="title">Modals & Notifications</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="modal_alert">Alert Modal</div>
-          <div class="palette-item" draggable="true" data-type="modal_form">Form Modal</div>
-          <div class="palette-item" draggable="true" data-type="modal_full">Full-Screen Modal</div>
-          <div class="palette-item" draggable="true" data-type="toast">Toast Notification</div>
-        </div>
-      </div>
-
-      <!-- Loaders -->
-      <div class="category">
-        <div class="head"><div class="title">Loaders & Progress</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="loader_spinner">Circular Spinner</div>
-          <div class="palette-item" draggable="true" data-type="progress_linear">Progress Bar</div>
-          <div class="palette-item" draggable="true" data-type="skeleton">Skeleton Loader</div>
-        </div>
-      </div>
-
-      <!-- Avatars & badges -->
-      <div class="category">
-        <div class="head"><div class="title">Avatars & Badges</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="avatar_circle">Circular Avatar</div>
-          <div class="palette-item" draggable="true" data-type="avatar_initials">Initials Avatar</div>
-          <div class="palette-item" draggable="true" data-type="badge_new">Status Badge</div>
-        </div>
-      </div>
-
-      <!-- Sliders / Carousels -->
-      <div class="category">
-        <div class="head"><div class="title">Sliders & Carousels</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="carousel_simple">Image Carousel</div>
-          <div class="palette-item" draggable="true" data-type="carousel_auto">Autoplay Slider</div>
-        </div>
-      </div>
-
-      <!-- Tables -->
-      <div class="category">
-        <div class="head"><div class="title">Tables</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="table_basic">Data Table</div>
-          <div class="palette-item" draggable="true" data-type="pricing_table">Pricing Table</div>
-        </div>
-      </div>
-
-      <!-- Alerts, search filters, footers, headers -->
-      <div class="category">
-        <div class="head"><div class="title">Alerts & Helpers</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="alert_success">Success Alert</div>
-          <div class="palette-item" draggable="true" data-type="alert_warning">Warning Alert</div>
-          <div class="palette-item" draggable="true" data-type="alert_error">Error Alert</div>
-          <div class="palette-item" draggable="true" data-type="search_filters">Search Filters (chips)</div>
-          <div class="palette-item" draggable="true" data-type="footer_simple">Footer</div>
-          <div class="palette-item" draggable="true" data-type="header_hero">Hero Header</div>
-          <div class="palette-item" draggable="true" data-type="divider">Divider</div>
-        </div>
-      </div>
-
-      <!-- Progress / gamification -->
-      <div class="category">
-        <div class="head"><div class="title">Gamification & AR</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="progress_badge">Progress Badge</div>
-          <div class="palette-item" draggable="true" data-type="leaderboard">Leaderboard</div>
-          <div class="palette-item" draggable="true" data-type="ar_3d">3D Product (placeholder)</div>
-        </div>
-      </div>
-
-      <!-- Accessibility -->
-      <div class="category">
-        <div class="head"><div class="title">Accessibility</div><div class="small">+</div></div>
-        <div class="list">
-          <div class="palette-item" draggable="true" data-type="skip">Skip-to-content</div>
-          <div class="palette-item" draggable="true" data-type="aria_landmark">ARIA Landmark</div>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- CENTER: Canvas & toolbar -->
-    <main class="panel canvas-wrap">
-      <div class="canvas-top">
-        <div>
-          <div style="font-weight:700">Canvas</div>
-          <div class="small" style="color:var(--muted)">Drop elements into the stage. Double-click to edit text inline. You can nest elements.</div>
-        </div>
-
-        <div class="controls">
-          <button id="toggleViewBtn" class="btn primary">Edit Mode</button>
-          <button id="toggleRulerBtn" class="btn">Rulers</button>
-          <button id="undoBtn" class="btn ghost">Undo</button>
-          <button id="redoBtn" class="btn ghost">Redo</button>
-          <button id="downloadBtn" class="btn ghost">Download Project</button>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <div style="flex:1">
-          <div style="display:flex;gap:8px;margin-bottom:8px">
-            <div>
-              <button data-device="desktop" class="btn device-btn">Laptop</button>
-              <button data-device="tablet" class="btn device-btn">Tablet</button>
-              <button data-device="phone" class="btn device-btn">Phone</button>
-            </div>
-            <div>
-              <button id="zoomOut" class="btn">-</button>
-              <span id="zoomLabel" style="display:inline-block;width:60px;text-align:center">100%</span>
-              <button id="zoomIn" class="btn">+</button>
-            </div>
-          </div>
-
-          <div class="device-frame">
-            <div id="stageWrapper" class="stage-viewport" style="width:1100px;min-height:640px;transform-origin:top left">
-              <div id="ruler" class="ruler" style="display:none">RULER</div>
-              <div id="stage" style="min-height:560px;padding:12px"></div>
-            </div>
-          </div>
-
-          <div style="margin-top:8px;color:var(--muted);font-size:13px">Mode: <span id="viewModeLabel">Edit</span> · Stage: <span id="stageSizeLabel">1100 × auto</span></div>
-        </div>
-      </div>
-    </main>
-
-    <!-- RIGHT: Inspector, Layers, Export -->
-    <aside class="panel inspector">
-      <h2>Inspector</h2>
-      <div id="inspectorContent"><div class="small" style="color:var(--muted)">Select an element to edit its properties</div></div>
-
-      <h2 style="margin-top:12px">Layers</h2>
-      <div id="layers" class="layers"></div>
-
-      <h2 style="margin-top:12px">Export / Code</h2>
-      <div class="code-area">
-        <div class="code-box">
-          <div style="display:flex;justify-content:space-between;align-items:center"><div class="small" style="color:var(--muted)">HTML</div><div><button id="copyHtml" class="btn ghost">Copy</button></div></div>
-          <textarea id="htmlOutput" readonly></textarea>
-        </div>
-        <div class="code-box">
-          <div style="display:flex;justify-content:space-between;align-items:center"><div class="small" style="color:var(--muted)">CSS</div><div><button id="copyCss" class="btn ghost">Copy</button></div></div>
-          <textarea id="cssOutput" readonly></textarea>
-        </div>
-        <div class="code-box">
-          <div style="display:flex;justify-content:space-between;align-items:center"><div class="small" style="color:var(--muted)">JS</div><div><button id="copyJs" class="btn ghost">Copy</button></div></div>
-          <textarea id="jsOutput" readonly></textarea>
-        </div>
-      </div>
-    </aside>
+  <!-- Canvas -->
+  <div id="canvas" class="drop-target">
+    <p style="color:#666;">Drag elements here</p>
   </div>
 
-<script>
-/* =====================================================
-   Builder runtime (vanilla JS)
-   - Hardcoded palette types (switch on data-type)
-   - Nesting support: every element-box is a dropzone
-   - Inspector: common styles + element specific fields
-   - Export: index.html, styles.css, script.js downloads
-   ===================================================== */
+  <!-- Inspector -->
+  <div id="inspector">
+    <h3>Inspector</h3>
+    <p>No element selected</p>
+  </div>
 
-const state = { viewMode:false, rulers:false, zoom:1, device:'desktop', history:[], future:[] };
+  <!-- Code Output -->
+  <div id="output">
+    <div class="code-block">
+      <button onclick="copyCode('htmlOutput')">Copy HTML</button>
+      <textarea id="htmlOutput"></textarea>
+    </div>
+    <div class="code-block">
+      <button onclick="copyCode('cssOutput')">Copy CSS</button>
+      <textarea id="cssOutput"></textarea>
+    </div>
+    <div class="code-block">
+      <button onclick="copyCode('jsOutput')">Copy JS</button>
+      <textarea id="jsOutput"></textarea>
+    </div>
+  </div>
 
-const stage = document.getElementById('stage');
-const stageWrapper = document.getElementById('stageWrapper');
-const ruler = document.getElementById('ruler');
-const inspectorContent = document.getElementById('inspectorContent');
-const layersEl = document.getElementById('layers');
-const htmlOutput = document.getElementById('htmlOutput');
-const cssOutput = document.getElementById('cssOutput');
-const jsOutput = document.getElementById('jsOutput');
-const viewModeLabel = document.getElementById('viewModeLabel');
-const zoomLabel = document.getElementById('zoomLabel');
-const stageSizeLabel = document.getElementById('stageSizeLabel');
+  <script>
+    /* ===== Expand/Collapse Palette ===== */
+    document.querySelectorAll('.category h3').forEach(h3 => {
+      h3.addEventListener('click', () => h3.parentElement.classList.toggle('active'));
+    });
 
-function ID(prefix='n'){ return prefix + '_' + Date.now().toString(36) + '_' + Math.floor(Math.random()*9999); }
+    /* ===== Drag & Drop ===== */
+    const canvas = document.getElementById('canvas');
+    let draggedHtml = null;
 
-/* -------------
-   Palette dragstart bindings
-   ------------- */
-document.querySelectorAll('.palette-item').forEach(item=>{
-  item.addEventListener('dragstart', (ev)=> ev.dataTransfer.setData('application/x-type', item.dataset.type));
-  // NOTE: data-type attributes are set later via HTML - for now items have data-type values
-});
-
-/* Because some palette items were created without data-type attribute in markup (we used data-type),
-   ensure every palette-item has a data-type property; if not, map by innerText -> type id.
-   But in this hardcoded file we included data-type attributes on each palette-item.
-*/
-
-/* -------------
-   Create element markup by type
-   ------------- */
-function createElementByType(type){
-  const wrapper = document.createElement('div');
-  wrapper.className = 'element-box';
-  wrapper.dataset.nodeId = ID('node');
-  wrapper.dataset.type = type;
-
-  // Each case returns innerHTML and optional dataset default fields
-  switch(type){
-    /* ---------- Icons ---------- */
-    case 'icon_glyph':
-      wrapper.innerHTML = '<span class="ui-icon" data-type="icon">🏠</span>';
-      break;
-    case 'icon_material':
-      wrapper.innerHTML = '<span class="ui-icon material">material_icon</span>';
-      break;
-    case 'icon_font':
-      wrapper.innerHTML = '<i class="ui-icon fa">fa-star</i>';
-      break;
-    case 'icon_emoji':
-      wrapper.innerHTML = '<span class="ui-icon">😊</span>';
-      break;
-    case 'icon_animated':
-      wrapper.innerHTML = '<span class="ui-icon-anim">❤</span>';
-      wrapper.style.transition = 'transform .3s';
-      break;
-    case 'icon_social':
-      wrapper.innerHTML = '<a class="ui-social" href="#" data-link=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53"/></svg></a>';
-      break;
-    case 'icon_action':
-      wrapper.innerHTML = '<button class="ui-action">✖</button>';
-      break;
-    case 'icon_status':
-      wrapper.innerHTML = '<span class="ui-status">✔</span>';
-      break;
-    case 'icon_nav':
-      wrapper.innerHTML = '<span class="ui-chev">‹</span>';
-      break;
-    case 'icon_duotone':
-      wrapper.innerHTML = '<span class="ui-duo">◎</span>';
-      break;
-    case 'icon_neumo':
-      wrapper.innerHTML = '<span class="ui-neumo">◉</span>';
-      break;
-    case 'icon_weather':
-      wrapper.innerHTML = '<span class="ui-weather">☀</span>';
-      break;
-
-    /* ---------- Navigation ---------- */
-    case 'nav_top':
-      wrapper.innerHTML = `<nav class="ui-nav"><div class="brand">Brand</div><div class="nav-links"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></div></nav>`;
-      break;
-    case 'nav_hamburger':
-      wrapper.innerHTML = `<button class="ui-hamburger" aria-label="Menu">☰</button>`;
-      break;
-    case 'nav_sidebar':
-      wrapper.innerHTML = `<aside class="ui-sidebar"><nav><a href="#">Dashboard</a><a href="#">Settings</a></nav></aside>`;
-      break;
-    case 'nav_bottom':
-      wrapper.innerHTML = `<nav class="ui-bottom"><a href="#">Home</a><a href="#">Search</a><a href="#">Profile</a></nav>`;
-      break;
-    case 'nav_tabs':
-      wrapper.innerHTML = `<div class="ui-tabs"><button>Tab 1</button><button>Tab 2</button></div>`;
-      break;
-    case 'nav_breadcrumbs':
-      wrapper.innerHTML = `<nav class="ui-breadcrumbs">Home &gt; Category &gt; Item</nav>`;
-      break;
-    case 'nav_mega':
-      wrapper.innerHTML = `<div class="ui-mega"><button>Menu</button><div class="mega-content" style="display:none"></div></div>`;
-      break;
-    case 'nav_fab':
-      wrapper.innerHTML = `<button class="ui-fab">+</button>`;
-      break;
-    case 'nav_sticky':
-      wrapper.innerHTML = `<nav class="ui-sticky">Sticky Nav</nav>`;
-      break;
-    case 'nav_pagination':
-      wrapper.innerHTML = `<div class="ui-pagination"><button>«</button><button>1</button><button>2</button><button>»</button></div>`;
-      break;
-    case 'nav_dropdown':
-      wrapper.innerHTML = `<div class="ui-dropdown"><button>Menu</button><div class="dropdown-list" style="display:none"><a href="#">Item</a></div></div>`;
-      break;
-    case 'nav_accordion':
-      wrapper.innerHTML = `<div class="ui-accordion"><button>Section</button><div class="panel" style="display:none">Content</div></div>`;
-      break;
-    case 'nav_steps':
-      wrapper.innerHTML = `<div class="ui-steps"><span>1</span><span>2</span><span>3</span></div>`;
-      break;
-    case 'nav_backtotop':
-      wrapper.innerHTML = `<button class="ui-backtop">Top</button>`;
-      break;
-
-    /* ---------- Fonts (control elements) ---------- */
-    case 'font_inter':
-      wrapper.innerHTML = `<div class="ui-font">Inter</div>`;
-      break;
-    case 'font_roboto':
-      wrapper.innerHTML = `<div class="ui-font">Roboto</div>`;
-      break;
-    case 'font_montserrat':
-      wrapper.innerHTML = `<div class="ui-font">Montserrat</div>`;
-      break;
-    case 'font_serif':
-      wrapper.innerHTML = `<div class="ui-font">Georgia</div>`;
-      break;
-    case 'font_mono':
-      wrapper.innerHTML = `<div class="ui-font">Fira Code</div>`;
-      break;
-
-    /* ---------- Buttons ---------- */
-    case 'btn_primary':
-      wrapper.innerHTML = `<a class="ui-btn ui-primary" href="#" data-link="">Primary</a>`; break;
-    case 'btn_secondary':
-      wrapper.innerHTML = `<a class="ui-btn ui-secondary" href="#" data-link="">Secondary</a>`; break;
-    case 'btn_icon':
-      wrapper.innerHTML = `<button class="ui-icon-btn">★</button>`; break;
-    case 'btn_toggle':
-      wrapper.innerHTML = `<button class="ui-toggle">Off</button>`; break;
-    case 'btn_ghost':
-      wrapper.innerHTML = `<button class="ui-ghost">Ghost</button>`; break;
-    case 'btn_split':
-      wrapper.innerHTML = `<div class="ui-split"><button>Main</button><button>▼</button></div>`; break;
-
-    /* ---------- Forms ---------- */
-    case 'form_input':
-      wrapper.innerHTML = `<label>Text<input placeholder="Type..." /></label>`; break;
-    case 'form_textarea':
-      wrapper.innerHTML = `<label>Message<textarea placeholder="Your message"></textarea></label>`; break;
-    case 'form_select':
-      wrapper.innerHTML = `<select><option>Option 1</option><option>Option 2</option></select>`; break;
-    case 'form_checkbox':
-      wrapper.innerHTML = `<label><input type="checkbox" /> Option</label>`; break;
-    case 'form_radio':
-      wrapper.innerHTML = `<label><input type="radio" name="r" /> Choice</label>`; break;
-    case 'form_file':
-      wrapper.innerHTML = `<input type="file" />`; break;
-    case 'form_search':
-      wrapper.innerHTML = `<div class="ui-search"><input placeholder="Search..." /><button>🔍</button></div>`; break;
-    case 'form_slider':
-      wrapper.innerHTML = `<input type="range" min="0" max="100" value="25" />`; break;
-    case 'form_validation':
-      wrapper.innerHTML = `<div class="ui-validation"><input placeholder="Email"/><div class="valid" style="color:var(--success)">✓ valid</div></div>`; break;
-
-    /* ---------- Cards ---------- */
-    case 'card_content':
-      wrapper.innerHTML = `<div class="ui-card"><img src="" alt="" style="width:100%;height:auto;border-radius:6px"/><h3>Card Title</h3><p>Card description</p><a class="ui-btn" href="#">Action</a></div>`; break;
-    case 'card_profile':
-      wrapper.innerHTML = `<div class="ui-card"><div class="ui-avatar"><img src="" alt=""/></div><h3>Name</h3><p>Role</p></div>`; break;
-    case 'card_feature':
-      wrapper.innerHTML = `<div class="ui-card"><h3>Feature</h3><p>Highlights</p></div>`; break;
-
-    /* ---------- Modals, toasts ---------- */
-    case 'modal_alert':
-      wrapper.innerHTML = `<div class="ui-modal"><div class="ui-modal-body"><h3>Alert</h3><p>Are you sure?</p><button>OK</button></div></div>`; break;
-    case 'modal_form':
-      wrapper.innerHTML = `<div class="ui-modal"><form class="ui-form"><input placeholder="Name"/><button type="submit">Send</button></form></div>`; break;
-    case 'modal_full':
-      wrapper.innerHTML = `<div class="ui-modal-full">Full screen dialog</div>`; break;
-    case 'toast':
-      wrapper.innerHTML = `<div class="ui-toast">Notification</div>`; break;
-
-    /* ---------- Loaders & progress ---------- */
-    case 'loader_spinner':
-      wrapper.innerHTML = `<div class="ui-spinner" aria-hidden="true" style="width:40px;height:40px;border-radius:50%;border:4px solid #f3f3f3;border-top:4px solid #3498db;animation:spin 1s linear infinite"></div>`; break;
-    case 'progress_linear':
-      wrapper.innerHTML = `<progress max="100" value="60" style="width:100%"></progress>`; break;
-    case 'skeleton':
-      wrapper.innerHTML = `<div class="ui-skeleton" style="height:12px;background:#eee;border-radius:6px;width:100%"></div>`; break;
-
-    /* ---------- Avatars & badges ---------- */
-    case 'avatar_circle':
-      wrapper.innerHTML = `<div class="ui-avatar" style="width:48px;height:48px;border-radius:50%;overflow:hidden"><img src="" alt="" style="width:100%;height:100%;object-fit:cover"/></div>`; break;
-    case 'avatar_initials':
-      wrapper.innerHTML = `<div class="ui-avatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ddd;color:#111">AB</div>`; break;
-    case 'badge_new':
-      wrapper.innerHTML = `<span class="ui-badge">New</span>`; break;
-
-    /* ---------- Carousels / Sliders ---------- */
-    case 'carousel_simple':
-      wrapper.innerHTML = `<div class="ui-carousel"><div class="slides"><img src="" alt="" style="width:100%;"/></div></div>`; break;
-    case 'carousel_auto':
-      wrapper.innerHTML = `<div class="ui-carousel-auto">Autoplay slider (placeholder)</div>`; break;
-
-    /* ---------- Tables ---------- */
-    case 'table_basic':
-      wrapper.innerHTML = `<table class="ui-table" style="width:100%;border-collapse:collapse"><thead><tr><th style="border:1px solid #ddd;padding:6px">Col</th><th style="border:1px solid #ddd;padding:6px">Col</th></tr></thead><tbody><tr><td style="border:1px solid #ddd;padding:6px">Data</td><td style="border:1px solid #ddd;padding:6px">Data</td></tr></tbody></table>`; break;
-    case 'pricing_table':
-      wrapper.innerHTML = `<div class="ui-pricing"><div class="plan"><h3>Basic</h3><p>$9</p></div></div>`; break;
-
-    /* ---------- Alerts & helpers ---------- */
-    case 'alert_success':
-      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#e6ffed;color:#045d2a">✔ Success! Operation completed.</div>`; break;
-    case 'alert_warning':
-      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#fff8e1;color:#7a5a00">⚠ Warning!</div>`; break;
-    case 'alert_error':
-      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#ffecec;color:#7a1a1a">✖ Error occurred</div>`; break;
-    case 'search_filters':
-      wrapper.innerHTML = `<div class="ui-filters"><span class="ui-badge">Filter 1 ✕</span> <span class="ui-badge">Filter 2 ✕</span></div>`; break;
-    case 'footer_simple':
-      wrapper.innerHTML = `<footer class="ui-footer" style="padding:18px;text-align:center;background:#f8f8f8">© 2025 Company</footer>`; break;
-    case 'header_hero':
-      wrapper.innerHTML = `<header class="ui-hero" style="padding:40px 20px;text-align:center;background:#0b1220;color:#fff"><h1>Hero Heading</h1><p>Subheading text</p></header>`; break;
-    case 'divider':
-      wrapper.innerHTML = `<hr style="border:none;border-top:1px solid #ddd;margin:12px 0"/>`; break;
-
-    /* ---------- Gamification / AR ---------- */
-    case 'progress_badge':
-      wrapper.innerHTML = `<div class="ui-badge">Level 1</div>`; break;
-    case 'leaderboard':
-      wrapper.innerHTML = `<div class="ui-leaderboard"><div>1. Alice</div><div>2. Bob</div></div>`; break;
-    case 'ar_3d':
-      wrapper.innerHTML = `<div class="ui-ar">3D product placeholder</div>`; break;
-
-    /* ---------- Accessibility ---------- */
-    case 'skip':
-      wrapper.innerHTML = `<a class="skip-link" href="#maincontent">Skip to content</a>`; break;
-    case 'aria_landmark':
-      wrapper.innerHTML = `<main role="main" id="maincontent"></main>`; break;
-
-    default:
-      wrapper.innerHTML = `<div>Unknown element: ${type}</div>`;
-  }
-
-  // set some sensible defaults for element spacing
-  wrapper.style.padding = '8px';
-  wrapper.style.margin = '8px 0';
-
-  // make node a dropzone for nesting
-  makeDropzone(wrapper);
-  attachNodeEvents(wrapper);
-
-  return wrapper;
-}
-
-/* -------------
-   Make dropzone function (for stage and element boxes)
-   ------------- */
-function makeDropzone(el){
-  el.addEventListener('dragover', ev => ev.preventDefault());
-  el.addEventListener('drop', ev => {
-    ev.preventDefault();
-    if(state.viewMode) return;
-    const type = ev.dataTransfer.getData('application/x-type');
-    if(!type) return;
-    // if dropping into an existing element, insert as child
-    const targetElementBox = el.closest('.element-box') || null;
-    if(targetElementBox && targetElementBox !== stage){
-      // create inner dropzone if needed
-      let inner = targetElementBox.querySelector('.inner-dropzone');
-      if(!inner){
-        inner = document.createElement('div');
-        inner.className = 'inner-dropzone';
-        targetElementBox.appendChild(inner);
-        makeDropzone(inner);
-      }
-      inner.appendChild(createElementByType(type));
-    } else {
-      stage.appendChild(createElementByType(type));
-    }
-    saveHistory();
-    refreshLayers();
-    updateOutputs();
-  });
-}
-
-/* -------------
-   Attach node events (selection, inline edit)
-   ------------- */
-function attachNodeEvents(node){
-  node.addEventListener('click', ev => {
-    ev.stopPropagation();
-    if(state.viewMode) return;
-    selectNode(node);
-  });
-  node.addEventListener('dblclick', ev => {
-    ev.stopPropagation();
-    if(state.viewMode) return;
-    // enable inline editing for text-rich nodes (not for inputs, images or video)
-    if(node.querySelector('input,textarea,video,img')) return;
-    node.contentEditable = true;
-    node.focus();
-    const onBlur = ()=> { node.contentEditable = false; node.removeEventListener('blur', onBlur); saveHistory(); updateOutputs(); };
-    node.addEventListener('blur', onBlur);
-  });
-  // make node a dropzone itself
-  makeDropzone(node);
-}
-
-/* -------------
-   Stage as dropzone (top-level)
-   ------------- */
-stage.addEventListener('dragover', ev => ev.preventDefault());
-stage.addEventListener('drop', ev => {
-  ev.preventDefault();
-  if(state.viewMode) return;
-  const type = ev.dataTransfer.getData('application/x-type');
-  if(!type) return;
-  stage.appendChild(createElementByType(type));
-  saveHistory();
-  refreshLayers();
-  updateOutputs();
-});
-
-/* -------------
-   Selection and inspector
-   ------------- */
-function selectNode(node){
-  document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected'));
-  node.classList.add('element-selected');
-  renderInspector(node);
-  refreshLayers(node);
-}
-
-function renderInspector(node){
-  inspectorContent.innerHTML = '';
-  const title = document.createElement('div'); title.style.fontWeight='700'; title.style.marginBottom='8px'; title.textContent = node.dataset.type || 'Element';
-  inspectorContent.appendChild(title);
-
-  /* style controls */
-  addInspectorControl(node, 'Background color', 'color', node.style.background || '', val => { node.style.background = val; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Text color', 'color', node.style.color || '', val => { node.style.color = val; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Font family', 'font', node.style.fontFamily || '', val => { node.style.fontFamily = val; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Font size (px)', 'number', parseInt(node.style.fontSize||'',10) || '', val => { node.style.fontSize = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Padding (px)', 'number', parseInt(node.style.padding||'',10) || '', val => { node.style.padding = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border width (px)', 'number', parseInt(node.style.borderWidth||'',10) || '', val => { node.style.borderWidth = val ? val + 'px' : ''; node.style.borderStyle = node.style.borderStyle || 'solid'; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border style', 'select', node.style.borderStyle || 'solid', val => { node.style.borderStyle = val; saveHistory(); updateOutputs(); }, ['solid','dashed','dotted','none']);
-  addInspectorControl(node, 'Border color', 'color', node.style.borderColor || '', val => { node.style.borderColor = val; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border radius (px)', 'number', parseInt(node.style.borderRadius||'',10) || '', val => { node.style.borderRadius = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
-
-  /* element-specific: images, anchors, inputs */
-  const img = node.querySelector('img');
-  if(img) {
-    addInspectorControl(node, 'Image src', 'url', img.src || '', val => { img.src = val; saveHistory(); updateOutputs(); });
-    addInspectorControl(node, 'Alt text', 'text', img.alt || '', val => { img.alt = val; saveHistory(); updateOutputs(); });
-  }
-  const anchor = node.querySelector('a');
-  if(anchor){
-    addInspectorControl(node, 'Link URL', 'url', anchor.getAttribute('href') || '', val => { anchor.setAttribute('href', val || '#'); node.dataset.link = val || ''; saveHistory(); updateOutputs(); });
-  }
-  const btn = node.querySelector('button');
-  if(btn){
-    addInspectorControl(node, 'Button text', 'text', btn.textContent || '', val => { btn.textContent = val; saveHistory(); updateOutputs(); });
-    addInspectorControl(node, 'Button link (data-link)', 'url', node.dataset.link || '', val => { node.dataset.link = val || ''; saveHistory(); updateOutputs(); });
-  }
-  // text content editor
-  addInspectorTextarea(node, 'Text content', node.innerText || '', val => { // applies to text-rich elements
-    // For simple nodes try to set first heading/p/p/span text
-    const txtEl = node.querySelector('h1,h2,h3,h4,p,span,button,a');
-    if(txtEl) txtEl.textContent = val;
-    else node.textContent = val;
-    saveHistory();
-    updateOutputs();
-  });
-
-  // delete / layer controls
-  const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.marginTop='8px';
-  const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = ()=> { if(confirm('Delete element?')){ node.remove(); renderInspectorPlaceholder(); saveHistory(); refreshLayers(); updateOutputs(); } };
-  const up = document.createElement('button'); up.className='btn ghost'; up.textContent='Bring forward'; up.onclick = ()=> { if(node.nextElementSibling) node.parentElement.insertBefore(node.nextElementSibling, node); saveHistory(); refreshLayers(); updateOutputs(); };
-  const down = document.createElement('button'); down.className='btn ghost'; down.textContent='Send back'; down.onclick = ()=> { if(node.previousElementSibling) node.parentElement.insertBefore(node, node.previousElementSibling); saveHistory(); refreshLayers(); updateOutputs(); };
-  row.appendChild(del); row.appendChild(up); row.appendChild(down);
-  inspectorContent.appendChild(row);
-}
-
-/* inspector helpers */
-function addInspectorControl(node,label,type,defaultVal,onChange,options){
-  const wrapper = document.createElement('div'); wrapper.className='field';
-  const lab = document.createElement('label'); lab.textContent = label; wrapper.appendChild(lab);
-  if(type === 'textarea'){
-    const ta = document.createElement('textarea'); ta.value = defaultVal; ta.onchange = ()=> onChange(ta.value); wrapper.appendChild(ta);
-  } else if(type === 'select'){
-    const sel = document.createElement('select'); (options||[]).forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt)});
-    sel.value = defaultVal || (options && options[0] || '');
-    sel.onchange = ()=> onChange(sel.value); wrapper.appendChild(sel);
-  } else if(type === 'font'){
-    const sel = document.createElement('select'); ['Inter,system-ui,Arial','Roboto,Arial','Montserrat','Georgia,serif','Fira Code,monospace'].forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f.split(',')[0];sel.appendChild(o)});
-    sel.value = defaultVal || ''; sel.onchange = ()=> onChange(sel.value); wrapper.appendChild(sel);
-  } else {
-    const input = document.createElement('input');
-    input.type = (type === 'color') ? 'color' : (type === 'number' ? 'number' : 'text');
-    input.value = defaultVal || '';
-    input.onchange = ()=> onChange(input.value);
-    wrapper.appendChild(input);
-  }
-  inspectorContent.appendChild(wrapper);
-}
-function addInspectorTextarea(node,label,val,onChange){
-  const wrapper = document.createElement('div'); wrapper.className='field';
-  const lab = document.createElement('label'); lab.textContent = label; wrapper.appendChild(lab);
-  const ta = document.createElement('textarea'); ta.value = val || ''; ta.onchange = ()=> onChange(ta.value); wrapper.appendChild(ta);
-  inspectorContent.appendChild(wrapper);
-}
-function renderInspectorPlaceholder(){ inspectorContent.innerHTML = '<div class="small" style="color:var(--muted)">Select an element to edit its properties</div>'; }
-
-/* -------------
-   Layers UI
-   ------------- */
-function refreshLayers(selected=null){
-  layersEl.innerHTML = '';
-  const nodes = Array.from(stage.querySelectorAll('.element-box'));
-  nodes.forEach((n,i)=>{
-    const item = document.createElement('div'); item.className='layer-item';
-    if(selected && selected.dataset.nodeId === n.dataset.nodeId) item.classList.add('active');
-    item.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:8px;height:8px;border-radius:3px;background:#3b4252"></div><div>${n.dataset.type||'element'}</div></div><div style="display:flex;gap:6px"><button class="btn ghost" data-act="up" data-node="${n.dataset.nodeId}">↑</button><button class="btn ghost" data-act="down" data-node="${n.dataset.nodeId}">↓</button></div>`;
-    item.addEventListener('click', ()=> selectNode(n));
-    layersEl.appendChild(item);
-    item.querySelectorAll('button').forEach(b=> b.addEventListener('click', ev=>{
-      ev.stopPropagation();
-      const act = b.dataset.act;
-      if(act === 'up'){ const next = n.nextElementSibling; if(next) stage.insertBefore(next, n); saveHistory(); refreshLayers(); updateOutputs(); }
-      if(act === 'down'){ const prev = n.previousElementSibling; if(prev) stage.insertBefore(n, prev); saveHistory(); refreshLayers(); updateOutputs(); }
-    }));
-  });
-}
-
-/* -------------
-   Click outside clears selection
-   ------------- */
-document.body.addEventListener('click', ev => {
-  if(ev.target.closest('.element-box')) return;
-  document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected'));
-  renderInspectorPlaceholder();
-});
-
-/* -------------
-   Zoom, device size, rulers
-   ------------- */
-function setZoom(z){ state.zoom = Math.max(0.25, Math.min(2, z)); stageWrapper.style.transform = `scale(${state.zoom})`; zoomLabel.textContent = Math.round(state.zoom*100) + '%'; }
-document.getElementById('zoomIn').addEventListener('click', ()=> setZoom(state.zoom + 0.1));
-document.getElementById('zoomOut').addEventListener('click', ()=> setZoom(state.zoom - 0.1));
-document.querySelectorAll('.device-btn').forEach(b=> b.addEventListener('click', ()=> {
-  document.querySelectorAll('.device-btn').forEach(x=> x.classList.remove('active'));
-  b.classList.add('active');
-  const d = b.dataset.device; state.device = d; applyDevice();
-}));
-function applyDevice(){
-  const map = { desktop:1100, tablet:820, phone:390 };
-  const w = map[state.device] || 1100; stageWrapper.style.width = w + 'px'; stageSizeLabel.textContent = `${w} × auto`;
-}
-applyDevice(); setZoom(1);
-document.getElementById('toggleRulerBtn').addEventListener('click', ()=> { state.rulers = !state.rulers; ruler.style.display = state.rulers ? 'flex' : 'none'; });
-
-/* -------------
-   View mode toggle
-   ------------- */
-document.getElementById('toggleViewBtn').addEventListener('click', ()=> {
-  state.viewMode = !state.viewMode;
-  document.getElementById('toggleViewBtn').textContent = state.viewMode ? 'View Mode' : 'Edit Mode';
-  document.getElementById('viewModeLabel').textContent = state.viewMode ? 'Preview' : 'Edit';
-});
-
-/* -------------
-   History: snapshot HTML
-   ------------- */
-function saveHistory(){ state.history.push(stage.innerHTML); if(state.history.length>120) state.history.shift(); state.future=[]; }
-document.getElementById('undoBtn').addEventListener('click', ()=>{
-  if(state.history.length <= 1) return;
-  const last = state.history.pop();
-  state.future.push(last);
-  const prev = state.history[state.history.length - 1] || '';
-  stage.innerHTML = prev;
-  reattachAll();
-  refreshLayers();
-  updateOutputs();
-});
-document.getElementById('redoBtn').addEventListener('click', ()=>{
-  if(!state.future.length) return;
-  const f = state.future.pop();
-  stage.innerHTML = f;
-  reattachAll();
-  saveHistory();
-  refreshLayers();
-  updateOutputs();
-});
-function reattachAll(){
-  document.querySelectorAll('.element-box').forEach(n=> attachNodeEvents(n));
-  document.querySelectorAll('.inner-dropzone').forEach(z=> makeDropzone(z));
-}
-
-/* -------------
-   Export functions
-   ------------- */
-function cleanForExport(node){
-  const clone = node.cloneNode(true);
-  (function rec(n){
-    if(n.nodeType !== Node.ELEMENT_NODE) return;
-    n.classList.remove('element-box'); n.classList.remove('element-selected');
-    n.style.outline = '';
-    delete n.dataset.nodeId;
-    Array.from(n.children).forEach(ch=> rec(ch));
-  })(clone);
-  return clone;
-}
-function generateHTML(){
-  const wrapper = document.createElement('div');
-  Array.from(stage.children).forEach(ch => wrapper.appendChild(cleanForExport(ch)));
-  return '<!doctype html>\\n<html lang="en">\\n<head>\\n<meta charset="utf-8">\\n<meta name="viewport" content="width=device-width,initial-scale=1">\\n<title>Exported Page</title>\\n<link rel="stylesheet" href="styles.css">\\n</head>\\n<body>\\n' + wrapper.innerHTML + '\\n<script src="script.js"></script>\\n</body>\\n</html>';
-}
-function generateCSS(){
-  return `/* styles.css - exported from Visual Page Builder */\\nbody{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;color:#0b1220;background:#fff}\\n.ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff}\\n.ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none}\\n.ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff}\\n.ui-grid{display:grid;gap:12px}.ui-grid-2{grid-template-columns:1fr 1fr}\\n/* Add more exported styles as needed */`;
-}
-function generateJS(){
-  return `// script.js - exported from Visual Page Builder\\ndocument.addEventListener('click', function(e){ const el = e.target.closest('[data-link]'); if(el){ const link = el.dataset.link; if(link){ if(link.startsWith('http')) window.location.href = link; else console.log('Navigate to', link); } } });`;
-}
-function updateOutputs(){ htmlOutput.value = generateHTML(); cssOutput.value = generateCSS(); jsOutput.value = generateJS(); }
-
-document.getElementById('copyHtml').addEventListener('click', ()=> copyText(htmlOutput.value));
-document.getElementById('copyCss').addEventListener('click', ()=> copyText(cssOutput.value));
-document.getElementById('copyJs').addEventListener('click', ()=> copyText(jsOutput.value));
-
-document.getElementById('downloadBtn').addEventListener('click', ()=> {
-  const html = generateHTML(); const css = generateCSS(); const js = generateJS();
-  downloadFile('index.html', html); downloadFile('styles.css', css); downloadFile('script.js', js);
-});
-
-/* -------------
-   Utilities: download, copy
-   ------------- */
-function downloadFile(filename, content){
-  const blob = new Blob([content], { type:'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-  setTimeout(()=> { URL.revokeObjectURL(url); a.remove(); }, 300);
-}
-function copyText(text){
-  navigator.clipboard && navigator.clipboard.writeText(text).then(()=> alert('Copied to clipboard')).catch(()=> { alert('Copy failed'); });
-}
-
-/* -------------
-   Helper: save initial state and initialize
-   ------------- */
-function saveInitial(){ saveHistory(); updateOutputs(); }
-function refreshLayers(node=null){ refreshLayersWith(node) }
-function refreshLayersWith(selected=null){ layersEl.innerHTML = ''; const nodes = Array.from(stage.querySelectorAll('.element-box')); nodes.forEach((n)=>{ /* updated earlier via refreshLayers function */ }); }
-function refreshLayers(){ // small reimplementation to ensure it shows nodes correctly
-  layersEl.innerHTML = ''; const nodes = Array.from(stage.querySelectorAll('.element-box'));
-  nodes.forEach((n)=>{
-    const item = document.createElement('div'); item.className='layer-item';
-    if(document.querySelector('.element-selected') && document.querySelector('.element-selected').dataset.nodeId === n.dataset.nodeId) item.classList.add('active');
-    item.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:8px;height:8px;border-radius:3px;background:#3b4252"></div><div>${n.dataset.type||'element'}</div></div><div style="display:flex;gap:6px"><button class="btn ghost" data-act="up">↑</button><button class="btn ghost" data-act="down">↓</button></div>`;
-    item.addEventListener('click', ()=> selectNode(n));
-    layersEl.appendChild(item);
-    item.querySelectorAll('button').forEach(b=>{
-      b.addEventListener('click', ev=>{
-        ev.stopPropagation();
-        const act = b.dataset.act;
-        if(act === 'up'){ const next = n.nextElementSibling; if(next) stage.insertBefore(next, n); saveHistory(); refreshLayers(); updateOutputs(); }
-        if(act === 'down'){ const prev = n.previousElementSibling; if(prev) stage.insertBefore(n, prev); saveHistory(); refreshLayers(); updateOutputs(); }
+    document.querySelectorAll('.element').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        draggedHtml = el.dataset.html;
       });
     });
-  });
-}
 
-/* Reattach events to existing nodes at startup (none) */
-function reattachAll(){ document.querySelectorAll('.element-box').forEach(n=> attachNodeEvents(n)); document.querySelectorAll('.inner-dropzone').forEach(z=> makeDropzone(z)); }
+    canvas.addEventListener('dragover', e => e.preventDefault());
+    canvas.addEventListener('drop', e => {
+      e.preventDefault();
+      if (draggedHtml) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = draggedHtml;
+        const node = wrapper.firstChild;
+        node.classList.add('draggable-item');
+        node.addEventListener('click', () => selectElement(node));
+        canvas.appendChild(node);
+        updateOutputs();
+      }
+    });
 
-/* Initialize builder */
-(function init(){
-  // ensure palette items have data-type (some environments may strip data attributes when copying)
-  document.querySelectorAll('.palette-item').forEach(el=>{
-    if(!el.dataset.type){ // attempt to create a safe type id from text
-      const t = el.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
-      el.dataset.type = t;
+    /* ===== Inspector ===== */
+    const inspector = document.getElementById('inspector');
+    let selected = null;
+
+    function selectElement(el) {
+      if (selected) selected.classList.remove('selected');
+      selected = el;
+      el.classList.add('selected');
+      renderInspector(el);
     }
-  });
-  makeDropzone(stage);
-  reattachAll();
-  refreshLayers();
-  renderInspectorPlaceholder();
-  saveInitial();
-  // clear selection when clicking outside
-  document.body.addEventListener('click', (ev)=> { if(!ev.target.closest('.element-box') && !ev.target.closest('.palette-item')){ document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected')); renderInspectorPlaceholder(); } });
-})();
-</script>
 
+    function renderInspector(el) {
+      inspector.innerHTML = '';
+      const h = document.createElement('h3');
+      h.textContent = 'Inspector';
+      inspector.appendChild(h);
+
+      // Content
+      if (el.innerText) {
+        const label = document.createElement('label');
+        label.textContent = 'Text';
+        const input = document.createElement('input');
+        input.value = el.innerText;
+        input.addEventListener('input', () => { el.innerText = input.value; updateOutputs(); });
+        inspector.append(label, input);
+      }
+
+      // Background color
+      const bgLabel = document.createElement('label');
+      bgLabel.textContent = 'Background';
+      const bgInput = document.createElement('input');
+      bgInput.type = 'color';
+      bgInput.value = rgbToHex(getComputedStyle(el).backgroundColor || '#000000');
+      bgInput.addEventListener('input', () => { el.style.background = bgInput.value; updateOutputs(); });
+      inspector.append(bgLabel, bgInput);
+
+      // Text color
+      const colorLabel = document.createElement('label');
+      colorLabel.textContent = 'Text Color';
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.value = rgbToHex(getComputedStyle(el).color || '#ffffff');
+      colorInput.addEventListener('input', () => { el.style.color = colorInput.value; updateOutputs(); });
+      inspector.append(colorLabel, colorInput);
+
+      // Font size
+      const fsLabel = document.createElement('label');
+      fsLabel.textContent = 'Font Size';
+      const fsInput = document.createElement('input');
+      fsInput.type = 'number';
+      fsInput.value = parseInt(getComputedStyle(el).fontSize) || 16;
+      fsInput.addEventListener('input', () => { el.style.fontSize = fsInput.value + 'px'; updateOutputs(); });
+      inspector.append(fsLabel, fsInput);
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb) return '#000000';
+      const result = rgb.match(/\d+/g);
+      return result ? "#" + result.slice(0,3).map(x => (+x).toString(16).padStart(2,0)).join('') : '#000000';
+    }
+
+    /* ===== Code Output ===== */
+    function updateOutputs() {
+      document.getElementById('htmlOutput').value = canvas.innerHTML;
+      document.getElementById('cssOutput').value = "/* Add your CSS here */";
+      document.getElementById('jsOutput').value = "// Add your JS here";
+    }
+
+    function copyCode(id) {
+      const text = document.getElementById(id).value;
+      navigator.clipboard.writeText(text).then(() => alert('Copied!'));
+    }
+  </script>
 </body>
 </html>
