@@ -1,99 +1,264 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Visual Page Builder — Full UI Library</title>
-<style>
-  /* ======================
-     Visual Page Builder CSS
-     Dark UI for builder; exported CSS is separate
-     ====================== */
-  :root{
-    --bg:#071018; --panel:#0f1720; --muted:#9aa8b2; --accent:#6c5ce7;
-    --card:#0b1220; --white:#e6eef3; --danger:#ff6b6b; --success:#4caf50;
-  }
-  html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;}
-  body{background:linear-gradient(180deg,#03060a 0%, #071018 100%);color:var(--white);padding:12px;box-sizing:border-box;}
-  .app{display:grid;grid-template-columns:320px 1fr 420px;gap:12px;height:calc(100vh - 24px);}
-  .panel{background:var(--panel);border-radius:10px;padding:12px;box-shadow:0 8px 30px rgba(2,6,11,0.6);overflow:auto;}
-  h1{margin:0;font-size:18px}
-  h2{margin:0 0 8px 0;font-size:14px;color:var(--white)}
-  /* Palette */
-  .category{border:1px solid rgba(255,255,255,0.03);margin-bottom:10px;border-radius:8px;overflow:hidden}
-  .category .head{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#081018;cursor:pointer}
-  .category .head .title{font-weight:600;font-size:13px}
-  .category .list{padding:8px;display:flex;flex-wrap:wrap;gap:8px;background:linear-gradient(0deg,#07121a,transparent)}
-  .palette-item{padding:8px 10px;border-radius:6px;background:#0b1220;border:1px solid rgba(255,255,255,0.03);cursor:grab;font-size:13px;min-width:120px;text-align:center}
-  .palette-item:active{cursor:grabbing}
-  /* Canvas */
-  .canvas-wrap{display:flex;flex-direction:column;gap:8px;height:100%}
-  .canvas-top{display:flex;justify-content:space-between;align-items:center}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  .controls button{background:#07141a;border:1px solid rgba(255,255,255,0.03);color:var(--white);padding:6px 8px;border-radius:6px;cursor:pointer}
-  .controls button.primary{background:var(--accent);border:0}
-  .device-frame{display:flex;justify-content:center;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg,#ffffff03,#00000010)}
-  .stage-viewport{background:var(--white);border-radius:6px;overflow:auto;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04)}
-  .stage-empty{padding:26px;color:#6f7c86;text-align:center}
-  .element-box{position:relative;padding:8px;margin:8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:#ffffff;color:#0b1220}
-  .element-selected{outline:3px solid rgba(108,92,231,0.75)}
-  .inner-dropzone{border:1px dashed rgba(0,0,0,0.06);padding:6px;border-radius:6px;margin-top:6px;min-height:8px}
-  .ruler{position:absolute;left:0;right:0;height:22px;top:0;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);color:#6f7c86;font-size:11px;display:flex;align-items:center;padding-left:6px;border-bottom:1px solid rgba(255,255,255,0.02)}
-  /* Inspector */
-  .inspector .field{margin-bottom:8px}
-  .inspector label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-  .inspector input[type="text"], .inspector input[type="url"], .inspector input[type="number"], .inspector textarea, .inspector select{
-    width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#071419;color:var(--white);box-sizing:border-box;font-size:13px;
-  }
-  .inspector input[type="color"]{height:36px;padding:4px}
-  .inspector textarea{min-height:64px;resize:vertical}
-  .layers{max-height:220px;overflow:auto;margin-top:8px}
-  .layer-item{display:flex;justify-content:space-between;align-items:center;padding:6px;border-radius:8px;margin-bottom:6px;background:#07141a;font-size:13px;cursor:pointer}
-  .layer-item.active{background:linear-gradient(90deg, rgba(108,92,231,0.18), rgba(93,211,158,0.05))}
-  /* Code area */
-  .code-area{display:flex;gap:8px;margin-top:12px}
-  .code-box{flex:1;background:#07141a;border-radius:8px;padding:8px;display:flex;flex-direction:column;height:220px}
-  .code-box textarea{flex:1;background:#02070a;border-radius:6px;padding:8px;color:#cfe7e2;border:0;resize:vertical;font-family:monospace;font-size:12px}
-  .code-actions{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}
-  .btn{padding:8px 10px;border-radius:8px;border:0;background:#0a1220;color:var(--white);cursor:pointer}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
-  .small{font-size:12px;color:var(--muted)}
-  @media (max-width:1150px){ .app{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto} .panel{max-height:360px} }
-  /* ==== Basic exported UI classes (preview inside canvas & for export) ==== */
-  /* Keep these minimal so exported pages include a tiny base */
-  .ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none}
-  .ui-btn.secondary{background:#fff;color:#0b1220;border:1px solid #ddd}
-  .ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff}
-  .ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff}
-  .ui-nav .brand{font-weight:700;margin-right:12px}
-  .ui-grid{display:grid;gap:12px}
-  .ui-grid-2{grid-template-columns:1fr 1fr}
-  .ui-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eee;color:#333;font-size:12px}
-  .ui-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;display:inline-block}
-  .ui-toast{padding:8px 12px;border-radius:6px;background:#333;color:#fff}
-  .ui-form input,.ui-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Visual Page Builder — Expanded Hardcoded Palette</title>
+
+  <style>
+    /* ===========================
+       Builder UI (dark) - human readable styles
+       =========================== */
+    :root{
+      --bg:#071018; --panel:#0f1720; --muted:#9aa8b2; --accent:#6c5ce7;
+      --card:#0b1220; --white:#e6eef3; --danger:#ff6b6b; --success:#4caf50;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#03060a,#071018);color:var(--white);padding:12px;box-sizing:border-box}
+    h1{margin:0;font-size:18px}
+    .app{display:grid;grid-template-columns:320px 1fr 420px;gap:12px;height:calc(100vh - 24px)}
+    .panel{background:var(--panel);border-radius:10px;padding:12px;box-shadow:0 8px 30px rgba(2,6,11,0.6);overflow:auto}
+    h2{font-size:14px;margin:0 0 8px 0;color:var(--white)}
+    .small{font-size:12px;color:var(--muted)}
+    /* Palette */
+    .category{border:1px solid rgba(255,255,255,0.03);margin-bottom:10px;border-radius:8px;overflow:hidden}
+    .category .head{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#081018;cursor:pointer}
+    .category .title{font-weight:600;font-size:13px}
+    .category .list{padding:8px;display:flex;flex-wrap:wrap;gap:8px;background:linear-gradient(0deg,#07121a,transparent)}
+    .palette-item{padding:8px 10px;border-radius:6px;background:#0b1220;border:1px solid rgba(255,255,255,0.03);cursor:grab;font-size:13px;min-width:120px;text-align:center}
+    .palette-item:active{cursor:grabbing}
+    /* Canvas */
+    .canvas-wrap{display:flex;flex-direction:column;gap:8px;height:100%}
+    .canvas-top{display:flex;justify-content:space-between;align-items:center}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .controls button{background:#07141a;border:1px solid rgba(255,255,255,0.03);color:var(--white);padding:6px 8px;border-radius:6px;cursor:pointer}
+    .controls button.primary{background:var(--accent);border:0}
+    .device-frame{display:flex;justify-content:center;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg,#ffffff03,#00000010)}
+    .stage-viewport{background:var(--white);border-radius:6px;overflow:auto;position:relative;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.04)}
+    .stage-empty{padding:26px;color:#6f7c86;text-align:center}
+    .element-box{position:relative;padding:8px;margin:8px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:#ffffff;color:#0b1220}
+    .element-selected{outline:3px solid rgba(108,92,231,0.75)}
+    .inner-dropzone{border:1px dashed rgba(0,0,0,0.06);padding:6px;border-radius:6px;margin-top:6px;min-height:8px}
+    .ruler{position:absolute;left:0;right:0;height:22px;top:0;background:linear-gradient(90deg, rgba(255,255,255,0.03), transparent);color:#6f7c86;font-size:11px;display:flex;align-items:center;padding-left:6px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    /* Inspector */
+    .inspector .field{margin-bottom:8px}
+    .inspector label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+    .inspector input[type="text"], .inspector input[type="url"], .inspector input[type="number"], .inspector textarea, .inspector select{width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:#071419;color:var(--white);box-sizing:border-box;font-size:13px}
+    .inspector input[type="color"]{height:36px;padding:4px}
+    .inspector textarea{min-height:64px;resize:vertical}
+    .layers{max-height:220px;overflow:auto;margin-top:8px}
+    .layer-item{display:flex;justify-content:space-between;align-items:center;padding:6px;border-radius:8px;margin-bottom:6px;background:#07141a;font-size:13px;cursor:pointer}
+    .layer-item.active{background:linear-gradient(90deg, rgba(108,92,231,0.18), rgba(93,211,158,0.05))}
+    /* Code area */
+    .code-area{display:flex;gap:8px;margin-top:12px}
+    .code-box{flex:1;background:#07141a;border-radius:8px;padding:8px;display:flex;flex-direction:column;height:220px}
+    .code-box textarea{flex:1;background:#02070a;border-radius:6px;padding:8px;color:#cfe7e2;border:0;resize:vertical;font-family:monospace;font-size:12px}
+    .code-actions{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}
+    .btn{padding:8px 10px;border-radius:8px;border:0;background:#0a1220;color:var(--white);cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04)}
+    @media (max-width:1150px){ .app{grid-template-columns:1fr;grid-template-rows:auto auto auto;height:auto} .panel{max-height:360px} }
+    /* Minimal exported UI classes (for exported pages) */
+    .ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none}
+    .ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff}
+    .ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff}
+    .ui-grid{display:grid;gap:12px}
+    .ui-grid-2{grid-template-columns:1fr 1fr}
+    .ui-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eee;color:#333;font-size:12px}
+    .ui-avatar img{width:100%;height:100%;object-fit:cover}
+    .ui-form input,.ui-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px}
+  </style>
 </head>
 <body>
   <div style="display:flex;gap:12px;align-items:center;margin-bottom:8px">
-    <h1 style="margin:0">Visual Page Builder — Full UI</h1>
-    <div class="small">All elements included; drop, nest, edit, export — no external deps.</div>
+    <h1 style="margin:0">Visual Page Builder — Expanded Palette (Hardcoded)</h1>
+    <div class="small">Drag elements to the canvas • Elements are nestable • Inspector supports styling & links</div>
   </div>
 
   <div class="app">
-    <!-- Palette -->
+    <!-- LEFT: Hardcoded palette (categorized) -->
     <aside class="panel">
       <h2>Palette</h2>
-      <div id="paletteContainer" class="small"></div>
-      <div style="margin-top:10px;font-size:12px;color:var(--muted)">Edit the <code>ELEMENTS</code> array in the script to add or modify elements.</div>
+
+      <!-- Icons -->
+      <div class="category">
+        <div class="head"><div class="title">Icons</div><div class="small">+</div></div>
+        <div class="list" style="display:flex;flex-wrap:wrap">
+          <div class="palette-item" draggable="true" data-type="icon_glyph">Glyph Icon (house)</div>
+          <div class="palette-item" draggable="true" data-type="icon_material">Material Icon (placeholder)</div>
+          <div class="palette-item" draggable="true" data-type="icon_font">Font-Based Icon (placeholder)</div>
+          <div class="palette-item" draggable="true" data-type="icon_emoji">Emoji Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_animated">Animated Icon (pulse)</div>
+          <div class="palette-item" draggable="true" data-type="icon_social">Social Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_action">Action Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_status">Status Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_nav">Navigation Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_duotone">Duotone Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_neumo">Neumorphic Icon</div>
+          <div class="palette-item" draggable="true" data-type="icon_weather">Weather Icon</div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="category">
+        <div class="head"><div class="title">Navigation</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="nav_top">Top Navigation Bar</div>
+          <div class="palette-item" draggable="true" data-type="nav_hamburger">Hamburger Menu</div>
+          <div class="palette-item" draggable="true" data-type="nav_sidebar">Sidebar</div>
+          <div class="palette-item" draggable="true" data-type="nav_bottom">Bottom Navigation</div>
+          <div class="palette-item" draggable="true" data-type="nav_tabs">Tab Bar</div>
+          <div class="palette-item" draggable="true" data-type="nav_breadcrumbs">Breadcrumbs</div>
+          <div class="palette-item" draggable="true" data-type="nav_mega">Mega Menu</div>
+          <div class="palette-item" draggable="true" data-type="nav_fab">Floating Action Button (FAB)</div>
+          <div class="palette-item" draggable="true" data-type="nav_sticky">Sticky Navigation</div>
+          <div class="palette-item" draggable="true" data-type="nav_pagination">Pagination</div>
+          <div class="palette-item" draggable="true" data-type="nav_dropdown">Dropdown Menu</div>
+          <div class="palette-item" draggable="true" data-type="nav_accordion">Accordion Menu</div>
+          <div class="palette-item" draggable="true" data-type="nav_steps">Step Indicators</div>
+          <div class="palette-item" draggable="true" data-type="nav_backtotop">Back-to-Top Button</div>
+        </div>
+      </div>
+
+      <!-- Fonts -->
+      <div class="category">
+        <div class="head"><div class="title">Fonts</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="font_inter">Inter (system)</div>
+          <div class="palette-item" draggable="true" data-type="font_roboto">Roboto</div>
+          <div class="palette-item" draggable="true" data-type="font_montserrat">Montserrat</div>
+          <div class="palette-item" draggable="true" data-type="font_serif">Georgia (Serif)</div>
+          <div class="palette-item" draggable="true" data-type="font_mono">Fira Code (Monospace)</div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="category">
+        <div class="head"><div class="title">Buttons</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="btn_primary">Primary Button</div>
+          <div class="palette-item" draggable="true" data-type="btn_secondary">Secondary Button</div>
+          <div class="palette-item" draggable="true" data-type="btn_icon">Icon Button</div>
+          <div class="palette-item" draggable="true" data-type="btn_toggle">Toggle Button</div>
+          <div class="palette-item" draggable="true" data-type="btn_ghost">Ghost Button</div>
+          <div class="palette-item" draggable="true" data-type="btn_split">Split Button</div>
+        </div>
+      </div>
+
+      <!-- Forms -->
+      <div class="category">
+        <div class="head"><div class="title">Forms</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="form_input">Text Input</div>
+          <div class="palette-item" draggable="true" data-type="form_textarea">Textarea</div>
+          <div class="palette-item" draggable="true" data-type="form_select">Dropdown / Select</div>
+          <div class="palette-item" draggable="true" data-type="form_checkbox">Checkbox</div>
+          <div class="palette-item" draggable="true" data-type="form_radio">Radio</div>
+          <div class="palette-item" draggable="true" data-type="form_file">File Upload</div>
+          <div class="palette-item" draggable="true" data-type="form_search">Search Bar</div>
+          <div class="palette-item" draggable="true" data-type="form_slider">Slider</div>
+          <div class="palette-item" draggable="true" data-type="form_validation">Validation Indicator</div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="category">
+        <div class="head"><div class="title">Cards & Content</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="card_content">Content Card</div>
+          <div class="palette-item" draggable="true" data-type="card_profile">Profile Card</div>
+          <div class="palette-item" draggable="true" data-type="card_feature">Feature Card</div>
+        </div>
+      </div>
+
+      <!-- Modals, toasts -->
+      <div class="category">
+        <div class="head"><div class="title">Modals & Notifications</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="modal_alert">Alert Modal</div>
+          <div class="palette-item" draggable="true" data-type="modal_form">Form Modal</div>
+          <div class="palette-item" draggable="true" data-type="modal_full">Full-Screen Modal</div>
+          <div class="palette-item" draggable="true" data-type="toast">Toast Notification</div>
+        </div>
+      </div>
+
+      <!-- Loaders -->
+      <div class="category">
+        <div class="head"><div class="title">Loaders & Progress</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="loader_spinner">Circular Spinner</div>
+          <div class="palette-item" draggable="true" data-type="progress_linear">Progress Bar</div>
+          <div class="palette-item" draggable="true" data-type="skeleton">Skeleton Loader</div>
+        </div>
+      </div>
+
+      <!-- Avatars & badges -->
+      <div class="category">
+        <div class="head"><div class="title">Avatars & Badges</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="avatar_circle">Circular Avatar</div>
+          <div class="palette-item" draggable="true" data-type="avatar_initials">Initials Avatar</div>
+          <div class="palette-item" draggable="true" data-type="badge_new">Status Badge</div>
+        </div>
+      </div>
+
+      <!-- Sliders / Carousels -->
+      <div class="category">
+        <div class="head"><div class="title">Sliders & Carousels</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="carousel_simple">Image Carousel</div>
+          <div class="palette-item" draggable="true" data-type="carousel_auto">Autoplay Slider</div>
+        </div>
+      </div>
+
+      <!-- Tables -->
+      <div class="category">
+        <div class="head"><div class="title">Tables</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="table_basic">Data Table</div>
+          <div class="palette-item" draggable="true" data-type="pricing_table">Pricing Table</div>
+        </div>
+      </div>
+
+      <!-- Alerts, search filters, footers, headers -->
+      <div class="category">
+        <div class="head"><div class="title">Alerts & Helpers</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="alert_success">Success Alert</div>
+          <div class="palette-item" draggable="true" data-type="alert_warning">Warning Alert</div>
+          <div class="palette-item" draggable="true" data-type="alert_error">Error Alert</div>
+          <div class="palette-item" draggable="true" data-type="search_filters">Search Filters (chips)</div>
+          <div class="palette-item" draggable="true" data-type="footer_simple">Footer</div>
+          <div class="palette-item" draggable="true" data-type="header_hero">Hero Header</div>
+          <div class="palette-item" draggable="true" data-type="divider">Divider</div>
+        </div>
+      </div>
+
+      <!-- Progress / gamification -->
+      <div class="category">
+        <div class="head"><div class="title">Gamification & AR</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="progress_badge">Progress Badge</div>
+          <div class="palette-item" draggable="true" data-type="leaderboard">Leaderboard</div>
+          <div class="palette-item" draggable="true" data-type="ar_3d">3D Product (placeholder)</div>
+        </div>
+      </div>
+
+      <!-- Accessibility -->
+      <div class="category">
+        <div class="head"><div class="title">Accessibility</div><div class="small">+</div></div>
+        <div class="list">
+          <div class="palette-item" draggable="true" data-type="skip">Skip-to-content</div>
+          <div class="palette-item" draggable="true" data-type="aria_landmark">ARIA Landmark</div>
+        </div>
+      </div>
+
     </aside>
 
-    <!-- Canvas -->
+    <!-- CENTER: Canvas & toolbar -->
     <main class="panel canvas-wrap">
       <div class="canvas-top">
         <div>
-          <div class="small" style="font-weight:700">Canvas</div>
-          <div class="small" style="color:var(--muted)">Drop elements onto the stage. Double-click to edit text inline. Drop elements into other elements to nest.</div>
+          <div style="font-weight:700">Canvas</div>
+          <div class="small" style="color:var(--muted)">Drop elements into the stage. Double-click to edit text inline. You can nest elements.</div>
         </div>
 
         <div class="controls">
@@ -132,10 +297,10 @@
       </div>
     </main>
 
-    <!-- Inspector & Layers & Code -->
+    <!-- RIGHT: Inspector, Layers, Export -->
     <aside class="panel inspector">
       <h2>Inspector</h2>
-      <div id="inspectorContent"><div class="small" style="color:var(--muted)">Select an element on the canvas to edit properties and styles.</div></div>
+      <div id="inspectorContent"><div class="small" style="color:var(--muted)">Select an element to edit its properties</div></div>
 
       <h2 style="margin-top:12px">Layers</h2>
       <div id="layers" class="layers"></div>
@@ -155,113 +320,20 @@
           <textarea id="jsOutput" readonly></textarea>
         </div>
       </div>
-
     </aside>
   </div>
 
 <script>
-/* ============================
-   FULL: JSON-driven ELEMENTS
-   This array contains many element types covering the comprehensive list.
-   Edit or extend by adding objects here. Each object:
-     id, name, category, html, propsSchema (optional)
-   propsSchema items: { key, label, type } where type is one of:
-     text, textarea, url, number, color, select, links, font
-   ============================ */
-const ELEMENTS = [
-  /* ---------- Icons ---------- */
-  { id:'icon_glyph', name:'Glyph Icon', category:'Icons', html:'<span class="ui-icon" data-type="icon">🏠</span>', propsSchema:[{key:'char',label:'Icon / Emoji',type:'text'},{key:'link',label:'Link / Page',type:'url'}] },
-  { id:'icon_material', name:'Material Icon (placeholder)', category:'Icons', html:'<span class="ui-icon material">icon</span>', propsSchema:[{key:'name',label:'Icon name',type:'text'},{key:'link',label:'Link / Page',type:'url'}] },
-  { id:'icon_fontawesome', name:'Font-Based Icon (placeholder)', category:'Icons', html:'<i class="ui-icon fa">★</i>', propsSchema:[{key:'class',label:'Icon CSS class',type:'text'},{key:'link',label:'Link / Page',type:'url'}] },
-  { id:'icon_social', name:'Social Icon (Twitter)', category:'Icons', html:'<a class="ui-social" href="#" data-link=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.43.36a9 9 0 0 1-2.84 1.09A4.5 4.5 0 0 0 12.07 4a12.79 12.79 0 0 1-9.29-4.7S.5 6.5 6.13 9.72"/></svg></a>', propsSchema:[{key:'link',label:'Profile URL',type:'url'}] },
-  { id:'icon_animated', name:'Animated Icon (pulse)', category:'Icons', html:'<span class="ui-icon-anim">❤</span>' },
+/* =====================================================
+   Builder runtime (vanilla JS)
+   - Hardcoded palette types (switch on data-type)
+   - Nesting support: every element-box is a dropzone
+   - Inspector: common styles + element specific fields
+   - Export: index.html, styles.css, script.js downloads
+   ===================================================== */
 
-  /* ---------- Navigation ---------- */
-  { id:'nav_top', name:'Top Navigation Bar', category:'Navigation', html:'<nav class="ui-nav"><div class="brand">Brand</div><div class="nav-links"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></div></nav>', propsSchema:[{key:'brand',label:'Brand text',type:'text'},{key:'links',label:'Links (comma separated)',type:'links'}] },
-  { id:'nav_hamburger', name:'Hamburger Menu', category:'Navigation', html:'<button class="ui-hamburger" aria-label="Menu">☰</button>' },
-  { id:'nav_sidebar', name:'Sidebar', category:'Navigation', html:'<aside class="ui-sidebar"><nav><a href="#">Dashboard</a><a href="#">Settings</a></nav></aside>' },
-  { id:'nav_bottom', name:'Bottom Navigation', category:'Navigation', html:'<nav class="ui-bottom"><a href="#">Home</a><a href="#">Search</a><a href="#">Profile</a></nav>' },
-  { id:'nav_tabs', name:'Tab Bar', category:'Navigation', html:'<div class="ui-tabs"><button>Tab 1</button><button>Tab 2</button></div>' },
-  { id:'nav_breadcrumbs', name:'Breadcrumbs', category:'Navigation', html:'<nav class="ui-breadcrumbs">Home &gt; Category &gt; Item</nav>' },
-  { id:'nav_megamenu', name:'Mega Menu (shell)', category:'Navigation', html:'<div class="ui-mega"><button>Menu</button><div class="mega-content" style="display:none"></div></div>' },
-  { id:'nav_fab', name:'Floating Action Button (FAB)', category:'Navigation', html:'<button class="ui-fab">+</button>' },
-  { id:'nav_sticky', name:'Sticky Navigation', category:'Navigation', html:'<nav class="ui-sticky">Sticky Nav</nav>' },
-  { id:'nav_pagination', name:'Pagination', category:'Navigation', html:'<div class="ui-pagination"><button>«</button><button>1</button><button>2</button><button>»</button></div>' },
-  { id:'nav_dropdown', name:'Dropdown Menu', category:'Navigation', html:'<div class="ui-dropdown"><button>Menu</button><div class="dropdown-list" style="display:none"><a href=\"#\">Item</a></div></div>' },
-  { id:'nav_accordion', name:'Accordion Menu', category:'Navigation', html:'<div class="ui-accordion"><button>Section</button><div class="panel" style="display:none">Content</div></div>' },
-  { id:'nav_step', name:'Step Indicators', category:'Navigation', html:'<div class="ui-steps"><span>1</span><span>2</span><span>3</span></div>' },
-  { id:'nav_backtotop', name:'Back to Top Button', category:'Navigation', html:'<button class="ui-backtop">Top</button>' },
-
-  /* ---------- Fonts (controls only) ---------- */
-  { id:'font_control', name:'Font Selector (control)', category:'Fonts', html:'<div class="ui-font">Font selector (use inspector)</div>', propsSchema:[{key:'fontFamily',label:'Font family',type:'font'}] },
-
-  /* ---------- Buttons ---------- */
-  { id:'btn_primary', name:'Primary Button', category:'Buttons', html:'<a class=\"ui-btn ui-primary\" href=\"#\" data-link=\"\">Primary</a>', propsSchema:[{key:'text',label:'Text',type:'text'},{key:'link',label:'Link / Page',type:'url'},{key:'variant',label:'Variant',type:'select',options:['primary','secondary','ghost']}] },
-  { id:'btn_secondary', name:'Secondary Button', category:'Buttons', html:'<a class=\"ui-btn ui-secondary\" href=\"#\" data-link=\"\">Secondary</a>', propsSchema:[{key:'text',label:'Text',type:'text'},{key:'link',label:'Link / Page',type:'url'}] },
-  { id:'btn_icon', name:'Icon Button', category:'Buttons', html:'<button class=\"ui-icon-btn\">★</button>', propsSchema:[{key:'link',label:'Link / Page',type:'url'}] },
-  { id:'btn_toggle', name:'Toggle Button (on/off)', category:'Buttons', html:'<button class=\"ui-toggle\">Off</button>' },
-
-  /* ---------- Forms ---------- */
-  { id:'form_basic', name:'Form (basic)', category:'Forms', html:'<form class=\"ui-form\"><input placeholder=\"Name\"/><input placeholder=\"Email\"/><textarea placeholder=\"Message\"></textarea><button type=\"submit\">Send</button></form>' },
-  { id:'form_search', name:'Search Bar', category:'Forms', html:'<div class=\"ui-search\"><input placeholder=\"Search...\"/><button>🔍</button></div>' },
-  { id:'form_file', name:'File Upload', category:'Forms', html:'<input type=\"file\" />' },
-  { id:'form_checkbox', name:'Checkbox', category:'Forms', html:'<label><input type=\"checkbox\" /> Option</label>' },
-  { id:'form_radio', name:'Radio', category:'Forms', html:'<label><input type=\"radio\" name=\"r\" /> Choice</label>' },
-  { id:'form_select', name:'Dropdown / Select', category:'Forms', html:'<select><option>One</option><option>Two</option></select>' },
-  { id:'form_slider', name:'Slider (range)', category:'Forms', html:'<input type=\"range\" min=\"0\" max=\"100\" value=\"25\" />' },
-
-  /* ---------- Cards / Content ---------- */
-  { id:'card_basic', name:'Content Card', category:'Cards', html:'<div class=\"ui-card\"><img src=\"\" alt=\"\" style=\"width:100%;height:auto;border-radius:6px\"/><h3>Title</h3><p>Summary</p><a class=\"ui-btn\" href=\"#\">Action</a></div>', propsSchema:[{key:'src',label:'Image URL',type:'url'},{key:'text',label:'Title',type:'text'}] },
-  { id:'card_profile', name:'Profile Card', category:'Cards', html:'<div class=\"ui-card\"><div class=\"ui-avatar\"><img src=\"\" alt=\"\"/></div><h3>Name</h3><p>Role</p></div>' },
-
-  /* ---------- Media ---------- */
-  { id:'media_video', name:'Video Player (placeholder)', category:'Media', html:'<div class=\"ui-video\"><video controls src=\"\"></video></div>', propsSchema:[{key:'src',label:'Video URL',type:'url'}] },
-  { id:'media_audio', name:'Audio Player (placeholder)', category:'Media', html:'<audio controls src=\"\"></audio>', propsSchema:[{key:'src',label:'Audio URL',type:'url'}] },
-  { id:'media_gallery', name:'Image Gallery (grid)', category:'Media', html:'<div class=\"ui-gallery\"><div class=\"grid\"><img src=\"\" alt=\"\"/></div></div>' },
-
-  /* ---------- Loaders / Progress ---------- */
-  { id:'loader_spinner', name:'Spinner (loader)', category:'Loaders', html:'<div class=\"ui-spinner\" aria-hidden=\"true\"></div>' },
-  { id:'progress_linear', name:'Linear Progress', category:'Loaders', html:'<progress max=\"100\" value=\"50\"></progress>' },
-  { id:'skeleton', name:'Skeleton Loader', category:'Loaders', html:'<div class=\"ui-skeleton\">Loading...</div>' },
-
-  /* ---------- Avatars / Badges ---------- */
-  { id:'avatar_circle', name:'Circular Avatar', category:'Avatars', html:'<div class=\"ui-avatar\"><img src=\"\" alt=\"Avatar\"/></div>', propsSchema:[{key:'src',label:'Image URL',type:'url'}] },
-  { id:'badge_status', name:'Badge / Tag', category:'Avatars', html:'<span class=\"ui-badge\">New</span>' },
-
-  /* ---------- Alerts / Toasts ---------- */
-  { id:'alert_success', name:'Success Alert', category:'Alerts', html:'<div class=\"ui-alert success\"><strong>Success!</strong> Action completed.</div>' },
-  { id:'alert_warning', name:'Warning Alert', category:'Alerts', html:'<div class=\"ui-alert warning\"><strong>Warning!</strong></div>' },
-  { id:'alert_error', name:'Error Alert', category:'Alerts', html:'<div class=\"ui-alert error\"><strong>Error!</strong></div>' },
-  { id:'toast', name:'Toast Notification', category:'Alerts', html:'<div class=\"ui-toast\">Toast message</div>' },
-
-  /* ---------- Carousels / Sliders ---------- */
-  { id:'carousel', name:'Image Carousel (skeleton)', category:'Carousels', html:'<div class=\"ui-carousel\"><div class=\"slides\"><img src=\"\" alt=\"\"/></div></div>' },
-
-  /* ---------- Tables / Data ---------- */
-  { id:'table_basic', name:'Data Table', category:'Tables', html:'<table class=\"ui-table\"><thead><tr><th>Col</th><th>Col</th></tr></thead><tbody><tr><td>Data</td><td>Data</td></tr></tbody></table>' },
-
-  /* ---------- Accessibility ---------- */
-  { id:'skip_link', name:'Skip-to-Content', category:'Accessibility', html:'<a class=\"skip-link\" href=\"#maincontent\">Skip to content</a>' },
-  { id:'aria_landmarks', name:'ARIA Landmark (main)', category:'Accessibility', html:'<main role=\"main\" id=\"maincontent\"></main>' },
-
-  /* ---------- Utility / Misc ---------- */
-  { id:'divider', name:'Divider / HR', category:'Layout', html:'<hr class=\"ui-divider\" />' },
-  { id:'blockquote', name:'Blockquote', category:'Typography', html:'<blockquote class=\"ui-quote\">Quote here</blockquote>' },
-  { id:'caption', name:'Caption / Small', category:'Typography', html:'<small class=\"ui-caption\">Caption text</small>' },
-
-  /* ---------- Gamification / AR placeholders ---------- */
-  { id:'gamification_badge', name:'Progress Badge', category:'Gamification', html:'<div class=\"ui-badge\">Level 1</div>' },
-  { id:'leaderboard', name:'Leaderboard block', category:'Gamification', html:'<div class=\"ui-leaderboard\"><div>1. User</div></div>' },
-
-  /* ---------- Design System / helpers ---------- */
-  { id:'divider_fancy', name:'Section Divider', category:'Layout', html:'<div class=\"ui-divider-fancy\"></div>' }
-];
-
-/* ============================
-   Application State & DOM refs
-   ============================ */
 const state = { viewMode:false, rulers:false, zoom:1, device:'desktop', history:[], future:[] };
-const paletteContainer = document.getElementById('paletteContainer');
+
 const stage = document.getElementById('stage');
 const stageWrapper = document.getElementById('stageWrapper');
 const ruler = document.getElementById('ruler');
@@ -271,440 +343,598 @@ const htmlOutput = document.getElementById('htmlOutput');
 const cssOutput = document.getElementById('cssOutput');
 const jsOutput = document.getElementById('jsOutput');
 const viewModeLabel = document.getElementById('viewModeLabel');
-const stageSizeLabel = document.getElementById('stageSizeLabel');
 const zoomLabel = document.getElementById('zoomLabel');
+const stageSizeLabel = document.getElementById('stageSizeLabel');
 
-/* ============================
-   Palette builder (categories)
-   ============================ */
-function buildPalette(){
-  const groups = {};
-  ELEMENTS.forEach(e => { groups[e.category] = groups[e.category] || []; groups[e.category].push(e); });
-  paletteContainer.innerHTML = '';
-  Object.keys(groups).forEach(cat => {
-    const catDiv = document.createElement('div'); catDiv.className='category';
-    const head = document.createElement('div'); head.className='head';
-    head.innerHTML = `<div class="title">${cat}</div><div style="font-size:12px;color:var(--muted)">+</div>`;
-    const list = document.createElement('div'); list.className='list'; list.style.display='none';
-    groups[cat].forEach(item => {
-      const p = document.createElement('div'); p.className='palette-item'; p.textContent = item.name; p.draggable = true;
-      p.addEventListener('dragstart', (ev)=> ev.dataTransfer.setData('application/x-element', item.id));
-      p.addEventListener('dblclick', ()=> insertElementInstance(item.id, null));
-      list.appendChild(p);
-    });
-    head.addEventListener('click', ()=> { list.style.display = list.style.display === 'none' ? 'flex' : 'none'; head.querySelector('div:last-child').textContent = list.style.display==='none' ? '+' : '−'; });
-    catDiv.appendChild(head); catDiv.appendChild(list); paletteContainer.appendChild(catDiv);
-  });
-}
-
-/* ============================
-   Create & insert nodes on canvas
-   ============================ */
 function ID(prefix='n'){ return prefix + '_' + Date.now().toString(36) + '_' + Math.floor(Math.random()*9999); }
-function findDef(typeId){ return ELEMENTS.find(e=> e.id === typeId); }
 
-function createNode(typeId){
-  const def = findDef(typeId);
-  if(!def) return null;
-  const node = document.createElement('div');
-  node.className = 'element-box';
-  const nodeId = ID('node');
-  node.dataset.nodeId = nodeId;
-  node.dataset.typeId = def.id;
-  node.innerHTML = def.html || '';
-  // neutral editor appearance
-  node.style.background = '#ffffff';
-  node.style.color = '#0b1220';
-  node.style.border = '1px solid rgba(0,0,0,0.06)';
-  attachNodeEvents(node);
-  return node;
-}
+/* -------------
+   Palette dragstart bindings
+   ------------- */
+document.querySelectorAll('.palette-item').forEach(item=>{
+  item.addEventListener('dragstart', (ev)=> ev.dataTransfer.setData('application/x-type', item.dataset.type));
+  // NOTE: data-type attributes are set later via HTML - for now items have data-type values
+});
 
-function insertElementInstance(typeId, targetNodeElement=null){
-  const node = createNode(typeId);
-  if(!node) return;
-  if(targetNodeElement && targetNodeElement.classList.contains('element-box')){
-    // find or create inner dropzone
-    let dz = targetNodeElement.querySelector('.inner-dropzone');
-    if(!dz){
-      dz = document.createElement('div'); dz.className='inner-dropzone';
-      targetNodeElement.appendChild(dz);
-      makeDropzone(dz);
-    }
-    dz.appendChild(node);
-  } else {
-    stage.appendChild(node);
+/* Because some palette items were created without data-type attribute in markup (we used data-type),
+   ensure every palette-item has a data-type property; if not, map by innerText -> type id.
+   But in this hardcoded file we included data-type attributes on each palette-item.
+*/
+
+/* -------------
+   Create element markup by type
+   ------------- */
+function createElementByType(type){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'element-box';
+  wrapper.dataset.nodeId = ID('node');
+  wrapper.dataset.type = type;
+
+  // Each case returns innerHTML and optional dataset default fields
+  switch(type){
+    /* ---------- Icons ---------- */
+    case 'icon_glyph':
+      wrapper.innerHTML = '<span class="ui-icon" data-type="icon">🏠</span>';
+      break;
+    case 'icon_material':
+      wrapper.innerHTML = '<span class="ui-icon material">material_icon</span>';
+      break;
+    case 'icon_font':
+      wrapper.innerHTML = '<i class="ui-icon fa">fa-star</i>';
+      break;
+    case 'icon_emoji':
+      wrapper.innerHTML = '<span class="ui-icon">😊</span>';
+      break;
+    case 'icon_animated':
+      wrapper.innerHTML = '<span class="ui-icon-anim">❤</span>';
+      wrapper.style.transition = 'transform .3s';
+      break;
+    case 'icon_social':
+      wrapper.innerHTML = '<a class="ui-social" href="#" data-link=""><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53"/></svg></a>';
+      break;
+    case 'icon_action':
+      wrapper.innerHTML = '<button class="ui-action">✖</button>';
+      break;
+    case 'icon_status':
+      wrapper.innerHTML = '<span class="ui-status">✔</span>';
+      break;
+    case 'icon_nav':
+      wrapper.innerHTML = '<span class="ui-chev">‹</span>';
+      break;
+    case 'icon_duotone':
+      wrapper.innerHTML = '<span class="ui-duo">◎</span>';
+      break;
+    case 'icon_neumo':
+      wrapper.innerHTML = '<span class="ui-neumo">◉</span>';
+      break;
+    case 'icon_weather':
+      wrapper.innerHTML = '<span class="ui-weather">☀</span>';
+      break;
+
+    /* ---------- Navigation ---------- */
+    case 'nav_top':
+      wrapper.innerHTML = `<nav class="ui-nav"><div class="brand">Brand</div><div class="nav-links"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></div></nav>`;
+      break;
+    case 'nav_hamburger':
+      wrapper.innerHTML = `<button class="ui-hamburger" aria-label="Menu">☰</button>`;
+      break;
+    case 'nav_sidebar':
+      wrapper.innerHTML = `<aside class="ui-sidebar"><nav><a href="#">Dashboard</a><a href="#">Settings</a></nav></aside>`;
+      break;
+    case 'nav_bottom':
+      wrapper.innerHTML = `<nav class="ui-bottom"><a href="#">Home</a><a href="#">Search</a><a href="#">Profile</a></nav>`;
+      break;
+    case 'nav_tabs':
+      wrapper.innerHTML = `<div class="ui-tabs"><button>Tab 1</button><button>Tab 2</button></div>`;
+      break;
+    case 'nav_breadcrumbs':
+      wrapper.innerHTML = `<nav class="ui-breadcrumbs">Home &gt; Category &gt; Item</nav>`;
+      break;
+    case 'nav_mega':
+      wrapper.innerHTML = `<div class="ui-mega"><button>Menu</button><div class="mega-content" style="display:none"></div></div>`;
+      break;
+    case 'nav_fab':
+      wrapper.innerHTML = `<button class="ui-fab">+</button>`;
+      break;
+    case 'nav_sticky':
+      wrapper.innerHTML = `<nav class="ui-sticky">Sticky Nav</nav>`;
+      break;
+    case 'nav_pagination':
+      wrapper.innerHTML = `<div class="ui-pagination"><button>«</button><button>1</button><button>2</button><button>»</button></div>`;
+      break;
+    case 'nav_dropdown':
+      wrapper.innerHTML = `<div class="ui-dropdown"><button>Menu</button><div class="dropdown-list" style="display:none"><a href="#">Item</a></div></div>`;
+      break;
+    case 'nav_accordion':
+      wrapper.innerHTML = `<div class="ui-accordion"><button>Section</button><div class="panel" style="display:none">Content</div></div>`;
+      break;
+    case 'nav_steps':
+      wrapper.innerHTML = `<div class="ui-steps"><span>1</span><span>2</span><span>3</span></div>`;
+      break;
+    case 'nav_backtotop':
+      wrapper.innerHTML = `<button class="ui-backtop">Top</button>`;
+      break;
+
+    /* ---------- Fonts (control elements) ---------- */
+    case 'font_inter':
+      wrapper.innerHTML = `<div class="ui-font">Inter</div>`;
+      break;
+    case 'font_roboto':
+      wrapper.innerHTML = `<div class="ui-font">Roboto</div>`;
+      break;
+    case 'font_montserrat':
+      wrapper.innerHTML = `<div class="ui-font">Montserrat</div>`;
+      break;
+    case 'font_serif':
+      wrapper.innerHTML = `<div class="ui-font">Georgia</div>`;
+      break;
+    case 'font_mono':
+      wrapper.innerHTML = `<div class="ui-font">Fira Code</div>`;
+      break;
+
+    /* ---------- Buttons ---------- */
+    case 'btn_primary':
+      wrapper.innerHTML = `<a class="ui-btn ui-primary" href="#" data-link="">Primary</a>`; break;
+    case 'btn_secondary':
+      wrapper.innerHTML = `<a class="ui-btn ui-secondary" href="#" data-link="">Secondary</a>`; break;
+    case 'btn_icon':
+      wrapper.innerHTML = `<button class="ui-icon-btn">★</button>`; break;
+    case 'btn_toggle':
+      wrapper.innerHTML = `<button class="ui-toggle">Off</button>`; break;
+    case 'btn_ghost':
+      wrapper.innerHTML = `<button class="ui-ghost">Ghost</button>`; break;
+    case 'btn_split':
+      wrapper.innerHTML = `<div class="ui-split"><button>Main</button><button>▼</button></div>`; break;
+
+    /* ---------- Forms ---------- */
+    case 'form_input':
+      wrapper.innerHTML = `<label>Text<input placeholder="Type..." /></label>`; break;
+    case 'form_textarea':
+      wrapper.innerHTML = `<label>Message<textarea placeholder="Your message"></textarea></label>`; break;
+    case 'form_select':
+      wrapper.innerHTML = `<select><option>Option 1</option><option>Option 2</option></select>`; break;
+    case 'form_checkbox':
+      wrapper.innerHTML = `<label><input type="checkbox" /> Option</label>`; break;
+    case 'form_radio':
+      wrapper.innerHTML = `<label><input type="radio" name="r" /> Choice</label>`; break;
+    case 'form_file':
+      wrapper.innerHTML = `<input type="file" />`; break;
+    case 'form_search':
+      wrapper.innerHTML = `<div class="ui-search"><input placeholder="Search..." /><button>🔍</button></div>`; break;
+    case 'form_slider':
+      wrapper.innerHTML = `<input type="range" min="0" max="100" value="25" />`; break;
+    case 'form_validation':
+      wrapper.innerHTML = `<div class="ui-validation"><input placeholder="Email"/><div class="valid" style="color:var(--success)">✓ valid</div></div>`; break;
+
+    /* ---------- Cards ---------- */
+    case 'card_content':
+      wrapper.innerHTML = `<div class="ui-card"><img src="" alt="" style="width:100%;height:auto;border-radius:6px"/><h3>Card Title</h3><p>Card description</p><a class="ui-btn" href="#">Action</a></div>`; break;
+    case 'card_profile':
+      wrapper.innerHTML = `<div class="ui-card"><div class="ui-avatar"><img src="" alt=""/></div><h3>Name</h3><p>Role</p></div>`; break;
+    case 'card_feature':
+      wrapper.innerHTML = `<div class="ui-card"><h3>Feature</h3><p>Highlights</p></div>`; break;
+
+    /* ---------- Modals, toasts ---------- */
+    case 'modal_alert':
+      wrapper.innerHTML = `<div class="ui-modal"><div class="ui-modal-body"><h3>Alert</h3><p>Are you sure?</p><button>OK</button></div></div>`; break;
+    case 'modal_form':
+      wrapper.innerHTML = `<div class="ui-modal"><form class="ui-form"><input placeholder="Name"/><button type="submit">Send</button></form></div>`; break;
+    case 'modal_full':
+      wrapper.innerHTML = `<div class="ui-modal-full">Full screen dialog</div>`; break;
+    case 'toast':
+      wrapper.innerHTML = `<div class="ui-toast">Notification</div>`; break;
+
+    /* ---------- Loaders & progress ---------- */
+    case 'loader_spinner':
+      wrapper.innerHTML = `<div class="ui-spinner" aria-hidden="true" style="width:40px;height:40px;border-radius:50%;border:4px solid #f3f3f3;border-top:4px solid #3498db;animation:spin 1s linear infinite"></div>`; break;
+    case 'progress_linear':
+      wrapper.innerHTML = `<progress max="100" value="60" style="width:100%"></progress>`; break;
+    case 'skeleton':
+      wrapper.innerHTML = `<div class="ui-skeleton" style="height:12px;background:#eee;border-radius:6px;width:100%"></div>`; break;
+
+    /* ---------- Avatars & badges ---------- */
+    case 'avatar_circle':
+      wrapper.innerHTML = `<div class="ui-avatar" style="width:48px;height:48px;border-radius:50%;overflow:hidden"><img src="" alt="" style="width:100%;height:100%;object-fit:cover"/></div>`; break;
+    case 'avatar_initials':
+      wrapper.innerHTML = `<div class="ui-avatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#ddd;color:#111">AB</div>`; break;
+    case 'badge_new':
+      wrapper.innerHTML = `<span class="ui-badge">New</span>`; break;
+
+    /* ---------- Carousels / Sliders ---------- */
+    case 'carousel_simple':
+      wrapper.innerHTML = `<div class="ui-carousel"><div class="slides"><img src="" alt="" style="width:100%;"/></div></div>`; break;
+    case 'carousel_auto':
+      wrapper.innerHTML = `<div class="ui-carousel-auto">Autoplay slider (placeholder)</div>`; break;
+
+    /* ---------- Tables ---------- */
+    case 'table_basic':
+      wrapper.innerHTML = `<table class="ui-table" style="width:100%;border-collapse:collapse"><thead><tr><th style="border:1px solid #ddd;padding:6px">Col</th><th style="border:1px solid #ddd;padding:6px">Col</th></tr></thead><tbody><tr><td style="border:1px solid #ddd;padding:6px">Data</td><td style="border:1px solid #ddd;padding:6px">Data</td></tr></tbody></table>`; break;
+    case 'pricing_table':
+      wrapper.innerHTML = `<div class="ui-pricing"><div class="plan"><h3>Basic</h3><p>$9</p></div></div>`; break;
+
+    /* ---------- Alerts & helpers ---------- */
+    case 'alert_success':
+      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#e6ffed;color:#045d2a">✔ Success! Operation completed.</div>`; break;
+    case 'alert_warning':
+      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#fff8e1;color:#7a5a00">⚠ Warning!</div>`; break;
+    case 'alert_error':
+      wrapper.innerHTML = `<div style="padding:10px;border-radius:6px;background:#ffecec;color:#7a1a1a">✖ Error occurred</div>`; break;
+    case 'search_filters':
+      wrapper.innerHTML = `<div class="ui-filters"><span class="ui-badge">Filter 1 ✕</span> <span class="ui-badge">Filter 2 ✕</span></div>`; break;
+    case 'footer_simple':
+      wrapper.innerHTML = `<footer class="ui-footer" style="padding:18px;text-align:center;background:#f8f8f8">© 2025 Company</footer>`; break;
+    case 'header_hero':
+      wrapper.innerHTML = `<header class="ui-hero" style="padding:40px 20px;text-align:center;background:#0b1220;color:#fff"><h1>Hero Heading</h1><p>Subheading text</p></header>`; break;
+    case 'divider':
+      wrapper.innerHTML = `<hr style="border:none;border-top:1px solid #ddd;margin:12px 0"/>`; break;
+
+    /* ---------- Gamification / AR ---------- */
+    case 'progress_badge':
+      wrapper.innerHTML = `<div class="ui-badge">Level 1</div>`; break;
+    case 'leaderboard':
+      wrapper.innerHTML = `<div class="ui-leaderboard"><div>1. Alice</div><div>2. Bob</div></div>`; break;
+    case 'ar_3d':
+      wrapper.innerHTML = `<div class="ui-ar">3D product placeholder</div>`; break;
+
+    /* ---------- Accessibility ---------- */
+    case 'skip':
+      wrapper.innerHTML = `<a class="skip-link" href="#maincontent">Skip to content</a>`; break;
+    case 'aria_landmark':
+      wrapper.innerHTML = `<main role="main" id="maincontent"></main>`; break;
+
+    default:
+      wrapper.innerHTML = `<div>Unknown element: ${type}</div>`;
   }
-  saveHistory();
-  reindexLayers();
-  updateOutputs();
+
+  // set some sensible defaults for element spacing
+  wrapper.style.padding = '8px';
+  wrapper.style.margin = '8px 0';
+
+  // make node a dropzone for nesting
+  makeDropzone(wrapper);
+  attachNodeEvents(wrapper);
+
+  return wrapper;
 }
 
-/* ============================
-   Dropzone & Node events (nesting)
-   ============================ */
+/* -------------
+   Make dropzone function (for stage and element boxes)
+   ------------- */
 function makeDropzone(el){
-  el.addEventListener('dragover', ev=> ev.preventDefault());
-  el.addEventListener('drop', ev=> {
+  el.addEventListener('dragover', ev => ev.preventDefault());
+  el.addEventListener('drop', ev => {
     ev.preventDefault();
     if(state.viewMode) return;
-    const typeId = ev.dataTransfer.getData('application/x-element');
-    if(typeId) insertElementInstance(typeId, el.closest('.element-box') || null);
+    const type = ev.dataTransfer.getData('application/x-type');
+    if(!type) return;
+    // if dropping into an existing element, insert as child
+    const targetElementBox = el.closest('.element-box') || null;
+    if(targetElementBox && targetElementBox !== stage){
+      // create inner dropzone if needed
+      let inner = targetElementBox.querySelector('.inner-dropzone');
+      if(!inner){
+        inner = document.createElement('div');
+        inner.className = 'inner-dropzone';
+        targetElementBox.appendChild(inner);
+        makeDropzone(inner);
+      }
+      inner.appendChild(createElementByType(type));
+    } else {
+      stage.appendChild(createElementByType(type));
+    }
+    saveHistory();
+    refreshLayers();
+    updateOutputs();
   });
 }
 
+/* -------------
+   Attach node events (selection, inline edit)
+   ------------- */
 function attachNodeEvents(node){
-  node.addEventListener('click', ev=> {
+  node.addEventListener('click', ev => {
     ev.stopPropagation();
     if(state.viewMode) return;
     selectNode(node);
   });
-  node.addEventListener('dblclick', ev=> {
+  node.addEventListener('dblclick', ev => {
     ev.stopPropagation();
     if(state.viewMode) return;
-    // enable inline editing if no image child
-    if(!node.querySelector('img') && !node.querySelector('video')) {
-      node.contentEditable = true; node.focus();
-      const onBlur = ()=> { node.contentEditable = false; node.removeEventListener('blur', onBlur); saveHistory(); updateOutputs(); };
-      node.addEventListener('blur', onBlur);
-    }
+    // enable inline editing for text-rich nodes (not for inputs, images or video)
+    if(node.querySelector('input,textarea,video,img')) return;
+    node.contentEditable = true;
+    node.focus();
+    const onBlur = ()=> { node.contentEditable = false; node.removeEventListener('blur', onBlur); saveHistory(); updateOutputs(); };
+    node.addEventListener('blur', onBlur);
   });
-  // make node a dropzone to allow nesting
+  // make node a dropzone itself
   makeDropzone(node);
 }
 
-/* ============================
-   Selection & Inspector
-   ============================ */
+/* -------------
+   Stage as dropzone (top-level)
+   ------------- */
+stage.addEventListener('dragover', ev => ev.preventDefault());
+stage.addEventListener('drop', ev => {
+  ev.preventDefault();
+  if(state.viewMode) return;
+  const type = ev.dataTransfer.getData('application/x-type');
+  if(!type) return;
+  stage.appendChild(createElementByType(type));
+  saveHistory();
+  refreshLayers();
+  updateOutputs();
+});
+
+/* -------------
+   Selection and inspector
+   ------------- */
 function selectNode(node){
   document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected'));
   node.classList.add('element-selected');
-  renderInspectorForNode(node);
-  reindexLayers(node);
+  renderInspector(node);
+  refreshLayers(node);
 }
 
-function renderInspectorForNode(node){
+function renderInspector(node){
   inspectorContent.innerHTML = '';
-  const def = findDef(node.dataset.typeId) || { name:'Element' };
-  const title = document.createElement('div'); title.style.fontWeight='700'; title.style.marginBottom='8px'; title.textContent = def.name;
+  const title = document.createElement('div'); title.style.fontWeight='700'; title.style.marginBottom='8px'; title.textContent = node.dataset.type || 'Element';
   inspectorContent.appendChild(title);
 
-  // Style controls
-  addInspectorControl(node, 'Background Color', 'color', '', (v)=> { node.style.background = v; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Text Color', 'color', '', (v)=> { node.style.color = v; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Font family', 'font', '', (v)=> { node.style.fontFamily = v; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Font size (px)', 'number', '', (v)=> { node.style.fontSize = v ? v + 'px' : ''; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Padding (px)', 'number', '', (v)=> { node.style.padding = v ? v + 'px' : ''; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border width (px)', 'number', '', (v)=> { node.style.borderWidth = v ? v + 'px' : ''; node.style.borderStyle = node.style.borderStyle || 'solid'; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border style', 'select', 'solid', (v)=> { node.style.borderStyle = v; saveHistory(); updateOutputs(); }, ['solid','dashed','dotted','none']);
-  addInspectorControl(node, 'Border color', 'color', '', (v)=> { node.style.borderColor = v; saveHistory(); updateOutputs(); });
-  addInspectorControl(node, 'Border radius (px)', 'number', '', (v)=> { node.style.borderRadius = v ? v + 'px' : ''; saveHistory(); updateOutputs(); });
+  /* style controls */
+  addInspectorControl(node, 'Background color', 'color', node.style.background || '', val => { node.style.background = val; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Text color', 'color', node.style.color || '', val => { node.style.color = val; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Font family', 'font', node.style.fontFamily || '', val => { node.style.fontFamily = val; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Font size (px)', 'number', parseInt(node.style.fontSize||'',10) || '', val => { node.style.fontSize = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Padding (px)', 'number', parseInt(node.style.padding||'',10) || '', val => { node.style.padding = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Border width (px)', 'number', parseInt(node.style.borderWidth||'',10) || '', val => { node.style.borderWidth = val ? val + 'px' : ''; node.style.borderStyle = node.style.borderStyle || 'solid'; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Border style', 'select', node.style.borderStyle || 'solid', val => { node.style.borderStyle = val; saveHistory(); updateOutputs(); }, ['solid','dashed','dotted','none']);
+  addInspectorControl(node, 'Border color', 'color', node.style.borderColor || '', val => { node.style.borderColor = val; saveHistory(); updateOutputs(); });
+  addInspectorControl(node, 'Border radius (px)', 'number', parseInt(node.style.borderRadius||'',10) || '', val => { node.style.borderRadius = val ? val + 'px' : ''; saveHistory(); updateOutputs(); });
 
-  // Link / navigation prop if clickable
-  const clickable = node.querySelector('a,button,[data-type="icon"],.ui-btn,.ui-hamburger');
-  if(clickable) {
-    addInspectorControl(node, 'Link / Page', 'url', node.dataset.link || '', (v)=> {
-      const a = node.querySelector('a');
-      if(a) a.setAttribute('href', v || '#');
-      node.dataset.link = v;
-      saveHistory(); updateOutputs();
-    });
+  /* element-specific: images, anchors, inputs */
+  const img = node.querySelector('img');
+  if(img) {
+    addInspectorControl(node, 'Image src', 'url', img.src || '', val => { img.src = val; saveHistory(); updateOutputs(); });
+    addInspectorControl(node, 'Alt text', 'text', img.alt || '', val => { img.alt = val; saveHistory(); updateOutputs(); });
   }
-
-  // element specific props from propsSchema
-  if(def.propsSchema && Array.isArray(def.propsSchema)){
-    def.propsSchema.forEach(ps => {
-      if(ps.type === 'text' || ps.type === 'url' || ps.type === 'number' || ps.type === 'color' || ps.type === 'font'){
-        addInspectorControl(node, ps.label, ps.type, node.dataset[ps.key] || '', (v)=> applyPropToNode(node, ps.key, v), ps.options || null);
-      } else if(ps.type === 'textarea'){
-        addInspectorTextarea(node, ps.label, node.dataset[ps.key] || '', (v)=> applyPropToNode(node, ps.key, v));
-      } else if(ps.type === 'links'){
-        // show as textarea for comma separated links
-        addInspectorTextarea(node, ps.label, node.dataset[ps.key] || '', (v)=> applyPropToNode(node, ps.key, v));
-      } else if(ps.type === 'select'){
-        addInspectorControl(node, ps.label, 'select', node.dataset[ps.key] || '', (v)=> applyPropToNode(node, ps.key, v), ps.options || []);
-      }
-    });
+  const anchor = node.querySelector('a');
+  if(anchor){
+    addInspectorControl(node, 'Link URL', 'url', anchor.getAttribute('href') || '', val => { anchor.setAttribute('href', val || '#'); node.dataset.link = val || ''; saveHistory(); updateOutputs(); });
   }
+  const btn = node.querySelector('button');
+  if(btn){
+    addInspectorControl(node, 'Button text', 'text', btn.textContent || '', val => { btn.textContent = val; saveHistory(); updateOutputs(); });
+    addInspectorControl(node, 'Button link (data-link)', 'url', node.dataset.link || '', val => { node.dataset.link = val || ''; saveHistory(); updateOutputs(); });
+  }
+  // text content editor
+  addInspectorTextarea(node, 'Text content', node.innerText || '', val => { // applies to text-rich elements
+    // For simple nodes try to set first heading/p/p/span text
+    const txtEl = node.querySelector('h1,h2,h3,h4,p,span,button,a');
+    if(txtEl) txtEl.textContent = val;
+    else node.textContent = val;
+    saveHistory();
+    updateOutputs();
+  });
 
-  // Actions
+  // delete / layer controls
   const row = document.createElement('div'); row.style.display='flex'; row.style.gap='8px'; row.style.marginTop='8px';
-  const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = ()=> { if(confirm('Delete element?')){ node.remove(); renderInspectorPlaceholder(); saveHistory(); reindexLayers(); updateOutputs(); } };
-  const up = document.createElement('button'); up.className='btn ghost'; up.textContent='Bring forward'; up.onclick = ()=> { if(node.nextElementSibling) node.parentElement.insertBefore(node.nextElementSibling, node); saveHistory(); reindexLayers(); updateOutputs(); };
-  const down = document.createElement('button'); down.className='btn ghost'; down.textContent='Send back'; down.onclick = ()=> { if(node.previousElementSibling) node.parentElement.insertBefore(node, node.previousElementSibling); saveHistory(); reindexLayers(); updateOutputs(); };
+  const del = document.createElement('button'); del.className='btn'; del.textContent='Delete'; del.onclick = ()=> { if(confirm('Delete element?')){ node.remove(); renderInspectorPlaceholder(); saveHistory(); refreshLayers(); updateOutputs(); } };
+  const up = document.createElement('button'); up.className='btn ghost'; up.textContent='Bring forward'; up.onclick = ()=> { if(node.nextElementSibling) node.parentElement.insertBefore(node.nextElementSibling, node); saveHistory(); refreshLayers(); updateOutputs(); };
+  const down = document.createElement('button'); down.className='btn ghost'; down.textContent='Send back'; down.onclick = ()=> { if(node.previousElementSibling) node.parentElement.insertBefore(node, node.previousElementSibling); saveHistory(); refreshLayers(); updateOutputs(); };
   row.appendChild(del); row.appendChild(up); row.appendChild(down);
   inspectorContent.appendChild(row);
 }
 
-/* Inspector control helpers */
-function addInspectorControl(node, label, type='text', defaultVal='', onChange, options=null){
+/* inspector helpers */
+function addInspectorControl(node,label,type,defaultVal,onChange,options){
   const wrapper = document.createElement('div'); wrapper.className='field';
   const lab = document.createElement('label'); lab.textContent = label; wrapper.appendChild(lab);
   if(type === 'textarea'){
     const ta = document.createElement('textarea'); ta.value = defaultVal; ta.onchange = ()=> onChange(ta.value); wrapper.appendChild(ta);
   } else if(type === 'select'){
-    const sel = document.createElement('select');
-    (options || []).forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; sel.appendChild(o); });
-    sel.value = defaultVal || options && options[0];
-    sel.onchange = ()=> onChange(sel.value);
-    wrapper.appendChild(sel);
+    const sel = document.createElement('select'); (options||[]).forEach(o=>{const opt=document.createElement('option');opt.value=o;opt.textContent=o;sel.appendChild(opt)});
+    sel.value = defaultVal || (options && options[0] || '');
+    sel.onchange = ()=> onChange(sel.value); wrapper.appendChild(sel);
+  } else if(type === 'font'){
+    const sel = document.createElement('select'); ['Inter,system-ui,Arial','Roboto,Arial','Montserrat','Georgia,serif','Fira Code,monospace'].forEach(f=>{const o=document.createElement('option');o.value=f;o.textContent=f.split(',')[0];sel.appendChild(o)});
+    sel.value = defaultVal || ''; sel.onchange = ()=> onChange(sel.value); wrapper.appendChild(sel);
   } else {
     const input = document.createElement('input');
-    if(type === 'url') input.type='url';
-    else if(type === 'number') input.type='number';
-    else if(type === 'color') input.type='color';
-    else input.type='text';
-    if(type === 'font'){
-      // create select of font families
-      const fonts = ['Inter,system-ui,Arial','Roboto,Arial,Helvetica','Open Sans','Montserrat','Lato','Poppins','Georgia,serif','Courier New,monospace'];
-      const sel = document.createElement('select'); fonts.forEach(f=>{const o=document.createElement('option'); o.value=f; o.textContent=f.split(',')[0]; sel.appendChild(o);});
-      sel.value = defaultVal || fonts[0]; sel.onchange = ()=> onChange(sel.value); wrapper.appendChild(sel);
-    } else {
-      input.value = defaultVal || '';
-      input.onchange = ()=> onChange(input.value);
-      wrapper.appendChild(input);
-    }
+    input.type = (type === 'color') ? 'color' : (type === 'number' ? 'number' : 'text');
+    input.value = defaultVal || '';
+    input.onchange = ()=> onChange(input.value);
+    wrapper.appendChild(input);
   }
   inspectorContent.appendChild(wrapper);
 }
-function addInspectorTextarea(node, label, val, onChange){
+function addInspectorTextarea(node,label,val,onChange){
   const wrapper = document.createElement('div'); wrapper.className='field';
   const lab = document.createElement('label'); lab.textContent = label; wrapper.appendChild(lab);
-  const ta = document.createElement('textarea'); ta.value = val; ta.onchange = ()=> onChange(ta.value); wrapper.appendChild(ta);
+  const ta = document.createElement('textarea'); ta.value = val || ''; ta.onchange = ()=> onChange(ta.value); wrapper.appendChild(ta);
   inspectorContent.appendChild(wrapper);
 }
+function renderInspectorPlaceholder(){ inspectorContent.innerHTML = '<div class="small" style="color:var(--muted)">Select an element to edit its properties</div>'; }
 
-/* Apply property to node (handle special keys) */
-function applyPropToNode(node, key, value){
-  if(key === 'src'){
-    const img = node.querySelector('img'); if(img) img.src = value;
-  } else if(key === 'alt'){
-    const img = node.querySelector('img'); if(img) img.alt = value;
-  } else if(key === 'text'){
-    // replace textual content in first text child
-    // try to set first H/P/Span/Btn text
-    const txtEl = node.querySelector('h1,h2,h3,h4,p,span,button,a');
-    if(txtEl) txtEl.textContent = value;
-    else node.textContent = value;
-  } else if(key === 'links'){
-    // comma separated label1|url1,label2|url2 or simple labels
-    const links = value.split(',').map(s=>s.trim()).filter(Boolean);
-    const navInner = node.querySelector('.nav-links') || node.querySelector('.ui-nav .nav-links') || node.querySelector('.nav-inner');
-    if(navInner){
-      navInner.innerHTML = links.map(l=>{
-        if(l.includes('|')) { const [label,href]=l.split('|').map(x=>x.trim()); return `<a href="${href}">${label}</a>`; }
-        return `<a href="#">${l}</a>`;
-      }).join('');
-    } else {
-      node.dataset.links = value;
-    }
-  } else if(key === 'brand'){
-    const b = node.querySelector('.brand') || node.querySelector('.ui-brand');
-    if(b) b.textContent = value;
-  } else if(key === 'char' || key === 'name' || key === 'class'){
-    // icon fields
-    if(key === 'char') {
-      const ic = node.querySelector('.ui-icon') || node;
-      if(ic) ic.textContent = value;
-    } else if(key === 'name' || key === 'class'){
-      // store as dataset for exported usage
-      node.dataset[key] = value;
-    }
-  } else {
-    // generic: store dataset
-    node.dataset[key] = value;
-  }
-  saveHistory();
-  updateOutputs();
-}
-
-/* Placeholder inspector when nothing selected */
-function renderInspectorPlaceholder(){
-  inspectorContent.innerHTML = '<div class="small" style="color:var(--muted)">Select an element to edit its properties</div>';
-}
-
-/* ============================
-   Layers rendering & selection
-   ============================ */
-function reindexLayers(selectedNode=null){
+/* -------------
+   Layers UI
+   ------------- */
+function refreshLayers(selected=null){
   layersEl.innerHTML = '';
   const nodes = Array.from(stage.querySelectorAll('.element-box'));
-  nodes.forEach((n,i) => {
+  nodes.forEach((n,i)=>{
     const item = document.createElement('div'); item.className='layer-item';
-    if(selectedNode && selectedNode.dataset.nodeId === n.dataset.nodeId) item.classList.add('active');
-    item.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:8px;height:8px;border-radius:3px;background:#3b4252"></div><div style="font-size:13px">${n.dataset.typeId || 'element'}</div></div>
-      <div style="display:flex;gap:6px"><button class="btn ghost" data-act="up" data-node="${n.dataset.nodeId}">↑</button><button class="btn ghost" data-act="down" data-node="${n.dataset.nodeId}">↓</button></div>`;
+    if(selected && selected.dataset.nodeId === n.dataset.nodeId) item.classList.add('active');
+    item.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:8px;height:8px;border-radius:3px;background:#3b4252"></div><div>${n.dataset.type||'element'}</div></div><div style="display:flex;gap:6px"><button class="btn ghost" data-act="up" data-node="${n.dataset.nodeId}">↑</button><button class="btn ghost" data-act="down" data-node="${n.dataset.nodeId}">↓</button></div>`;
+    item.addEventListener('click', ()=> selectNode(n));
+    layersEl.appendChild(item);
+    item.querySelectorAll('button').forEach(b=> b.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const act = b.dataset.act;
+      if(act === 'up'){ const next = n.nextElementSibling; if(next) stage.insertBefore(next, n); saveHistory(); refreshLayers(); updateOutputs(); }
+      if(act === 'down'){ const prev = n.previousElementSibling; if(prev) stage.insertBefore(n, prev); saveHistory(); refreshLayers(); updateOutputs(); }
+    }));
+  });
+}
+
+/* -------------
+   Click outside clears selection
+   ------------- */
+document.body.addEventListener('click', ev => {
+  if(ev.target.closest('.element-box')) return;
+  document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected'));
+  renderInspectorPlaceholder();
+});
+
+/* -------------
+   Zoom, device size, rulers
+   ------------- */
+function setZoom(z){ state.zoom = Math.max(0.25, Math.min(2, z)); stageWrapper.style.transform = `scale(${state.zoom})`; zoomLabel.textContent = Math.round(state.zoom*100) + '%'; }
+document.getElementById('zoomIn').addEventListener('click', ()=> setZoom(state.zoom + 0.1));
+document.getElementById('zoomOut').addEventListener('click', ()=> setZoom(state.zoom - 0.1));
+document.querySelectorAll('.device-btn').forEach(b=> b.addEventListener('click', ()=> {
+  document.querySelectorAll('.device-btn').forEach(x=> x.classList.remove('active'));
+  b.classList.add('active');
+  const d = b.dataset.device; state.device = d; applyDevice();
+}));
+function applyDevice(){
+  const map = { desktop:1100, tablet:820, phone:390 };
+  const w = map[state.device] || 1100; stageWrapper.style.width = w + 'px'; stageSizeLabel.textContent = `${w} × auto`;
+}
+applyDevice(); setZoom(1);
+document.getElementById('toggleRulerBtn').addEventListener('click', ()=> { state.rulers = !state.rulers; ruler.style.display = state.rulers ? 'flex' : 'none'; });
+
+/* -------------
+   View mode toggle
+   ------------- */
+document.getElementById('toggleViewBtn').addEventListener('click', ()=> {
+  state.viewMode = !state.viewMode;
+  document.getElementById('toggleViewBtn').textContent = state.viewMode ? 'View Mode' : 'Edit Mode';
+  document.getElementById('viewModeLabel').textContent = state.viewMode ? 'Preview' : 'Edit';
+});
+
+/* -------------
+   History: snapshot HTML
+   ------------- */
+function saveHistory(){ state.history.push(stage.innerHTML); if(state.history.length>120) state.history.shift(); state.future=[]; }
+document.getElementById('undoBtn').addEventListener('click', ()=>{
+  if(state.history.length <= 1) return;
+  const last = state.history.pop();
+  state.future.push(last);
+  const prev = state.history[state.history.length - 1] || '';
+  stage.innerHTML = prev;
+  reattachAll();
+  refreshLayers();
+  updateOutputs();
+});
+document.getElementById('redoBtn').addEventListener('click', ()=>{
+  if(!state.future.length) return;
+  const f = state.future.pop();
+  stage.innerHTML = f;
+  reattachAll();
+  saveHistory();
+  refreshLayers();
+  updateOutputs();
+});
+function reattachAll(){
+  document.querySelectorAll('.element-box').forEach(n=> attachNodeEvents(n));
+  document.querySelectorAll('.inner-dropzone').forEach(z=> makeDropzone(z));
+}
+
+/* -------------
+   Export functions
+   ------------- */
+function cleanForExport(node){
+  const clone = node.cloneNode(true);
+  (function rec(n){
+    if(n.nodeType !== Node.ELEMENT_NODE) return;
+    n.classList.remove('element-box'); n.classList.remove('element-selected');
+    n.style.outline = '';
+    delete n.dataset.nodeId;
+    Array.from(n.children).forEach(ch=> rec(ch));
+  })(clone);
+  return clone;
+}
+function generateHTML(){
+  const wrapper = document.createElement('div');
+  Array.from(stage.children).forEach(ch => wrapper.appendChild(cleanForExport(ch)));
+  return '<!doctype html>\\n<html lang="en">\\n<head>\\n<meta charset="utf-8">\\n<meta name="viewport" content="width=device-width,initial-scale=1">\\n<title>Exported Page</title>\\n<link rel="stylesheet" href="styles.css">\\n</head>\\n<body>\\n' + wrapper.innerHTML + '\\n<script src="script.js"></script>\\n</body>\\n</html>';
+}
+function generateCSS(){
+  return `/* styles.css - exported from Visual Page Builder */\\nbody{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;color:#0b1220;background:#fff}\\n.ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff}\\n.ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none}\\n.ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff}\\n.ui-grid{display:grid;gap:12px}.ui-grid-2{grid-template-columns:1fr 1fr}\\n/* Add more exported styles as needed */`;
+}
+function generateJS(){
+  return `// script.js - exported from Visual Page Builder\\ndocument.addEventListener('click', function(e){ const el = e.target.closest('[data-link]'); if(el){ const link = el.dataset.link; if(link){ if(link.startsWith('http')) window.location.href = link; else console.log('Navigate to', link); } } });`;
+}
+function updateOutputs(){ htmlOutput.value = generateHTML(); cssOutput.value = generateCSS(); jsOutput.value = generateJS(); }
+
+document.getElementById('copyHtml').addEventListener('click', ()=> copyText(htmlOutput.value));
+document.getElementById('copyCss').addEventListener('click', ()=> copyText(cssOutput.value));
+document.getElementById('copyJs').addEventListener('click', ()=> copyText(jsOutput.value));
+
+document.getElementById('downloadBtn').addEventListener('click', ()=> {
+  const html = generateHTML(); const css = generateCSS(); const js = generateJS();
+  downloadFile('index.html', html); downloadFile('styles.css', css); downloadFile('script.js', js);
+});
+
+/* -------------
+   Utilities: download, copy
+   ------------- */
+function downloadFile(filename, content){
+  const blob = new Blob([content], { type:'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
+  setTimeout(()=> { URL.revokeObjectURL(url); a.remove(); }, 300);
+}
+function copyText(text){
+  navigator.clipboard && navigator.clipboard.writeText(text).then(()=> alert('Copied to clipboard')).catch(()=> { alert('Copy failed'); });
+}
+
+/* -------------
+   Helper: save initial state and initialize
+   ------------- */
+function saveInitial(){ saveHistory(); updateOutputs(); }
+function refreshLayers(node=null){ refreshLayersWith(node) }
+function refreshLayersWith(selected=null){ layersEl.innerHTML = ''; const nodes = Array.from(stage.querySelectorAll('.element-box')); nodes.forEach((n)=>{ /* updated earlier via refreshLayers function */ }); }
+function refreshLayers(){ // small reimplementation to ensure it shows nodes correctly
+  layersEl.innerHTML = ''; const nodes = Array.from(stage.querySelectorAll('.element-box'));
+  nodes.forEach((n)=>{
+    const item = document.createElement('div'); item.className='layer-item';
+    if(document.querySelector('.element-selected') && document.querySelector('.element-selected').dataset.nodeId === n.dataset.nodeId) item.classList.add('active');
+    item.innerHTML = `<div style="display:flex;gap:8px;align-items:center"><div style="width:8px;height:8px;border-radius:3px;background:#3b4252"></div><div>${n.dataset.type||'element'}</div></div><div style="display:flex;gap:6px"><button class="btn ghost" data-act="up">↑</button><button class="btn ghost" data-act="down">↓</button></div>`;
     item.addEventListener('click', ()=> selectNode(n));
     layersEl.appendChild(item);
     item.querySelectorAll('button').forEach(b=>{
       b.addEventListener('click', ev=>{
         ev.stopPropagation();
         const act = b.dataset.act;
-        if(act === 'up'){ const next = n.nextElementSibling; if(next) stage.insertBefore(next, n); saveHistory(); reindexLayers(); updateOutputs(); }
-        if(act === 'down'){ const prev = n.previousElementSibling; if(prev) stage.insertBefore(n, prev); saveHistory(); reindexLayers(); updateOutputs(); }
+        if(act === 'up'){ const next = n.nextElementSibling; if(next) stage.insertBefore(next, n); saveHistory(); refreshLayers(); updateOutputs(); }
+        if(act === 'down'){ const prev = n.previousElementSibling; if(prev) stage.insertBefore(n, prev); saveHistory(); refreshLayers(); updateOutputs(); }
       });
     });
   });
 }
 
-/* ============================
-   Stage interactions: drop top-level
-   ============================ */
-stage.addEventListener('dragover', ev=> ev.preventDefault());
-stage.addEventListener('drop', ev=> {
-  ev.preventDefault();
-  if(state.viewMode) return;
-  const typeId = ev.dataTransfer.getData('application/x-element');
-  if(typeId) insertElementInstance(typeId, null);
-});
+/* Reattach events to existing nodes at startup (none) */
+function reattachAll(){ document.querySelectorAll('.element-box').forEach(n=> attachNodeEvents(n)); document.querySelectorAll('.inner-dropzone').forEach(z=> makeDropzone(z)); }
 
-/* ============================
-   Zoom, device & rulers
-   ============================ */
-function setZoom(z){ state.zoom = Math.max(0.25, Math.min(2, z)); stageWrapper.style.transform = `scale(${state.zoom})`; zoomLabel.textContent = Math.round(state.zoom*100) + '%'; }
-document.getElementById('zoomIn').addEventListener('click', ()=> setZoom(state.zoom + 0.1));
-document.getElementById('zoomOut').addEventListener('click', ()=> setZoom(state.zoom - 0.1));
-document.querySelectorAll('.device-btn').forEach(b=>{
-  b.addEventListener('click', ()=> {
-    document.querySelectorAll('.device-btn').forEach(x=> x.classList.remove('active'));
-    b.classList.add('active');
-    const d = b.dataset.device; state.device = d;
-    applyDevice();
+/* Initialize builder */
+(function init(){
+  // ensure palette items have data-type (some environments may strip data attributes when copying)
+  document.querySelectorAll('.palette-item').forEach(el=>{
+    if(!el.dataset.type){ // attempt to create a safe type id from text
+      const t = el.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g,'_');
+      el.dataset.type = t;
+    }
   });
-});
-function applyDevice(){
-  const map = { desktop:1100, tablet:820, phone:390 };
-  const w = map[state.device] || 1100;
-  stageWrapper.style.width = w + 'px';
-  stageSizeLabel.textContent = `${w} × auto`;
-}
-applyDevice(); setZoom(1);
-
-/* ============================
-   View mode & rulers toggles
-   ============================ */
-document.getElementById('toggleViewBtn').addEventListener('click', ()=> {
-  state.viewMode = !state.viewMode;
-  document.getElementById('toggleViewBtn').textContent = state.viewMode ? 'View Mode' : 'Edit Mode';
-  viewModeLabel.textContent = state.viewMode ? 'Preview' : 'Edit';
-  // pointerEvents remain normal; viewMode mainly disables editing & inspector
-});
-document.getElementById('toggleRulerBtn').addEventListener('click', ()=> {
-  state.rulers = !state.rulers; ruler.style.display = state.rulers ? 'flex':'none';
-});
-
-/* ============================
-   History (undo/redo)
-   ============================ */
-function saveHistory(){
-  state.history.push(stage.innerHTML);
-  if(state.history.length > 120) state.history.shift();
-  state.future = [];
-}
-document.getElementById('undoBtn').addEventListener('click', ()=> {
-  if(state.history.length <= 1) return;
-  const last = state.history.pop();
-  state.future.push(last);
-  const prev = state.history[state.history.length - 1] || '';
-  stage.innerHTML = prev;
-  reattachNodes();
-  reindexLayers();
-  updateOutputs();
-});
-document.getElementById('redoBtn').addEventListener('click', ()=> {
-  if(!state.future.length) return;
-  const f = state.future.pop();
-  stage.innerHTML = f;
-  reattachNodes();
-  saveHistory();
-  reindexLayers();
-  updateOutputs();
-});
-function reattachNodes(){
-  document.querySelectorAll('.element-box').forEach(n => attachNodeEvents(n));
-  document.querySelectorAll('.inner-dropzone').forEach(z => makeDropzone(z));
-}
-
-/* Save initial empty snapshot */
-saveHistory();
-
-/* ============================
-   Export / Code generation
-   ============================ */
-function cleanNodeForExport(node){
-  // clone and strip editor-specific attributes/classes
-  const clone = node.cloneNode(true);
-  (function recurse(n){
-    if(n.nodeType !== Node.ELEMENT_NODE) return;
-    n.classList.remove('element-box');
-    n.classList.remove('element-selected');
-    n.style.outline = '';
-    // remove dataset.nodeId
-    delete n.dataset.nodeId;
-    // keep data-link for navigation if present
-    Array.from(n.children).forEach(ch => recurse(ch));
-  })(clone);
-  return clone;
-}
-function generateHTMLExport(){
-  const wrapper = document.createElement('div');
-  Array.from(stage.children).forEach(ch => wrapper.appendChild(cleanNodeForExport(ch)));
-  return '<!doctype html>\\n<html lang=\"en\">\\n<head>\\n<meta charset=\"utf-8\">\\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\\n<title>Exported Page</title>\\n<link rel=\"stylesheet\" href=\"styles.css\">\\n</head>\\n<body>\\n' + wrapper.innerHTML + '\\n<script src=\"script.js\"></script>\\n</body>\\n</html>';
-}
-function generateCSSExport(){
-  // Basic exported CSS - keeps UI classes used in ELEMENTS
-  return `/* styles.css - exported from Visual Page Builder */\\nbody{font-family:Inter,system-ui,Arial,Helvetica,sans-serif;margin:0;color:#0b1220;background:#fff} .ui-nav{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#0b1220;color:#fff} .ui-btn{display:inline-block;padding:8px 12px;border-radius:6px;background:#6c5ce7;color:#fff;text-decoration:none} .ui-card{border:1px solid #e6e6e6;border-radius:8px;padding:12px;background:#fff} .ui-grid{display:grid;gap:12px} .ui-grid-2{grid-template-columns:1fr 1fr} .ui-badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eee;color:#333;font-size:12px} .ui-avatar img{width:100%;height:100%;object-fit:cover} .ui-form input,.ui-form textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;margin-bottom:8px} .ui-fab{position:fixed;right:16px;bottom:16px;border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;background:#6c5ce7;color:#fff;border:none} /* add styles as needed */`;
-}
-function generateJSExport(){
-  return `// script.js - exported from Visual Page Builder\\ndocument.addEventListener('click', function(e){\n  const el = e.target.closest('[data-link]');\n  if(el){ const link = el.dataset.link; if(link){ if(link.startsWith('http')) window.location.href = link; else { /* page name or SPA route: handle accordingly */ console.log('Navigate to', link); } } }\n});`;
-}
-function updateOutputs(){
-  htmlOutput.value = generateHTMLExport();
-  cssOutput.value = generateCSSExport();
-  jsOutput.value = generateJSExport();
-}
-updateOutputs();
-
-/* Download project (separate files) */
-document.getElementById('downloadBtn').addEventListener('click', ()=> {
-  const html = generateHTMLExport(); const css = generateCSSExport(); const js = generateJSExport();
-  downloadFile('index.html', html); downloadFile('styles.css', css); downloadFile('script.js', js);
-});
-
-/* Copy buttons */
-document.getElementById('copyHtml').addEventListener('click', ()=> copyToClipboard(htmlOutput.value));
-document.getElementById('copyCss').addEventListener('click', ()=> copyToClipboard(cssOutput.value));
-document.getElementById('copyJs').addEventListener('click', ()=> copyToClipboard(jsOutput.value));
-
-/* ============================
-   Utilities
-   ============================ */
-function downloadFile(filename, content){
-  const blob = new Blob([content], { type:'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 300);
-}
-function copyToClipboard(text){
-  navigator.clipboard && navigator.clipboard.writeText(text).then(()=> alert('Copied to clipboard')).catch(()=> { alert('Copy failed'); });
-}
-
-/* ============================
-   Reattach nodes on load & init
-   ============================ */
-function init(){
-  buildPalette();
   makeDropzone(stage);
-  reattachNodes();
-  reindexLayers();
+  reattachAll();
+  refreshLayers();
   renderInspectorPlaceholder();
-  updateOutputs();
-  // click outside clears selection
-  document.body.addEventListener('click', (ev)=> { if(!ev.target.closest('.element-box') && !ev.target.closest('.palette-item')){ document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected')); renderInspectorPlaceholder(); }});
-}
-function renderInspectorPlaceholder(){ inspectorContent.innerHTML = '<div class=\"small\" style=\"color:var(--muted)\">Select an element to edit its properties</div>'; }
-init();
-
+  saveInitial();
+  // clear selection when clicking outside
+  document.body.addEventListener('click', (ev)=> { if(!ev.target.closest('.element-box') && !ev.target.closest('.palette-item')){ document.querySelectorAll('.element-selected').forEach(n=> n.classList.remove('element-selected')); renderInspectorPlaceholder(); } });
+})();
 </script>
+
 </body>
 </html>
