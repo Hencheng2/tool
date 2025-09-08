@@ -1,564 +1,481 @@
-import React, { useState, useRef, useEffect } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag-and-Drop Webpage Builder</title>
+    <style>
+        /* Dark mode by default */
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-// Visual Page Builder - Single-file React component (TailwindCSS required)
-// Default: dark mode, responsive preview sizes, drag-and-drop palette,
-// element inspector, view-mode, generated HTML/CSS/JS textareas with copy buttons,
-// undo/redo, zoom controls and layer list.
+        * {
+            transition: all 0.3s ease;
+        }
 
-export default function VisualPageBuilder() {
-  // element types supported
-  const PALETTE = [
-    { key: "navbar", label: "Navbar" },
-    { key: "hero", label: "Hero" },
-    { key: "text", label: "Text" },
-    { key: "button", label: "Button" },
-    { key: "image", label: "Image" },
-    { key: "footer", label: "Footer" },
-    { key: "icon", label: "Icon" },
-  ];
+        #header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #333;
+        }
 
-  // device presets (width, height optional)
-  const DEVICES = {
-    desktop: { label: "Laptop", width: 1100, height: 700 },
-    tablet: { label: "Tablet", width: 820, height: 1100 },
-    phone: { label: "Phone", width: 390, height: 844 },
-  };
+        #devices {
+            display: flex;
+            gap: 10px;
+        }
 
-  // state
-  const [elements, setElements] = useState([]); // list of elements on canvas
-  const [selectedId, setSelectedId] = useState(null);
-  const [device, setDevice] = useState("desktop");
-  const [viewMode, setViewMode] = useState(false); // view-only toggle
-  const [zoom, setZoom] = useState(1);
-  const [showRulers, setShowRulers] = useState(false);
+        .device-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
 
-  // Undo/Redo stack
-  const [history, setHistory] = useState([]);
-  const [future, setFuture] = useState([]);
+        .device-btn:hover {
+            background-color: #444;
+        }
 
-  // helper to push history
-  function pushHistory(nextElements) {
-    setHistory((h) => [...h, elements]);
-    setFuture([]);
-    setElements(nextElements);
-  }
+        .device-btn.active {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
 
-  // add element (called when dropped or clicked)
-  function addElement(type, index = elements.length) {
-    const id = `${type}_${Date.now()}`;
-    const base = {
-      id,
-      type,
-      props: defaultPropsFor(type),
-    };
-    pushHistory([...elements.slice(0, index), base, ...elements.slice(index)]);
-    setSelectedId(id);
-  }
+        #mode-toggle {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
 
-  function defaultPropsFor(type) {
-    switch (type) {
-      case "navbar":
-        return {
-          bg: "bg-gray-900",
-          brand: "MyBrand",
-          links: ["Home", "About", "Contact"],
-        };
-      case "hero":
-        return { heading: "Welcome to your page", sub: "A short description", cta: "Get Started", bgImage: "" };
-      case "text":
-        return { text: "Editable paragraph text...", size: 16 };
-      case "button":
-        return { text: "Click Me", variant: "filled", href: "#" };
-      case "image":
-        return { src: "https://via.placeholder.com/600x300", alt: "Placeholder" };
-      case "footer":
-        return { text: "© 2025 Company. All rights reserved." };
-      case "icon":
-        return { name: "⭐", size: 24 };
-      default:
-        return {};
-    }
-  }
+        #mode-toggle:hover {
+            background-color: #444;
+        }
 
-  // remove element
-  function removeElement(id) {
-    pushHistory(elements.filter((e) => e.id !== id));
-    setSelectedId(null);
-  }
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
 
-  // update element props
-  function updateElement(id, newProps) {
-    const next = elements.map((e) => (e.id === id ? { ...e, props: { ...e.props, ...newProps } } : e));
-    pushHistory(next);
-  }
+        #sidebar {
+            width: 250px;
+            background-color: #1e1e1e;
+            padding: 10px;
+            border-right: 1px solid #333;
+            overflow-y: auto;
+        }
 
-  // undo/redo
-  function undo() {
-    if (!history.length) return;
-    const prev = history[history.length - 1];
-    setFuture((f) => [elements, ...f]);
-    setHistory((h) => h.slice(0, -1));
-    setElements(prev);
-  }
-  function redo() {
-    if (!future.length) return;
-    const next = future[0];
-    setHistory((h) => [...h, elements]);
-    setFuture((f) => f.slice(1));
-    setElements(next);
-  }
+        .element {
+            background-color: #333;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: grab;
+            border-radius: 5px;
+            user-select: none;
+        }
 
-  // drag & drop handlers
-  function onDragStart(e, type) {
-    e.dataTransfer.setData("text/plain", type);
-  }
-  function onDropCanvas(e) {
-    e.preventDefault();
-    if (viewMode) return;
-    const type = e.dataTransfer.getData("text/plain");
-    if (type) addElement(type);
-  }
-  function allowDrop(e) {
-    e.preventDefault();
-  }
+        .element:hover {
+            background-color: #444;
+        }
 
-  // generate HTML/CSS/JS based on elements
-  function generateHTML() {
-    const htmlParts = elements.map((el) => renderElementHTML(el));
-    return `<!doctype html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Exported Page</title>\n  <link href=\"https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css\" rel=\"stylesheet\">\n</head>\n<body>\n${htmlParts.join("\n\n")}\n</body>\n</html>`;
-  }
+        #editor {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: auto;
+            padding: 20px;
+        }
 
-  function generateCSS() {
-    // For simplicity we rely on Tailwind for most styles and include minor custom CSS
-    return `/* Custom styles */\n.container { max-width: 1200px; margin: 0 auto; }\n.hero-bg { background-size: cover; background-position: center; }`;
-  }
+        #canvas {
+            background-color: #fff;
+            color: #000;
+            min-height: 500px;
+            width: 100%;
+            max-width: 1200px;
+            border: 1px solid #555;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+        }
 
-  function generateJS() {
-    // Basic interactivity for exported page
-    return `// Basic JS for interactive elements\ndocument.addEventListener('click', function(e){\n  if (e.target.matches('[data-export-cta]')){\n    alert('CTA clicked — wire up to your app');\n  }\n});`;
-  }
+        #canvas.edit-mode {
+            min-height: 100%;
+        }
 
-  // render element HTML snippet
-  function renderElementHTML(el) {
-    const p = el.props;
-    switch (el.type) {
-      case "navbar":
-        return `<nav class=\"w-full p-4 ${p.bg} text-white\"><div class=\"container flex items-center justify-between\"><div class=\"font-bold\">${escapeHtml(p.brand)}</div><div class=\"space-x-4\">${p.links.map((l) => `<a href=\"#\" class=\"hover:underline\">${escapeHtml(l)}</a>`).join('')}</div></div></nav>`;
-      case "hero":
-        const bgStyle = p.bgImage ? `style=\"background-image:url('${p.bgImage}');\" class=\"hero-bg\"` : '';
-        return `<section ${bgStyle} class=\"w-full py-20 text-center bg-gray-800 text-white\"><div class=\"container\"><h1 class=\"text-4xl font-bold\">${escapeHtml(p.heading)}</h1><p class=\"mt-4\">${escapeHtml(p.sub)}</p><button data-export-cta class=\"mt-6 px-6 py-3 rounded bg-indigo-600 hover:bg-indigo-700\">${escapeHtml(p.cta)}</button></div></section>`;
-      case "text":
-        return `<div class=\"container py-6\"><p style=\"font-size:${p.size}px\">${escapeHtml(p.text)}</p></div>`;
-      case "button":
-        return `<div class=\"container py-4\"><a href=\"${escapeHtml(p.href)}\" class=\"inline-block px-5 py-2 rounded ${p.variant === 'filled' ? 'bg-indigo-600 text-white' : 'border border-gray-300'}\">${escapeHtml(p.text)}</a></div>`;
-      case "image":
-        return `<div class=\"container py-4\"><img src=\"${escapeHtml(p.src)}\" alt=\"${escapeHtml(p.alt)}\" class=\"w-full max-w-full rounded\"></div>`;
-      case "footer":
-        return `<footer class=\"w-full p-6 bg-gray-900 text-white text-center\">${escapeHtml(p.text)}</footer>`;
-      case "icon":
-        return `<div class=\"container py-4\"><span style=\"font-size:${p.size}px\">${escapeHtml(p.name)}</span></div>`;
-      default:
-        return "";
-    }
-  }
+        #canvas.laptop {
+            max-width: 1200px;
+        }
 
-  function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
+        #canvas.tablet {
+            max-width: 768px;
+        }
 
-  // UI copy helpers
-  async function copyText(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Copied to clipboard");
-    } catch (e) {
-      console.error(e);
-      alert("Copy failed — your browser may block clipboard access");
-    }
-  }
+        #canvas.phone {
+            max-width: 375px;
+        }
 
-  // render preview element (interactive in view mode)
-  function renderPreviewElement(el) {
-    const p = el.props;
-    const common = {
-      onClick: (ev) => {
-        ev.stopPropagation();
-        if (!viewMode) setSelectedId(el.id);
-      },
-      className: "w-full",
-      style: {},
-    };
+        #view-mode {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
 
-    switch (el.type) {
-      case "navbar":
-        return (
-          <nav
-            {...common}
-            className={`w-full p-4 ${p.bg} text-white cursor-pointer`}
-            onDoubleClick={() => !viewMode && setSelectedId(el.id)}
-          >
-            <div className="container mx-auto flex items-center justify-between">
-              <div className="font-bold">{p.brand}</div>
-              <div className="space-x-4 hidden md:flex">
-                {p.links.map((l, i) => (
-                  <a key={i} href="#" className="hover:underline">
-                    {l}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </nav>
-        );
-      case "hero":
-        return (
-          <section
-            {...common}
-            className={`w-full py-20 text-center bg-gray-800 text-white`}
-            style={p.bgImage ? { backgroundImage: `url(${p.bgImage})`, backgroundSize: "cover" } : undefined}
-          >
-            <div className="container mx-auto">
-              <h1 className="text-4xl font-bold">{p.heading}</h1>
-              <p className="mt-4">{p.sub}</p>
-              <button data-export-cta className="mt-6 px-6 py-3 rounded bg-indigo-600 hover:bg-indigo-700">
-                {p.cta}
-              </button>
-            </div>
-          </section>
-        );
-      case "text":
-        return (
-          <div {...common} className="container mx-auto py-6">
-            <p style={{ fontSize: p.size }}>{p.text}</p>
-          </div>
-        );
-      case "button":
-        return (
-          <div {...common} className="container mx-auto py-4">
-            <a href={p.href} className={`inline-block px-5 py-2 rounded ${p.variant === "filled" ? "bg-indigo-600 text-white" : "border border-gray-300"}`}>
-              {p.text}
-            </a>
-          </div>
-        );
-      case "image":
-        return (
-          <div {...common} className="container mx-auto py-4">
-            <img src={p.src} alt={p.alt} className="w-full max-w-full rounded" />
-          </div>
-        );
-      case "footer":
-        return (
-          <footer {...common} className="w-full p-6 bg-gray-900 text-white text-center">
-            {p.text}
-          </footer>
-        );
-      case "icon":
-        return (
-          <div {...common} className="container mx-auto py-4">
-            <span style={{ fontSize: p.size }}>{p.name}</span>
-          </div>
-        );
-      default:
-        return null;
-    }
-  }
+        #preview {
+            background-color: #fff;
+            color: #000;
+            min-height: 500px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            border: 1px solid #555;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
 
-  // selection inspector UI
-  function Inspector() {
-    const el = elements.find((e) => e.id === selectedId);
-    if (!el) return (<div className="p-4 text-sm text-gray-300">Select an element to edit its properties.</div>);
+        #code-areas {
+            display: flex;
+            gap: 10px;
+            height: 200px;
+        }
 
-    const p = el.props;
-    switch (el.type) {
-      case "navbar":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Brand</label>
-            <input value={p.brand} onChange={(e) => updateElement(el.id, { brand: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Links (comma separated)</label>
-            <input value={p.links.join(",")} onChange={(e) => updateElement(el.id, { links: e.target.value.split(",").map(s => s.trim()) })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Background Tailwind class</label>
-            <input value={p.bg} onChange={(e) => updateElement(el.id, { bg: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <div className="flex space-x-2">
-              <button onClick={() => removeElement(el.id)} className="mt-2 px-3 py-2 rounded bg-red-600">Delete</button>
-            </div>
-          </div>
-        );
-      case "hero":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Heading</label>
-            <input value={p.heading} onChange={(e) => updateElement(el.id, { heading: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Sub text</label>
-            <input value={p.sub} onChange={(e) => updateElement(el.id, { sub: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">CTA text</label>
-            <input value={p.cta} onChange={(e) => updateElement(el.id, { cta: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Background image URL</label>
-            <input value={p.bgImage} onChange={(e) => updateElement(el.id, { bgImage: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      case "text":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Text</label>
-            <textarea value={p.text} onChange={(e) => updateElement(el.id, { text: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" rows={4} />
-            <label className="block text-sm">Font size (px)</label>
-            <input type="number" value={p.size} onChange={(e) => updateElement(el.id, { size: Number(e.target.value) })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      case "button":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Text</label>
-            <input value={p.text} onChange={(e) => updateElement(el.id, { text: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Variant (filled/outline)</label>
-            <select value={p.variant} onChange={(e) => updateElement(el.id, { variant: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white">
-              <option value="filled">Filled</option>
-              <option value="outline">Outline</option>
-            </select>
-            <label className="block text-sm">Href</label>
-            <input value={p.href} onChange={(e) => updateElement(el.id, { href: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      case "image":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Image URL</label>
-            <input value={p.src} onChange={(e) => updateElement(el.id, { src: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Alt text</label>
-            <input value={p.alt} onChange={(e) => updateElement(el.id, { alt: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      case "footer":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Footer text</label>
-            <input value={p.text} onChange={(e) => updateElement(el.id, { text: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      case "icon":
-        return (
-          <div className="p-4 space-y-3">
-            <label className="block text-sm">Icon character or emoji</label>
-            <input value={p.name} onChange={(e) => updateElement(el.id, { name: e.target.value })} className="w-full p-2 rounded bg-gray-800 text-white" />
-            <label className="block text-sm">Size (px)</label>
-            <input type="number" value={p.size} onChange={(e) => updateElement(el.id, { size: Number(e.target.value) })} className="w-full p-2 rounded bg-gray-800 text-white" />
-          </div>
-        );
-      default:
-        return null;
-    }
-  }
+        .code-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
 
-  // layer management
-  function bringForward(id) {
-    const idx = elements.findIndex((e) => e.id === id);
-    if (idx < elements.length - 1) {
-      const copy = [...elements];
-      const [item] = copy.splice(idx, 1);
-      copy.splice(idx + 1, 0, item);
-      pushHistory(copy);
-    }
-  }
-  function sendBackward(id) {
-    const idx = elements.findIndex((e) => e.id === id);
-    if (idx > 0) {
-      const copy = [...elements];
-      const [item] = copy.splice(idx, 1);
-      copy.splice(idx - 1, 0, item);
-      pushHistory(copy);
-    }
-  }
+        textarea {
+            flex: 1;
+            background-color: #1e1e1e;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 10px;
+            font-family: monospace;
+            resize: none;
+            border-radius: 5px;
+        }
 
-  // basic keyboard shortcuts (undo/redo)
-  useEffect(() => {
-    function onKey(e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-        e.preventDefault();
-        undo();
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.shiftKey && e.key === "Z"))) {
-        e.preventDefault();
-        redo();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [history, future, elements]);
+        .copy-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
 
-  // code outputs
-  const htmlCode = generateHTML();
-  const cssCode = generateCSS();
-  const jsCode = generateJS();
+        .copy-btn:hover {
+            background-color: #444;
+        }
 
-  return (
-    <div className="min-h-screen bg-[#0b0f14] text-white p-4 font-sans">
-      <div className="max-w-full mx-auto grid grid-cols-12 gap-4">
-        {/* Left: palette and controls */}
-        <aside className="col-span-2 bg-[#0f1720] rounded-lg p-3 flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Palette</h3>
-            <div className="text-xs opacity-80">Dark</div>
-          </div>
+        .canvas-element {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            margin: 10px 0;
+            position: relative;
+            cursor: move;
+        }
 
-          <div className="space-y-2">
-            {PALETTE.map((p) => (
-              <div
-                key={p.key}
-                draggable={!viewMode}
-                onDragStart={(e) => onDragStart(e, p.key)}
-                onDoubleClick={() => !viewMode && addElement(p.key)}
-                className="p-2 rounded bg-[#0b1220] cursor-grab hover:scale-105 transition-transform"
-              >
-                {p.label}
-              </div>
-            ))}
-          </div>
+        .canvas-element:hover {
+            border-color: #007bff;
+        }
 
-          <div className="mt-4">
-            <h4 className="text-sm">Devices</h4>
-            <div className="flex gap-2 mt-2">
-              {Object.keys(DEVICES).map((d) => (
-                <button key={d} onClick={() => setDevice(d)} className={`p-2 rounded ${device === d ? "bg-indigo-600" : "bg-[#0b1220]"}`}>
-                  {DEVICES[d].label}
-                </button>
-              ))}
-            </div>
-          </div>
+        .edit-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #222;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+            z-index: 10;
+        }
 
-          <div className="mt-3">
-            <h4 className="text-sm">View</h4>
-            <div className="flex gap-2 mt-2">
-              <button onClick={() => setViewMode(!viewMode)} className={`p-2 rounded ${viewMode ? "bg-green-600" : "bg-[#0b1220]"}`}>
-                {viewMode ? "Viewing" : "Edit"}
-              </button>
-              <button onClick={() => setShowRulers((s) => !s)} className="p-2 rounded bg-[#0b1220]">
-                Rulers
-              </button>
-            </div>
-          </div>
+        .canvas-element:hover .edit-panel {
+            display: block;
+        }
 
-          <div className="mt-3">
-            <h4 className="text-sm">Zoom</h4>
-            <div className="flex gap-2 mt-2 items-center">
-              <button onClick={() => setZoom((z) => Math.max(0.25, z - 0.1))} className="p-2 rounded bg-[#0b1220]">-</button>
-              <div className="px-2">{Math.round(zoom * 100)}%</div>
-              <button onClick={() => setZoom((z) => Math.min(2, z + 0.1))} className="p-2 rounded bg-[#0b1220]">+</button>
-            </div>
-          </div>
+        .edit-panel input, .edit-panel select {
+            background: #333;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 5px;
+            margin: 5px 0;
+            border-radius: 3px;
+        }
 
-          <div className="mt-3">
-            <h4 className="text-sm">History</h4>
-            <div className="flex gap-2 mt-2">
-              <button onClick={undo} className="p-2 rounded bg-[#0b1220]">Undo</button>
-              <button onClick={redo} className="p-2 rounded bg-[#0b1220]">Redo</button>
-            </div>
-          </div>
+        @media (max-width: 768px) {
+            #main {
+                flex-direction: column;
+            }
 
-          <div className="mt-auto text-xs text-gray-400">Tip: drag items to the canvas or double-click palette items to add them.</div>
-        </aside>
+            #sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #333;
+                overflow-x: auto;
+            }
 
-        {/* Center: canvas preview */}
-        <main className="col-span-7 bg-[#071018] rounded-lg p-3">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">Canvas</h3>
-            <div className="flex gap-2">
-              <button onClick={() => { const code = generateHTML(); copyText(code); }} className="px-3 py-1 rounded bg-[#0b1220]">Copy HTML</button>
-              <button onClick={() => { const code = generateCSS(); copyText(code); }} className="px-3 py-1 rounded bg-[#0b1220]">Copy CSS</button>
-              <button onClick={() => { const code = generateJS(); copyText(code); }} className="px-3 py-1 rounded bg-[#0b1220]">Copy JS</button>
-            </div>
-          </div>
-
-          <div
-            onDrop={onDropCanvas}
-            onDragOver={allowDrop}
-            className="w-full bg-[#081015] rounded shadow-inner p-4 flex justify-center"
-          >
-            <div style={{ transform: `scale(${zoom})`, transformOrigin: "top left" }}>
-              <div
-                className="border border-dashed border-gray-800 overflow-auto bg-white/5 rounded"
-                style={{ width: DEVICES[device].width, minHeight: DEVICES[device].height }}
-                onClick={() => { if (!viewMode) setSelectedId(null); }}
-              >
-                {/* optional rulers */}
-                {showRulers && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-0 pointer-events-none">
-                    <div className="h-6 text-xs text-gray-500">RULERS</div>
-                  </div>
-                )}
-
-                {/* Render elements in order */}
-                <div className="w-full h-full bg-white">
-                  {elements.map((el) => (
-                    <div key={el.id} className={`${selectedId === el.id && !viewMode ? "outline outline-2 outline-indigo-500" : ""}`}>
-                      {renderPreviewElement(el)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* view-only mode overlay */}
-          {viewMode && <div className="mt-3 text-sm text-gray-400">View mode: interactions enabled, editing disabled.</div>}
-        </main>
-
-        {/* Right: inspector, layers, code panes */}
-        <aside className="col-span-3 bg-[#0f1720] rounded-lg p-3 flex flex-col gap-3">
-          <div>
-            <h3 className="font-semibold">Inspector</h3>
-            <div className="mt-2 bg-[#071018] rounded">{Inspector()}</div>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">Layers</h3>
-            <div className="mt-2 space-y-2 max-h-36 overflow-auto">
-              {elements.map((el, i) => (
-                <div key={el.id} className={`p-2 rounded flex items-center justify-between ${selectedId === el.id ? 'bg-indigo-700' : 'bg-[#0b1220]'}`}>
-                  <div className="flex items-center gap-2" onClick={() => setSelectedId(el.id)}>
-                    <div className="text-xs opacity-80">{i + 1}</div>
-                    <div className="text-sm">{el.type}</div>
-                  </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => bringForward(el.id)} className="px-2 py-1 rounded bg-[#071018]">↑</button>
-                    <button onClick={() => sendBackward(el.id)} className="px-2 py-1 rounded bg-[#071018]">↓</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-semibold">Export / Code</h3>
-            <div className="mt-2 space-y-2">
-              <div className="text-xs">HTML</div>
-              <textarea readOnly value={htmlCode} rows={6} className="w-full p-2 rounded bg-[#071018] text-xs" />
-              <div className="flex gap-2">
-                <button onClick={() => copyText(htmlCode)} className="p-2 rounded bg-[#0b1220]">Copy HTML</button>
-                <button onClick={() => { const blob = new Blob([htmlCode], { type: 'text/html' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'page.html'; a.click(); URL.revokeObjectURL(url); }} className="p-2 rounded bg-[#0b1220]">Download</button>
-              </div>
-
-              <div className="text-xs">CSS</div>
-              <textarea readOnly value={cssCode} rows={3} className="w-full p-2 rounded bg-[#071018] text-xs" />
-              <div className="flex gap-2">
-                <button onClick={() => copyText(cssCode)} className="p-2 rounded bg-[#0b1220]">Copy CSS</button>
-              </div>
-
-              <div className="text-xs">JS</div>
-              <textarea readOnly value={jsCode} rows={3} className="w-full p-2 rounded bg-[#071018] text-xs" />
-              <div className="flex gap-2">
-                <button onClick={() => copyText(jsCode)} className="p-2 rounded bg-[#0b1220]">Copy JS</button>
-              </div>
-            </div>
-          </div>
-        </aside>
-      </div>
+            #editor, #view-mode {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <div id="devices">
+            <button class="device-btn active" data-size="laptop">Laptop</button>
+            <button class="device-btn" data-size="tablet">Tablet</button>
+            <button class="device-btn" data-size="phone">Phone</button>
+        </div>
+        <button id="mode-toggle">Switch to View Mode</button>
     </div>
-  );
-}
+    <div id="main">
+        <div id="sidebar">
+            <div class="element" draggable="true" data-type="navbar">Navbar</div>
+            <div class="element" draggable="true" data-type="footer">Footer</div>
+            <div class="element" draggable="true" data-type="icon">Icon</div>
+            <div class="element" draggable="true" data-type="button">Button</div>
+            <div class="element" draggable="true" data-type="section">Section</div>
+            <div class="element" draggable="true" data-type="form">Form</div>
+            <div class="element" draggable="true" data-type="image">Image</div>
+            <div class="element" draggable="true" data-type="text">Text Block</div>
+            <div class="element" draggable="true" data-type="hero">Hero Section</div>
+            <div class="element" draggable="true" data-type="card">Card</div>
+            <div class="element" draggable="true" data-type="carousel">Carousel</div>
+            <div class="element" draggable="true" data-type="modal">Modal</div>
+        </div>
+        <div id="editor">
+            <div id="canvas" class="laptop edit-mode"></div>
+        </div>
+        <div id="view-mode">
+            <div id="preview"></div>
+            <div id="code-areas">
+                <div class="code-section">
+                    <textarea id="html-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('html-code')">Copy HTML</button>
+                </div>
+                <div class="code-section">
+                    <textarea id="css-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('css-code')">Copy CSS</button>
+                </div>
+                <div class="code-section">
+                    <textarea id="js-code" readonly></textarea>
+                    <button class="copy-btn" onclick="copyCode('js-code')">Copy JS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const preview = document.getElementById('preview');
+        const editor = document.getElementById('editor');
+        const viewMode = document.getElementById('view-mode');
+        const modeToggle = document.getElementById('mode-toggle');
+        const htmlCode = document.getElementById('html-code');
+        const cssCode = document.getElementById('css-code');
+        const jsCode = document.getElementById('js-code');
+        const deviceBtns = document.querySelectorAll('.device-btn');
+
+        let isEditMode = true;
+        let currentDevice = 'laptop';
+
+        // Element templates
+        const elementTemplates = {
+            navbar: '<nav class="navbar">Navbar Content</nav>',
+            footer: '<footer class="footer">Footer Content</footer>',
+            icon: '<i class="icon">Icon</i>',
+            button: '<button class="btn">Button</button>',
+            section: '<section class="section">Section Content</section>',
+            form: '<form class="form"><input type="text" placeholder="Input"></form>',
+            image: '<img src="placeholder.jpg" alt="Image" class="image">',
+            text: '<p class="text">Text Block</p>',
+            hero: '<section class="hero"><h1>Hero Title</h1><p>Hero Subtitle</p></section>',
+            card: '<div class="card"><h3>Card Title</h3><p>Card Content</p></div>',
+            carousel: '<div class="carousel"><div>Slide 1</div><div>Slide 2</div></div>',
+            modal: '<div class="modal"><div class="modal-content">Modal Content</div></div>'
+        };
+
+        // Corresponding CSS
+        const baseCSS = `
+.navbar { background: #333; color: #fff; padding: 10px; display: flex; justify-content: space-between; }
+.footer { background: #222; color: #fff; padding: 10px; text-align: center; }
+.icon { font-size: 24px; }
+.btn { background: #007bff; color: #fff; padding: 5px 10px; border: none; cursor: pointer; border-radius: 3px; }
+.section { padding: 20px; border: 1px solid #ccc; }
+.form { display: flex; flex-direction: column; gap: 10px; }
+.image { max-width: 100%; }
+.text { font-size: 16px; }
+.hero { background: #f0f0f0; padding: 40px; text-align: center; }
+.card { border: 1px solid #ccc; padding: 15px; border-radius: 5px; }
+.carousel { display: flex; overflow-x: auto; gap: 10px; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: #fff; color: #000; margin: 15% auto; padding: 20px; width: 70%; }
+`;
+
+        // Corresponding JS
+        const baseJS = `
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', () => alert('Button clicked!'));
+});
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', () => modal.style.display = 'block');
+});
+`;
+
+        // Drag and drop setup
+        document.querySelectorAll('.element').forEach(el => {
+            el.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('type', el.dataset.type);
+            });
+        });
+
+        canvas.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if (type && elementTemplates[type]) {
+                const newElement = document.createElement('div');
+                newElement.classList.add('canvas-element');
+                newElement.innerHTML = elementTemplates[type];
+                newElement.contentEditable = true;
+
+                // Add edit panel
+                const editPanel = document.createElement('div');
+                editPanel.classList.add('edit-panel');
+                editPanel.innerHTML = `
+                    <input type="text" class="edit-text" placeholder="Edit text">
+                    <input type="color" class="edit-bg" title="Background Color">
+                    <input type="color" class="edit-text-color" title="Text Color">
+                    <select class="edit-font-size">
+                        <option value="12px">12px</option>
+                        <option value="16px">16px</option>
+                        <option value="20px">20px</option>
+                        <option value="24px">24px</option>
+                    </select>
+                    <button onclick="this.parentElement.parentElement.remove(); updateCode();">Delete</button>
+                `;
+                newElement.appendChild(editPanel);
+
+                canvas.appendChild(newElement);
+                updateCode();
+            }
+        });
+
+        // Editable element handlers
+        canvas.addEventListener('input', e => {
+            if (e.target.classList.contains('edit-text')) {
+                const parent = e.target.closest('.canvas-element');
+                const mainContent = parent.querySelector(':first-child');
+                mainContent.textContent = e.target.value;
+            }
+            updateCode();
+        });
+
+        canvas.addEventListener('change', e => {
+            const parent = e.target.closest('.canvas-element');
+            const mainContent = parent.querySelector(':first-child');
+            if (e.target.classList.contains('edit-bg')) {
+                mainContent.style.backgroundColor = e.target.value;
+            } else if (e.target.classList.contains('edit-text-color')) {
+                mainContent.style.color = e.target.value;
+            } else if (e.target.classList.contains('edit-font-size')) {
+                mainContent.style.fontSize = e.target.value;
+            }
+            updateCode();
+        });
+
+        // Device size switch
+        deviceBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                deviceBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentDevice = btn.dataset.size;
+                canvas.className = currentDevice + ' edit-mode';
+                preview.className = currentDevice;
+                if (!isEditMode) {
+                    updatePreview();
+                }
+            });
+        });
+
+        // Mode toggle
+        modeToggle.addEventListener('click', () => {
+            isEditMode = !isEditMode;
+            if (isEditMode) {
+                editor.style.display = 'flex';
+                viewMode.style.display = 'none';
+                modeToggle.textContent = 'Switch to View Mode';
+                canvas.classList.add('edit-mode');
+            } else {
+                editor.style.display = 'none';
+                viewMode.style.display = 'flex';
+                modeToggle.textContent = 'Switch to Edit Mode';
+                canvas.classList.remove('edit-mode');
+                updatePreview();
+            }
+        });
+
+        // Update code in textareas
+        function updateCode() {
+            htmlCode.value = canvas.innerHTML.replace(/<div class="edit-panel">.*?<\/div>/g, '');
+            cssCode.value = baseCSS + '\n' + Array.from(canvas.querySelectorAll('.canvas-element > :first-child')).map(el => {
+                return `.${el.className} {` + 
+                    (el.style.backgroundColor ? ` background-color: ${el.style.backgroundColor};` : '') +
+                    (el.style.color ? ` color: ${el.style.color};` : '') +
+                    (el.style.fontSize ? ` font-size: ${el.style.fontSize};` : '') +
+                    ' }';
+            }).join('\n');
+            jsCode.value = baseJS;
+        }
+
+        // Update preview
+        function updatePreview() {
+            preview.innerHTML = canvas.innerHTML.replace(/<div class="edit-panel">.*?<\/div>/g, '').replace(/ contenteditable="true"/g, '');
+            preview.className = currentDevice;
+
+            const style = document.createElement('style');
+            style.textContent = cssCode.value;
+            preview.appendChild(style);
+
+            const script = document.createElement('script');
+            script.textContent = jsCode.value;
+            preview.appendChild(script);
+        }
+
+        // Copy code
+        function copyCode(id) {
+            const textarea = document.getElementById(id);
+            textarea.select();
+            document.execCommand('copy');
+            alert('Code copied!');
+        }
+
+        // Listen for edits in canvas
+        canvas.addEventListener('input', updateCode);
+    </script>
