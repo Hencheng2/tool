@@ -1,1261 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Builder | Drag & Drop Web Development Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --dark-bg: #1a1a1a;
-            --darker-bg: #121212;
-            --panel-bg: #242424;
-            --accent: #646cff;
-            --accent-hover: #747bff;
-            --text: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border: #444;
-            --success: #4CAF50;
-            --danger: #f44336;
-            --warning: #ff9800;
-            --info: #2196F3;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .app-container {
-            display: grid;
-            grid-template-columns: 250px 1fr 300px;
-            grid-template-rows: 60px 1fr 300px;
-            height: 100vh;
-            gap: 1px;
-            background-color: var(--border);
-        }
-
-        .header {
-            grid-column: 1 / 4;
-            background-color: var(--darker-bg);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .device-selector {
-            display: flex;
-            gap: 10px;
-        }
-
-        .device-btn {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .device-btn.active {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .device-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background-color: #333;
-        }
-
-        .elements-panel {
-            grid-column: 1;
-            grid-row: 2 / 4;
-            background-color: var(--darker-bg);
-            overflow-y: auto;
-            padding: 15px;
-            border-right: 1px solid var(--border);
-        }
-
-        .elements-category {
-            margin-bottom: 20px;
-        }
-
-        .category-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .elements-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .element-item {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-            cursor: grab;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .element-item:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .element-item:active {
-            cursor: grabbing;
-        }
-
-        .element-icon {
-            font-size: 20px;
-            margin-bottom: 5px;
-            color: var(--accent);
-        }
-
-        .element-name {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .workspace {
-            grid-column: 2;
-            grid-row: 2;
-            background-color: var(--darker-bg);
-            overflow: auto;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .canvas-container {
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .canvas {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: auto;
-        }
-
-        .canvas-content {
-            min-height: 100%;
-            position: relative;
-        }
-
-        .empty-canvas {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #999;
-        }
-
-        .empty-canvas i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-            color: #ccc;
-        }
-
-        .properties-panel {
-            grid-column: 3;
-            grid-row: 2 / 4;
-            background-color: var(--darker-bg);
-            overflow-y: auto;
-            padding: 15px;
-            border-left: 1px solid var(--border);
-        }
-
-        .properties-section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .property-group {
-            margin-bottom: 15px;
-        }
-
-        .property-label {
-            display: block;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-            color: var(--text-secondary);
-        }
-
-        .property-input {
-            width: 100%;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .property-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .color-input {
-            height: 40px;
-        }
-
-        .code-panel {
-            grid-column: 2 / 4;
-            grid-row: 3;
-            background-color: var(--darker-bg);
-            overflow: hidden;
-            border-top: 1px solid var(--border);
-        }
-
-        .code-tabs {
-            display: flex;
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-        }
-
-        .code-tab.active {
-            background-color: var(--accent);
-        }
-
-        .code-content {
-            display: flex;
-            height: calc(100% - 41px);
-        }
-
-        .code-editor {
-            flex: 1;
-            position: relative;
-            border-right: 1px solid var(--border);
-            display: none;
-        }
-
-        .code-editor.active {
-            display: block;
-        }
-
-        .code-textarea {
-            width: 100%;
-            height: 100%;
-            background-color: var(--darker-bg);
-            color: var(--text);
-            border: none;
-            padding: 15px;
-            resize: none;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--panel-bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .copy-btn:hover {
-            background-color: var(--accent);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .app-container {
-                grid-template-columns: 200px 1fr 250px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .app-container {
-                grid-template-columns: 180px 1fr;
-            }
-            .properties-panel {
-                display: none;
-            }
-            .code-panel {
-                grid-column: 1 / 3;
-            }
-        }
-
-        /* View mode styles */
-        .view-mode .elements-panel,
-        .view-mode .properties-panel,
-        .view-mode .code-panel,
-        .view-mode .device-selector,
-        .view-mode .btn-secondary {
-            display: none;
-        }
-
-        .view-mode .workspace {
-            grid-column: 1 / 4;
-        }
-
-        .view-mode .header-actions .btn:not(.view-btn) {
-            display: none;
-        }
-
-        /* Canvas device sizes */
-        .desktop .canvas-container {
-            width: 1000px;
-            height: 700px;
-        }
-
-        .tablet .canvas-container {
-            width: 768px;
-            height: 1024px;
-        }
-
-        .mobile .canvas-container {
-            width: 375px;
-            height: 667px;
-        }
-
-        /* Element selection styling */
-        .selected {
-            outline: 2px solid var(--accent) !important;
-        }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-        /* Draggable elements styles */
-        .canvas-element {
-            position: absolute;
-            cursor: move;
-            user-select: none;
-        }
-
-        .canvas-element.ui-draggable-dragging {
-            opacity: 0.8;
-            z-index: 100;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Specific element styles */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background-color: #646cff;
-            color: white;
-            width: 100%;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .ui-button {
-            background-color: #646cff;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            max-width: 300px;
-            color: #333;
-        }
-
-        .card-header {
-            padding: 1rem;
-            background: #f0f0f0;
-            font-weight: bold;
-        }
-
-        .card-body {
-            padding: 1rem;
-        }
-
-        .card-footer {
-            padding: 1rem;
-            background: #f9f9f9;
-            text-align: right;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            background: #333;
-            color: white;
-            width: 100%;
-        }
-
-        .drag-over {
-            background-color: rgba(100, 108, 255, 0.1) !important;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Visual Page Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    /* ===== Global Dark Theme ===== */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: #2a2a2a;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ===== Sidebars ===== */
+    .sidebar {
+      width: 200px;
+      background: #2a2a2a;
+      border-right: 1px solid #444;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 14px;
+      margin: 10px 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+    .element {
+      padding: 8px;
+      margin: 6px 0;
+      background: #3a3a3a;
+      border: 1px solid #555;
+      border-radius: 6px;
+      cursor: grab;
+      text-align: center;
+      user-select: none;
+    }
+    .element:hover {
+      background: #555;
+    }
+
+    /* ===== Canvas ===== */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #252525;
+    }
+    .toolbar {
+      background: #2a2a2a;
+      border-bottom: 1px solid #444;
+      padding: 5px;
+      display: flex;
+      gap: 10px;
+    }
+    .toolbar button {
+      padding: 5px 10px;
+      background: #3a3a3a;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    .toolbar button:hover {
+      background: #555;
+    }
+    #canvas {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: #1a1a1a;
+      border: 2px dashed #444;
+      transform-origin: top left;
+    }
+    #canvas .draggable {
+      position: relative;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #666;
+      background: #333;
+      border-radius: 6px;
+      cursor: move;
+    }
+    #canvas .draggable.container {
+      min-height: 50px;
+      padding: 15px;
+      background: #3c3c3c;
+    }
+    #canvas .draggable.container .draggable {
+      margin: 5px;
+    }
+
+    /* ===== Inspector ===== */
+    .inspector {
+      width: 250px;
+      background: #2a2a2a;
+      border-left: 1px solid #444;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .inspector h2 {
+      font-size: 14px;
+      margin: 10px 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+    .inspector label {
+      font-size: 12px;
+      display: block;
+      margin: 5px 0 2px;
+    }
+    .inspector input,
+    .inspector select {
+      width: 100%;
+      padding: 5px;
+      border: none;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    /* ===== Code Output ===== */
+    .code-section {
+      height: 200px;
+      display: flex;
+      border-top: 1px solid #444;
+    }
+    .code-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #444;
+    }
+    .code-box:last-child {
+      border-right: none;
+    }
+    .code-box header {
+      background: #2a2a2a;
+      padding: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+    .code-box header span {
+      font-size: 12px;
+    }
+    .code-box textarea {
+      flex: 1;
+      background: #111;
+      color: #0f0;
+      border: none;
+      resize: none;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .copy-btn {
+      padding: 2px 6px;
+      font-size: 12px;
+      border: none;
+      background: #444;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .copy-btn:hover {
+      background: #666;
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-code"></i>
-                <span>Web Builder</span>
-            </div>
-            <div class="device-selector">
-                <button class="device-btn active" data-device="desktop">
-                    <i class="fas fa-desktop"></i> Desktop
-                </button>
-                <button class="device-btn" data-device="tablet">
-                    <i class="fas fa-tablet-alt"></i> Tablet
-                </button>
-                <button class="device-btn" data-device="mobile">
-                    <i class="fas fa-mobile-alt"></i> Mobile
-                </button>
-            </div>
-            <div class="header-actions">
-                <button class="btn view-btn">
-                    <i class="fas fa-eye"></i> View Mode
-                </button>
-                <button class="btn">
-                    <i class="fas fa-save"></i> Save
-                </button>
-                <button class="btn">
-                    <i class="fas fa-download"></i> Export
-                </button>
-            </div>
-        </header>
+  <header>
+    <h1>Visual Page Builder</h1>
+    <div>
+      <button onclick="toggleViewMode()">Toggle View Mode</button>
+      <button onclick="setDevice('desktop')">Desktop</button>
+      <button onclick="setDevice('tablet')">Tablet</button>
+      <button onclick="setDevice('phone')">Phone</button>
+    </div>
+  </header>
 
-        <aside class="elements-panel">
-            <div class="elements-category">
-                <h3 class="category-title">Navigation</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="navbar">
-                        <div class="element-icon"><i class="fas fa-bars"></i></div>
-                        <div class="element-name">Navbar</div>
-                    </div>
-                    <div class="element-item" data-type="sidebar">
-                        <div class="element-icon"><i class="fas fa-columns"></i></div>
-                        <div class="element-name">Sidebar</div>
-                    </div>
-                    <div class="element-item" data-type="breadcrumbs">
-                        <div class="element-icon"><i class="fas fa-angle-right"></i></div>
-                        <div class="element-name">Breadcrumbs</div>
-                    </div>
-                    <div class="element-item" data-type="pagination">
-                        <div class="element-icon"><i class="fas fa-file"></i></div>
-                        <div class="element-name">Pagination</div>
-                    </div>
-                </div>
-            </div>
+  <div id="main">
+    <!-- Palette -->
+    <aside class="sidebar">
+      <h2>Elements</h2>
+      <div class="element" draggable="true" data-type="navbar">Navbar</div>
+      <div class="element" draggable="true" data-type="footer">Footer</div>
+      <div class="element" draggable="true" data-type="text">Text</div>
+      <div class="element" draggable="true" data-type="button">Button</div>
+      <div class="element" draggable="true" data-type="image">Image</div>
+      <div class="element" draggable="true" data-type="icon">Icon</div>
+      <div class="element" draggable="true" data-type="card">Card</div>
+      <div class="element" draggable="true" data-type="form">Form</div>
+      <div class="element" draggable="true" data-type="grid">Grid</div>
+      <div class="element" draggable="true" data-type="hero">Hero Section</div>
+      <div class="element" draggable="true" data-type="sidebar">Sidebar</div>
+      <div class="element" draggable="true" data-type="divider">Divider</div>
+      <div class="element" draggable="true" data-type="video">Video</div>
+      <div class="element" draggable="true" data-type="gallery">Gallery</div>
+    </aside>
 
-            <div class="elements-category">
-                <h3 class="category-title">Content</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="header">
-                        <div class="element-icon"><i class="fas fa-heading"></i></div>
-                        <div class="element-name">Header</div>
-                    </div>
-                    <div class="element-item" data-type="footer">
-                        <div class="element-icon"><i class="fas fa-window-minimize"></i></div>
-                        <div class="element-name">Footer</div>
-                    </div>
-                    <div class="element-item" data-type="card">
-                        <div class="element-icon"><i class="far fa-square"></i></div>
-                        <div class="element-name">Card</div>
-                    </div>
-                    <div class="element-item" data-type="accordion">
-                        <div class="element-icon"><i class="fas fa-chevron-down"></i></div>
-                        <div class="element-name">Accordion</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="elements-category">
-                <h3 class="category-title">Forms</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="form">
-                        <div class="element-icon"><i class="far fa-window-restore"></i></div>
-                        <div class="element-name">Form</div>
-                    </div>
-                    <div class="element-item" data-type="input">
-                        <div class="element-icon"><i class="fas fa-pen"></i></div>
-                        <div class="element-name">Input</div>
-                    </div>
-                    <div class="element-item" data-type="button">
-                        <div class="element-icon"><i class="fas fa-square"></i></div>
-                        <div class="element-name">Button</div>
-                    </div>
-                    <div class="element-item" data-type="dropdown">
-                        <div class="element-icon"><i class="fas fa-caret-down"></i></div>
-                        <div class="element-name">Dropdown</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="elements-category">
-                <h3 class="category-title">Media</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="image">
-                        <div class="element-icon"><i class="far fa-image"></i></div>
-                        <div class="element-name">Image</div>
-                    </div>
-                    <div class="element-item" data-type="carousel">
-                        <div class="element-icon"><i class="fas fa-images"></i></div>
-                        <div class="element-name">Carousel</div>
-                    </div>
-                    <div class="element-item" data-type="video">
-                        <div class="element-icon"><i class="fas fa-video"></i></div>
-                        <div class="element-name">Video</div>
-                    </div>
-                    <div class="element-item" data-type="icon">
-                        <div class="element-icon"><i class="fas fa-icons"></i></div>
-                        <div class="element-name">Icon</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <main class="workspace">
-            <div class="canvas-container desktop">
-                <div class="canvas" id="canvas">
-                    <div class="canvas-content">
-                        <!-- Content will be added via drag and drop -->
-                        <div class="empty-canvas">
-                            <i class="fas fa-mouse-pointer"></i>
-                            <p>Drag elements from the left panel to start building</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <aside class="properties-panel">
-            <div class="properties-section">
-                <h3 class="section-title">Element Properties</h3>
-                <div class="property-group">
-                    <label class="property-label">Background Color</label>
-                    <input type="color" class="property-input color-input" id="bgColor" value="#ffffff">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Text Color</label>
-                    <input type="color" class="property-input color-input" id="textColor" value="#000000">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Padding</label>
-                    <input type="text" class="property-input" placeholder="e.g., 10px or 1rem">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Margin</label>
-                    <input type="text" class="property-input" placeholder="e.g., 10px or 1rem">
-                </div>
-            </div>
-
-            <div class="properties-section">
-                <h3 class="section-title">Text Properties</h3>
-                <div class="property-group">
-                    <label class="property-label">Font Family</label>
-                    <select class="property-input">
-                        <option>Inter</option>
-                        <option>Roboto</option>
-                        <option>Open Sans</option>
-                        <option>Montserrat</option>
-                        <option>System UI</option>
-                    </select>
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Font Size</label>
-                    <input type="text" class="property-input" placeholder="e.g., 16px or 1rem">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Font Weight</label>
-                    <select class="property-input">
-                        <option>Normal</option>
-                        <option>Bold</option>
-                        <option>100</option>
-                        <option>200</option>
-                        <option>300</option>
-                        <option>400</option>
-                        <option>500</option>
-                        <option>600</option>
-                        <option>700</option>
-                        <option>800</option>
-                        <option>900</option>
-                    </select>
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Text Align</label>
-                    <select class="property-input">
-                        <option>Left</option>
-                        <option>Center</option>
-                        <option>Right</option>
-                        <option>Justify</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="properties-section">
-                <h3 class="section-title">Layout</h3>
-                <div class="property-group">
-                    <label class="property-label">Display</label>
-                    <select class="property-input">
-                        <option>Block</option>
-                        <option>Flex</option>
-                        <option>Grid</option>
-                        <option>Inline</option>
-                        <option>Inline-block</option>
-                    </select>
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Width</label>
-                    <input type="text" class="property-input" placeholder="e.g., 100% or 200px">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Height</label>
-                    <input type="text" class="property-input" placeholder="e.g., auto or 100px">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Position</label>
-                    <select class="property-input">
-                        <option>Static</option>
-                        <option>Relative</option>
-                        <option>Absolute</option>
-                        <option>Fixed</option>
-                        <option>Sticky</option>
-                    </select>
-                </div>
-            </div>
-        </aside>
-
-        <section class="code-panel">
-            <div class="code-tabs">
-                <div class="code-tab active" data-tab="html">HTML</div>
-                <div class="code-tab" data-tab="css">CSS</div>
-                <div class="code-tab" data-tab="js">JavaScript</div>
-            </div>
-            <div class="code-content">
-                <div class="code-editor active" data-code="html">
-                    <textarea class="code-textarea" id="html-code"><!-- Generated HTML will appear here --></textarea>
-                    <button class="copy-btn" data-code="html">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <div class="code-editor" data-code="css">
-                    <textarea class="code-textarea" id="css-code">/* Generated CSS will appear here */</textarea>
-                    <button class="copy-btn" data-code="css">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <div class="code-editor" data-code="js">
-                    <textarea class="code-textarea" id="js-code">// Generated JavaScript will appear here</textarea>
-                    <button class="copy-btn" data-code="js">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-            </div>
-        </section>
+    <!-- Canvas -->
+    <div class="canvas-container">
+      <div class="toolbar">
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+        <button onclick="zoomIn()">Zoom +</button>
+        <button onclick="zoomOut()">Zoom -</button>
+      </div>
+      <div id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
+        <!-- Dropped elements appear here -->
+      </div>
     </div>
 
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span>Code copied to clipboard!</span>
-    </div>
+    <!-- Inspector -->
+    <aside class="inspector">
+      <h2>Inspector</h2>
+      <div id="inspector-content">Select an element to edit</div>
+    </aside>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Device selection
-            const deviceButtons = document.querySelectorAll('.device-btn');
-            const canvasContainer = document.querySelector('.canvas-container');
-            
-            deviceButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const device = this.getAttribute('data-device');
-                    
-                    // Update active button
-                    deviceButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update canvas size
-                    canvasContainer.className = 'canvas-container ' + device;
-                });
-            });
-            
-            // View mode toggle
-            const viewBtn = document.querySelector('.view-btn');
-            const appContainer = document.querySelector('.app-container');
-            
-            viewBtn.addEventListener('click', function() {
-                appContainer.classList.toggle('view-mode');
-                if (appContainer.classList.contains('view-mode')) {
-                    this.innerHTML = '<i class="fas fa-edit"></i> Edit Mode';
-                } else {
-                    this.innerHTML = '<i class="fas fa-eye"></i> View Mode';
-                }
-            });
-            
-            // Element dragging functionality
-            const elementItems = document.querySelectorAll('.element-item');
-            const canvas = document.getElementById('canvas');
-            
-            elementItems.forEach(element => {
-                element.addEventListener('mousedown', function(e) {
-                    const type = this.getAttribute('data-type');
-                    
-                    // Create a ghost image for dragging
-                    const ghost = this.cloneNode(true);
-                    ghost.style.position = 'absolute';
-                    ghost.style.left = e.pageX - 40 + 'px';
-                    ghost.style.top = e.pageY - 40 + 'px';
-                    ghost.style.width = '80px';
-                    ghost.style.zIndex = '1000';
-                    ghost.style.opacity = '0.8';
-                    ghost.style.pointerEvents = 'none';
-                    document.body.appendChild(ghost);
-                    
-                    // Move ghost with cursor
-                    function moveGhost(e) {
-                        ghost.style.left = e.pageX - 40 + 'px';
-                        ghost.style.top = e.pageY - 40 + 'px';
-                    }
-                    
-                    // Remove ghost on mouseup and add element
-                    function dropElement(e) {
-                        document.removeEventListener('mousemove', moveGhost);
-                        document.removeEventListener('mouseup', dropElement);
-                        document.body.removeChild(ghost);
-                        
-                        // Check if drop occurred inside canvas
-                        const canvasRect = canvas.getBoundingClientRect();
-                        if (e.pageX >= canvasRect.left && e.pageX <= canvasRect.right &&
-                            e.pageY >= canvasRect.top && e.pageY <= canvasRect.bottom) {
-                            
-                            // Calculate position relative to canvas
-                            const x = e.pageX - canvasRect.left;
-                            const y = e.pageY - canvasRect.top;
-                            
-                            addElementToCanvas(type, x, y);
-                        }
-                    }
-                    
-                    document.addEventListener('mousemove', moveGhost);
-                    document.addEventListener('mouseup', dropElement);
-                    
-                    e.preventDefault();
-                });
-            });
-            
-            function addElementToCanvas(type, x, y) {
-                // Remove empty canvas message if it exists
-                const emptyCanvas = document.querySelector('.empty-canvas');
-                if (emptyCanvas) {
-                    emptyCanvas.remove();
-                }
-                
-                const element = document.createElement('div');
-                element.className = 'canvas-element';
-                element.setAttribute('data-type', type);
-                
-                // Position the element where it was dropped
-                element.style.left = x + 'px';
-                element.style.top = y + 'px';
-                
-                // Add content based on element type
-                switch(type) {
-                    case 'navbar':
-                        element.innerHTML = `
-                            <div class="navbar">
-                                <div class="nav-brand">Logo</div>
-                                <ul class="nav-menu">
-                                    <li><a href="#">Home</a></li>
-                                    <li><a href="#">About</a></li>
-                                    <li><a href="#">Services</a></li>
-                                    <li><a href="#">Contact</a></li>
-                                </ul>
-                            </div>
-                        `;
-                        element.style.width = '100%';
-                        element.style.left = '0';
-                        element.style.top = '0';
-                        break;
-                    case 'button':
-                        element.innerHTML = `<button class="ui-button">Click Me</button>`;
-                        break;
-                    case 'card':
-                        element.innerHTML = `
-                            <div class="card">
-                                <div class="card-header">Card Title</div>
-                                <div class="card-body">
-                                    <p>This is a sample card with some content.</p>
-                                </div>
-                                <div class="card-footer">
-                                    <button>Action</button>
-                                </div>
-                            </div>
-                        `;
-                        break;
-                    case 'footer':
-                        element.innerHTML = `
-                            <div class="footer">
-                                <p>&copy; 2023 Your Company. All rights reserved.</p>
-                            </div>
-                        `;
-                        element.style.width = '100%';
-                        element.style.left = '0';
-                        element.style.bottom = '0';
-                        break;
-                    default:
-                        element.innerHTML = `<div class="element-content">${type} element</div>`;
-                        element.style.padding = '10px';
-                        element.style.background = '#f0f0f0';
-                        element.style.borderRadius = '4px';
-                }
-                
-                // Make element draggable within canvas
-                makeDraggable(element);
-                
-                // Select element on click
-                element.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    selectElement(this);
-                });
-                
-                canvas.querySelector('.canvas-content').appendChild(element);
-                selectElement(element);
-                updateCode();
-            }
-            
-            function makeDraggable(element) {
-                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-                
-                element.onmousedown = dragMouseDown;
-                
-                function dragMouseDown(e) {
-                    e = e || window.event;
-                    e.preventDefault();
-                    // Get the mouse cursor position at startup
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    document.onmouseup = closeDragElement;
-                    // Call a function whenever the cursor moves
-                    document.onmousemove = elementDrag;
-                }
-                
-                function elementDrag(e) {
-                    e = e || window.event;
-                    e.preventDefault();
-                    // Calculate the new cursor position
-                    pos1 = pos3 - e.clientX;
-                    pos2 = pos4 - e.clientY;
-                    pos3 = e.clientX;
-                    pos4 = e.clientY;
-                    // Set the element's new position
-                    element.style.top = (element.offsetTop - pos2) + "px";
-                    element.style.left = (element.offsetLeft - pos1) + "px";
-                }
-                
-                function closeDragElement() {
-                    // Stop moving when mouse button is released
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                    updateCode();
-                }
-            }
-            
-            // Element selection
-            function selectElement(element) {
-                // Deselect all elements
-                document.querySelectorAll('.canvas-element').forEach(el => {
-                    el.classList.remove('selected');
-                });
-                
-                // Select clicked element
-                element.classList.add('selected');
-                
-                // TODO: Update properties panel with element properties
-            }
-            
-            // Deselect when clicking on canvas
-            canvas.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    document.querySelectorAll('.canvas-element').forEach(el => {
-                        el.classList.remove('selected');
-                    });
-                }
-            });
-            
-            // Copy code buttons
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            const toast = document.getElementById('toast');
-            
-            copyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const codeType = this.getAttribute('data-code');
-                    const textarea = document.getElementById(`${codeType}-code`);
-                    
-                    textarea.select();
-                    document.execCommand('copy');
-                    
-                    // Show toast notification
-                    toast.classList.add('show');
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                    }, 2000);
-                });
-            });
-            
-            // Code tab switching
-            const codeTabs = document.querySelectorAll('.code-tab');
-            const codeEditors = document.querySelectorAll('.code-editor');
-            
-            codeTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    codeTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show corresponding editor
-                    codeEditors.forEach(editor => {
-                        if (editor.getAttribute('data-code') === tabName) {
-                            editor.classList.add('active');
-                        } else {
-                            editor.classList.remove('active');
-                        }
-                    });
-                });
-            });
-            
-            // Generate initial code
-            updateCode();
-            
-            // Function to update code panels
-            function updateCode() {
-                // In a real implementation, this would generate code based on the canvas content
-                document.getElementById('html-code').value = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Generated Page</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-        
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background-color: #646cff;
-            color: white;
-        }
-        
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-        
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-        }
-        
-        .ui-button {
-            background-color: #646cff;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            max-width: 300px;
-        }
-        
-        .card-header {
-            padding: 1rem;
-            background: #f0f0f0;
-            font-weight: bold;
-        }
-        
-        .card-body {
-            padding: 1rem;
-        }
-        
-        .card-footer {
-            padding: 1rem;
-            background: #f9f9f9;
-            text-align: right;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            background: #333;
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <!-- Your generated content here -->
-    <div class="navbar">
-        <div class="nav-brand">Logo</div>
-        <ul class="nav-menu">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Contact</a></li>
-        </ul>
+  <!-- Code Output -->
+  <div class="code-section">
+    <div class="code-box">
+      <header>
+        <span>HTML</span>
+        <button class="copy-btn" onclick="copyCode('htmlCode')">Copy</button>
+      </header>
+      <textarea id="htmlCode" readonly></textarea>
     </div>
-    
-    <button class="ui-button">Click Me</button>
-    
-    <div class="card">
-        <div class="card-header">Card Title</div>
-        <div class="card-body">
-            <p>This is a sample card with some content.</p>
-        </div>
-        <div class="card-footer">
-            <button>Action</button>
-        </div>
+    <div class="code-box">
+      <header>
+        <span>CSS</span>
+        <button class="copy-btn" onclick="copyCode('cssCode')">Copy</button>
+      </header>
+      <textarea id="cssCode" readonly></textarea>
     </div>
-    
-    <div class="footer">
-        <p>&copy; 2023 Your Company. All rights reserved.</p>
+    <div class="code-box">
+      <header>
+        <span>JS</span>
+        <button class="copy-btn" onclick="copyCode('jsCode')">Copy</button>
+      </header>
+      <textarea id="jsCode" readonly></textarea>
     </div>
+  </div>
 
-    <script>
-        // Simple interactive functionality
-        document.querySelector('.ui-button').addEventListener('click', function() {
-            alert('Button clicked!');
+  <script>
+    let canvas = document.getElementById("canvas");
+    let inspector = document.getElementById("inspector-content");
+    let selectedElement = null;
+    let history = [];
+    let historyIndex = -1;
+    let zoomLevel = 1;
+    let viewMode = false;
+
+    // === Drag & Drop ===
+    function allowDrop(ev) { 
+      ev.preventDefault(); 
+      ev.currentTarget.classList.add('drop-target');
+    }
+    function dragLeave(ev) {
+      ev.currentTarget.classList.remove('drop-target');
+    }
+    document.querySelectorAll(".element").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("type", e.target.dataset.type);
+      });
+    });
+    function drop(ev) {
+      ev.preventDefault();
+      ev.currentTarget.classList.remove('drop-target');
+      let type = ev.dataTransfer.getData("type");
+      let target = ev.target.closest('.draggable');
+      let newEl = createElement(type);
+      
+      // If dropping on a container element (navbar, grid, card, hero, sidebar), append inside
+      if (target && target.classList.contains('container')) {
+        target.appendChild(newEl);
+      } else {
+        canvas.appendChild(newEl);
+      }
+      
+      saveHistory();
+      updateCode();
+    }
+
+    function createElement(type) {
+      let el = document.createElement("div");
+      el.classList.add("draggable");
+      el.setAttribute('data-type', type);
+      el.onclick = (e) => { e.stopPropagation(); selectElement(el); };
+      
+      // Containers can accept nested elements
+      if (['navbar', 'grid', 'card', 'hero', 'sidebar'].includes(type)) {
+        el.classList.add('container');
+        el.setAttribute('ondragover', 'allowDrop(event)');
+        el.setAttribute('ondragleave', 'dragLeave(event)');
+        el.setAttribute('ondrop', 'drop(event)');
+      }
+
+      switch(type) {
+        case "navbar": 
+          el.innerHTML = `<nav style="display:flex; gap:10px; padding:10px;">Navbar</nav>`;
+          el.setAttribute('data-url', '');
+          break;
+        case "footer": 
+          el.innerHTML = `<footer style="padding:10px;">Footer</footer>`;
+          break;
+        case "text": 
+          el.innerHTML = `<p>Editable text</p>`;
+          break;
+        case "button": 
+          el.innerHTML = `<button>Click Me</button>`;
+          el.setAttribute('data-url', '');
+          break;
+        case "image": 
+          el.innerHTML = `<img src="https://via.placeholder.com/150" alt="Image" style="max-width:100%;">`;
+          break;
+        case "icon": 
+          el.innerHTML = `<span style="font-size:24px;">★</span>`;
+          el.setAttribute('data-url', '');
+          break;
+        case "card":
+          el.innerHTML = `
+            <div style="padding:10px; border:1px solid #666; border-radius:6px; background:#444;">
+              <img src="https://via.placeholder.com/150" style="max-width:100%; border-radius:6px;">
+              <h3>Card Title</h3>
+              <p>Card description text.</p>
+              <button data-url="">Read More</button>
+            </div>`;
+          break;
+        case "form":
+          el.innerHTML = `
+            <form style="display:flex; flex-direction:column; gap:5px;">
+              <input type="text" placeholder="Your name" style="width:100%; margin-bottom:5px;">
+              <textarea placeholder="Your message" style="width:100%; margin-bottom:5px;"></textarea>
+              <button type="submit">Submit</button>
+            </form>`;
+          break;
+        case "grid":
+          el.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div style="background:#444; padding:10px;">Grid Item 1</div>
+              <div style="background:#555; padding:10px;">Grid Item 2</div>
+            </div>`;
+          break;
+        case "hero":
+          el.innerHTML = `
+            <section style="text-align:center; padding:20px; background:#3a3a3a;">
+              <h1>Hero Title</h1>
+              <p>Welcome to our website!</p>
+              <button data-url="">Get Started</button>
+            </section>`;
+          break;
+        case "sidebar":
+          el.innerHTML = `
+            <aside style="padding:10px; background:#3a3a3a; width:200px;">
+              <h3>Sidebar</h3>
+              <ul><li>Item 1</li><li>Item 2</li></ul>
+            </aside>`;
+          break;
+        case "divider":
+          el.innerHTML = `<hr style="border:1px solid #666;">`;
+          break;
+        case "video":
+          el.innerHTML = `<video controls style="max-width:100%;"><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video>`;
+          break;
+        case "gallery":
+          el.innerHTML = `
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:5px;">
+              <img src="https://via.placeholder.com/100" alt="Gallery Image 1">
+              <img src="https://via.placeholder.com/100" alt="Gallery Image 2">
+            </div>`;
+          break;
+      }
+      return el;
+    }
+
+    // === Inspector ===
+    function selectElement(el) {
+      selectedElement = el;
+      let type = el.getAttribute('data-type');
+      let inspectorHTML = `
+        <label>Content</label>
+        <input type="text" value="${el.innerText}" onchange="updateContent(this.value)">
+        <label>Background</label>
+        <input type="color" value="${el.style.background || '#333'}" onchange="updateBackground(this.value)">
+        <label>Text Color</label>
+        <input type="color" value="${el.style.color || '#f5f5f5'}" onchange="updateTextColor(this.value)">
+        <label>Font Size (px)</label>
+        <input type="number" value="${parseInt(el.style.fontSize) || 14}" onchange="updateFontSize(this.value)">
+        <label>Padding (px)</label>
+        <input type="number" value="${parseInt(el.style.padding) || 10}" onchange="updatePadding(this.value)">
+        <label>Border Width (px)</label>
+        <input type="number" value="${parseInt(el.style.borderWidth) || 1}" onchange="updateBorderWidth(this.value)">
+        <label>Border Style</label>
+        <select onchange="updateBorderStyle(this.value)">
+          <option value="solid" ${el.style.borderStyle === 'solid' ? 'selected' : ''}>Solid</option>
+          <option value="dashed" ${el.style.borderStyle === 'dashed' ? 'selected' : ''}>Dashed</option>
+          <option value="dotted" ${el.style.borderStyle === 'dotted' ? 'selected' : ''}>Dotted</option>
+          <option value="none" ${el.style.borderStyle === 'none' ? 'selected' : ''}>None</option>
+        </select>
+        <label>Border Color</label>
+        <input type="color" value="${el.style.borderColor || '#666'}" onchange="updateBorderColor(this.value)">
+        <label>Border Radius (px)</label>
+        <input type="number" value="${parseInt(el.style.borderRadius) || 6}" onchange="updateBorderRadius(this.value)">
+      `;
+      
+      // Add URL field for clickable elements
+      if (['button', 'navbar', 'icon', 'hero', 'card'].includes(type)) {
+        let url = el.getAttribute('data-url') || '';
+        inspectorHTML += `
+          <label>URL/Page Name</label>
+          <input type="text" value="${url}" onchange="updateURL(this.value)">
+        `;
+      }
+      
+      inspector.innerHTML = inspectorHTML;
+    }
+
+    function updateContent(val) { 
+      if (selectedElement) { 
+        selectedElement.innerText = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBackground(val) { 
+      if (selectedElement) { 
+        selectedElement.style.background = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateTextColor(val) { 
+      if (selectedElement) { 
+        selectedElement.style.color = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateFontSize(val) { 
+      if (selectedElement) { 
+        selectedElement.style.fontSize = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updatePadding(val) { 
+      if (selectedElement) { 
+        selectedElement.style.padding = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderWidth(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderWidth = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderStyle(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderStyle = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderColor(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderColor = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderRadius(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderRadius = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateURL(val) {
+      if (selectedElement) {
+        selectedElement.setAttribute('data-url', val);
+        let anchor = selectedElement.querySelector('a') || document.createElement('a');
+        anchor.href = val || '#';
+        anchor.style.textDecoration = 'none';
+        anchor.style.color = 'inherit';
+        if (!selectedElement.querySelector('a')) {
+          anchor.innerHTML = selectedElement.innerHTML;
+          selectedElement.innerHTML = '';
+          selectedElement.appendChild(anchor);
+        }
+        saveHistory();
+        updateCode();
+      }
+    }
+
+    // === Undo/Redo ===
+    function saveHistory() {
+      history = history.slice(0, historyIndex + 1);
+      history.push(canvas.innerHTML);
+      historyIndex++;
+    }
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        canvas.innerHTML = history[historyIndex];
+        resetSelection();
+        updateCode();
+        // Reattach event listeners to restored elements
+        canvas.querySelectorAll('.draggable').forEach(el => {
+          el.onclick = (e) => { e.stopPropagation(); selectElement(el); };
+          if (el.classList.contains('container')) {
+            el.setAttribute('ondragover', 'allowDrop(event)');
+            el.setAttribute('ondragleave', 'dragLeave(event)');
+            el.setAttribute('ondrop', 'drop(event)');
+          }
         });
-    <\/script>
-</body>
-</html>`;
-
-                document.getElementById('css-code').value = `/* Additional CSS styles would be generated here */
-        
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
-.hero {
-    background: linear-gradient(135deg, #646cff, #af62ff);
-    color: white;
-    padding: 4rem 2rem;
-    text-align: center;
-    border-radius: 0 0 20px 20px;
-}
-
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 3rem 0;
-}
-
-.testimonial {
-    background: #f9f9f9;
-    padding: 2rem;
-    border-left: 4px solid #646cff;
-    border-radius: 4px;
-}
-
-@media (max-width: 768px) {
-    .nav-menu {
-        flex-direction: column;
-        gap: 1rem;
+      }
     }
-    
-    .hero {
-        padding: 2rem 1rem;
-    }
-}`;
-
-                document.getElementById('js-code').value = `// JavaScript for interactive elements
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (menuToggle) {
-        menuToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
+    function redo() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        canvas.innerHTML = history[historyIndex];
+        resetSelection();
+        updateCode();
+        // Reattach event listeners to restored elements
+        canvas.querySelectorAll('.draggable').forEach(el => {
+          el.onclick = (e) => { e.stopPropagation(); selectElement(el); };
+          if (el.classList.contains('container')) {
+            el.setAttribute('ondragover', 'allowDrop(event)');
+            el.setAttribute('ondragleave', 'dragLeave(event)');
+            el.setAttribute('ondrop', 'drop(event)');
+          }
         });
+      }
     }
-    
-    // Form validation example
-    const contactForm = document.querySelector('#contact-form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.querySelector('#email').value;
-            if (!isValidEmail(email)) {
-                alert('Please enter a valid email address');
-                return;
-            }
-            
-            // Form is valid, proceed with submission
-            this.submit();
-        });
+    function resetSelection() {
+      selectedElement = null;
+      inspector.innerHTML = "Select an element to edit";
     }
-    
-    function isValidEmail(email) {
-        const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
-        return re.test(email);
+
+    // === Zoom ===
+    function zoomIn() { 
+      zoomLevel += 0.1; 
+      canvas.style.transform = `scale(${zoomLevel})`; 
     }
-    
-    // Image carousel functionality
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.carousel-slide');
-    const totalSlides = slides.length;
-    
-    function showSlide(index) {
-        slides.forEach(slide => slide.style.display = 'none');
-        slides[index].style.display = 'block';
+    function zoomOut() { 
+      zoomLevel = Math.max(0.5, zoomLevel - 0.1); 
+      canvas.style.transform = `scale(${zoomLevel})`; 
     }
-    
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides;
-        showSlide(currentSlide);
+
+    // === Device Preview ===
+    function setDevice(device) {
+      canvas.style.width = device === "desktop" ? "100%" : device === "tablet" ? "768px" : "375px";
+      canvas.style.margin = "0 auto";
     }
-    
-    // Auto-advance carousel every 5 seconds
-    setInterval(nextSlide, 5000);
-    
-    // Initialize first slide
-    showSlide(0);
-});`;
-            }
-        });
-    </script>
+
+    // === View Mode ===
+    function toggleViewMode() {
+      viewMode = !viewMode;
+      canvas.querySelectorAll(".draggable").forEach(el => {
+        el.style.pointerEvents = viewMode ? "auto" : "all";
+      });
+      canvas.style.border = viewMode ? "none" : "2px dashed #444";
+    }
+
+    // === Code Generation ===
+    function updateCode() {
+      // Clean up HTML output
+      let htmlOutput = canvas.innerHTML;
+      // Remove editor-specific attributes
+      htmlOutput = htmlOutput.replace(/ (ondragover|ondragleave|ondrop)="[^"]*"/g, '');
+      htmlOutput = htmlOutput.replace(/ draggable="true"/g, '');
+      htmlOutput = htmlOutput.replace(/ class="draggable( container)?"/g, '');
+      htmlOutput = htmlOutput.replace(/ data-type="[^"]*"/g, '');
+      
+      // Convert data-url to href for clickable elements
+      canvas.querySelectorAll('[data-url]').forEach(el => {
+        let url = el.getAttribute('data-url');
+        if (url) {
+          let regex = new RegExp(`<(${el.tagName.toLowerCase()}[^>]*data-url="${url}"[^>]*)>`, 'g');
+          htmlOutput = htmlOutput.replace(regex, `<${el.tagName.toLowerCase()} href="${url}" $1>`);
+        }
+      });
+      
+      document.getElementById("htmlCode").value = htmlOutput;
+      
+      // Generate CSS for all elements
+      let cssOutput = '';
+      canvas.querySelectorAll('.draggable').forEach((el, index) => {
+        let styles = `
+          .element-${index} {
+            ${el.style.cssText ? el.style.cssText.replace(/;/g, ';\n            ') : ''}
+          }
+        `;
+        cssOutput += styles;
+        el.setAttribute('data-element-id', `element-${index}`);
+      });
+      
+      document.getElementById("cssCode").value = cssOutput || "/* Custom styles will appear here */";
+      document.getElementById("jsCode").value = "// Custom scripts will appear here";
+    }
+
+    function copyCode(id) {
+      let ta = document.getElementById(id);
+      ta.select();
+      document.execCommand("copy");
+    }
+
+    // Init
+    saveHistory();
+  </script>
 </body>
 </html>
