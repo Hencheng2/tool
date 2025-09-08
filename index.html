@@ -3,1082 +3,852 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Web Design Tool</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
-    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/dist/phosphor.js"></script>
+    <title>Webpage Designer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --dark-bg: #111827;
-            --dark-panel: #1f2937;
-            --dark-border: #4b5563;
-            --text-color: #e5e7eb;
-            --secondary-text-color: #9ca3af;
-            --accent-color: #3b82f6;
-            --selected-border: #facc15;
+            --bg-primary: #1a1d21;
+            --bg-secondary: #24272b;
+            --bg-tertiary: #2c3036;
+            --text-primary: #f0f2f5;
+            --text-secondary: #c2c6cc;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #3e4248;
+            --shadow: rgba(0, 0, 0, 0.25);
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-color);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
             overflow: hidden;
         }
 
-        header {
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header Styles */
+        .header {
+            background-color: var(--bg-secondary);
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1rem 2rem;
-            background-color: var(--dark-panel);
-            border-bottom: 1px solid var(--dark-border);
-            flex-wrap: nowrap;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 10px var(--shadow);
+            z-index: 100;
         }
 
-        header h1 {
-            font-size: 1.5rem;
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             font-weight: 700;
+            font-size: 1.5rem;
         }
 
-        .header-section {
+        .logo-icon {
+            color: var(--accent);
+        }
+
+        .mode-toggle {
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 6px;
             display: flex;
-            align-items: center;
-            gap: 1rem;
+            gap: 5px;
         }
 
-        .mode-toggles button {
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            border: 1px solid var(--dark-border);
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            border-radius: 0.5rem;
-        }
-
-        .mode-toggles button.active {
-            background-color: var(--accent-color);
-            color: var(--dark-bg);
-            border-color: var(--accent-color);
-        }
-
-        .mode-toggles button:hover {
-            background-color: var(--dark-border);
-            transform: translateY(-2px);
-        }
-
-        #elements-list-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .category-btn {
-            background-color: #374151;
-            border: 1px solid #4b5563;
-            padding: 8px 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            color: var(--secondary-text-color);
-            font-size: 0.875rem;
-        }
-        
-        .category-btn:hover {
-            background-color: #4b5563;
-            transform: translateY(-2px);
-        }
-
-        .category-btn.active {
-            background-color: var(--accent-color);
-            color: #fff;
-            border-color: var(--accent-color);
-        }
-        
-        #element-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            z-index: 20;
-            background-color: var(--dark-panel);
-            border: 1px solid var(--dark-border);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            display: none;
-            transform: translateY(10px);
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-            min-width: 200px;
-        }
-        
-        #element-dropdown.visible {
-            display: block;
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        #element-dropdown .selectable-element {
-            display: block;
-            background-color: transparent;
+        .mode-btn {
+            padding: 8px 16px;
+            border-radius: 4px;
             border: none;
-            color: var(--text-color);
-            padding: 0.5rem 1rem;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 500;
             cursor: pointer;
-            text-align: left;
-            border-radius: 0.25rem;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
 
-        #element-dropdown .selectable-element:hover {
-            background-color: #374151;
+        .mode-btn.active {
+            background-color: var(--accent);
+            color: white;
         }
 
-        #main-container {
-            flex: 1;
-            display: flex;
-            height: calc(100vh - 1.5rem);
-            position: relative;
-        }
-
-        #work-space-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            position: relative;
-            background-color: var(--dark-bg);
-        }
-
-        #device-toggles {
+        .screen-size-toggle {
             display: flex;
             gap: 10px;
-            margin-bottom: 2rem;
-            position: sticky;
-            top: 1rem;
-            z-index: 10;
-        }
-
-        #device-toggles button {
-            background-color: var(--dark-panel);
-            color: var(--text-color);
-            border: 1px solid var(--dark-border);
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            border-radius: 0.5rem;
-        }
-
-        #device-toggles button.active {
-            background-color: var(--accent-color);
-            color: var(--dark-bg);
-            border-color: var(--accent-color);
-        }
-
-        #work-space {
-            flex: 1;
-            display: flex;
-            justify-content: center;
             align-items: center;
-            width: 100%;
         }
 
-        #page-div {
-            background-color: #fff;
-            width: 100%;
-            height: 100%;
-            min-width: 375px;
-            min-height: 500px;
-            border: 2px dashed var(--dark-border);
-            position: relative;
-            transition: width 0.5s, height 0.5s;
-            background-color: #fff;
-            color: #000;
-            border-radius: 0.5rem;
+        .size-btn {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .size-btn.active {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #353940;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
             overflow: hidden;
         }
-        
-        #page-div > * {
-            position: absolute;
-            cursor: move;
-            transition: box-shadow 0.2s;
-        }
 
-        #page-div > *:hover {
-            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .selected-element {
-            outline: 2px solid var(--selected-border) !important;
-            outline-offset: 3px;
-        }
-
-        .placeholder-text {
-            color: var(--secondary-text-color);
-            text-align: center;
-            padding-top: 2rem;
-        }
-
-        .edit-panel {
-            background-color: var(--dark-panel);
-            border: 1px solid var(--dark-border);
-            padding: 1.5rem;
+        /* Element Panel */
+        .element-panel {
+            width: 280px;
+            background-color: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 20px;
             overflow-y: auto;
-            width: 250px;
-            display: none;
-            flex-direction: column;
-            gap: 1rem;
-            border-radius: 0.5rem;
-        }
-        
-        .edit-field {
-            margin-bottom: 1rem;
+            transition: all 0.3s ease;
         }
 
-        .edit-field label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+        .element-category {
+            margin-bottom: 20px;
         }
 
-        .edit-field input, .edit-field textarea, .edit-field select {
-            width: 100%;
-            padding: 0.5rem;
-            background-color: #374151;
-            border: 1px solid #4b5563;
-            color: var(--text-color);
-            border-radius: 0.25rem;
-        }
-
-        .edit-field input[type="color"] {
-            height: 40px;
-            padding: 0;
-        }
-        
-        .edit-field .edit-field-group {
+        .category-header {
             display: flex;
-            gap: 10px;
-        }
-        
-        .edit-field-group input {
-            flex: 1;
-        }
-        
-        #code-container {
-            background-color: var(--dark-panel);
-            border-top: 1px solid var(--dark-border);
-            padding: 1rem;
-            display: flex;
-            gap: 1rem;
-            height: 250px;
-            flex-shrink: 0;
-        }
-
-        .code-block {
-            flex: 1;
-            position: relative;
-        }
-
-        .code-block h3 {
-            text-align: center;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .code-block textarea {
-            width: 100%;
-            height: calc(100% - 30px);
-            background-color: #111827;
-            color: #10b981;
-            border: 1px solid #374151;
-            padding: 1rem;
-            font-family: 'Courier New', Courier, monospace;
-            resize: none;
-            border-radius: 0.5rem;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background-color: var(--accent-color);
-            color: var(--dark-bg);
-            border: none;
-            padding: 0.5rem 1rem;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            border-radius: 0 0 0 0.5rem;
         }
 
-        .copy-btn:hover {
-            background-color: #2563eb;
+        .category-title {
+            font-weight: 600;
+            font-size: 1.1rem;
         }
 
-        #view-mode-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
+        .element-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .element-item {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.2s ease;
+        }
+
+        .element-item:hover {
+            background-color: #353940;
+            transform: translateY(-2px);
+        }
+
+        .element-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .element-name {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Workspace */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow: auto;
+            background-color: var(--bg-primary);
+        }
+
+        .page-canvas {
+            background-color: white;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .desktop-size {
+            width: 1200px;
+            height: 800px;
+        }
+
+        .tablet-size {
+            width: 768px;
+            height: 1024px;
+        }
+
+        .phone-size {
+            width: 375px;
+            height: 667px;
+        }
+
+        .canvas-placeholder {
+            color: #9ca3af;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+        }
+
+        /* Properties Panel */
+        .properties-panel {
+            width: 320px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .property-group {
+            margin-bottom: 20px;
+        }
+
+        .property-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .property-input {
             width: 100%;
-            height: 100%;
-            background-color: #fff;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .color-input {
+            height: 40px;
+        }
+
+        .property-select {
+            width: 100%;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .property-range {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        /* Code Output */
+        .code-output {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            max-height: 300px;
             overflow: auto;
         }
 
-        #view-mode-container.active {
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .code-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .code-tab.active {
+            border-bottom: 2px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .code-content {
+            display: none;
+        }
+
+        .code-content.active {
             display: block;
         }
 
-        #view-mode-container .view-header {
-            background-color: #eee;
-            padding: 1rem;
-            text-align: right;
-            border-bottom: 1px solid #ccc;
-        }
-        
-        #view-mode-container .view-header button {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
+        .code-textarea {
+            width: 100%;
+            height: 180px;
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            resize: none;
         }
 
+        .copy-btn {
+            background-color: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+            float: right;
+        }
+
+        /* View Mode */
+        .view-mode .element-panel,
+        .view-mode .properties-panel,
+        .view-mode .code-output {
+            display: none;
+        }
+
+        .view-mode .workspace {
+            width: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .desktop-size {
+                width: 100%;
+                height: 800px;
+            }
+            
+            .element-panel {
+                width: 220px;
+            }
+            
+            .properties-panel {
+                width: 260px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .element-panel {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .properties-panel {
+                width: 100%;
+                height: 300px;
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+            
+            .element-list {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .desktop-size {
+                height: 500px;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>Web Design Tool</h1>
-        <div class="header-section">
-            <div id="elements-list-container">
-                <button class="category-btn" data-category="buttons">
-                    <i class="ph-bold ph-hand-tap"></i>
-                    <p>Buttons</p>
-                </button>
-                <button class="category-btn" data-category="typography">
-                    <i class="ph-bold ph-text-align-left"></i>
-                    <p>Typography</p>
-                </button>
-                <button class="category-btn" data-category="layout">
-                    <i class="ph-bold ph-layout"></i>
-                    <p>Layout</p>
-                </button>
-                <button class="category-btn" data-category="media">
-                    <i class="ph-bold ph-image"></i>
-                    <p>Media</p>
-                </button>
-                <button class="category-btn" data-category="components">
-                    <i class="ph-bold ph-bounding-box"></i>
-                    <p>Components</p>
-                </button>
-                <div id="element-dropdown"></div>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-paint-brush logo-icon"></i>
+                <span>Webpage Designer</span>
             </div>
-            <div class="mode-toggles">
-                <button id="editModeBtn" class="active">Edit Mode</button>
-                <button id="viewModeBtn">View Mode</button>
+            
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="edit-mode-btn">Edit Mode</button>
+                <button class="mode-btn" id="view-mode-btn">View Mode</button>
             </div>
-        </div>
-    </header>
-
-    <main id="main-container">
-        <!-- Work Space -->
-        <section id="work-space-container">
-            <div id="device-toggles">
-                <button id="phone-btn" class="active" data-size="375px">
-                    <i class="ph-bold ph-device-mobile"></i>
+            
+            <div class="screen-size-toggle">
+                <button class="size-btn active" data-size="desktop">
+                    <i class="fas fa-laptop"></i>
                 </button>
-                <button id="tablet-btn" data-size="768px">
-                    <i class="ph-bold ph-device-tablet"></i>
+                <button class="size-btn" data-size="tablet">
+                    <i class="fas fa-tablet-alt"></i>
                 </button>
-                <button id="laptop-btn" data-size="1280px">
-                    <i class="ph-bold ph-laptop"></i>
+                <button class="size-btn" data-size="phone">
+                    <i class="fas fa-mobile-alt"></i>
                 </button>
             </div>
-            <div id="work-space">
-                <div id="page-div">
-                    <!-- Elements will be added here -->
+            
+            <div class="header-actions">
+                <button class="btn btn-secondary">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Undo
+                </button>
+                <button class="btn btn-primary">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <aside class="element-panel">
+                <div class="element-category">
+                    <div class="category-header">
+                        <h3 class="category-title">Basic Elements</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="element-list">
+                        <div class="element-item" data-type="heading">
+                            <i class="fas fa-heading element-icon"></i>
+                            <div class="element-name">Heading</div>
+                        </div>
+                        <div class="element-item" data-type="paragraph">
+                            <i class="fas fa-paragraph element-icon"></i>
+                            <div class="element-name">Paragraph</div>
+                        </div>
+                        <div class="element-item" data-type="button">
+                            <i class="fas fa-square element-icon"></i>
+                            <div class="element-name">Button</div>
+                        </div>
+                        <div class="element-item" data-type="image">
+                            <i class="fas fa-image element-icon"></i>
+                            <div class="element-name">Image</div>
+                        </div>
+                        <div class="element-item" data-type="input">
+                            <i class="fas fa-font element-icon"></i>
+                            <div class="element-name">Input</div>
+                        </div>
+                        <div class="element-item" data-type="divider">
+                            <i class="fas fa-grip-lines element-icon"></i>
+                            <div class="element-name">Divider</div>
+                        </div>
+                    </div>
                 </div>
+                
+                <div class="element-category">
+                    <div class="category-header">
+                        <h3 class="category-title">Layout</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="element-list">
+                        <div class="element-item" data-type="container">
+                            <i class="fas fa-border-all element-icon"></i>
+                            <div class="element-name">Container</div>
+                        </div>
+                        <div class="element-item" data-type="row">
+                            <i class="fas fa-columns element-icon"></i>
+                            <div class="element-name">Row</div>
+                        </div>
+                        <div class="element-item" data-type="column">
+                            <i class="fas fa-columns element-icon"></i>
+                            <div class="element-name">Column</div>
+                        </div>
+                        <div class="element-item" data-type="card">
+                            <i class="far fa-square element-icon"></i>
+                            <div class="element-name">Card</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="element-category">
+                    <div class="category-header">
+                        <h3 class="category-title">Navigation</h3>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="element-list">
+                        <div class="element-item" data-type="navbar">
+                            <i class="fas fa-bars element-icon"></i>
+                            <div class="element-name">Navbar</div>
+                        </div>
+                        <div class="element-item" data-type="menu">
+                            <i class="fas fa-bars element-icon"></i>
+                            <div class="element-name">Menu</div>
+                        </div>
+                        <div class="element-item" data-type="tabs">
+                            <i class="fas fa-folder element-icon"></i>
+                            <div class="element-name">Tabs</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <main class="workspace">
+                <div class="page-canvas desktop-size" id="page-canvas">
+                    <div class="canvas-placeholder">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <p>Drag elements here or click to add new elements</p>
+                    </div>
+                </div>
+            </main>
+            
+            <aside class="properties-panel">
+                <h3 class="panel-header">Properties</h3>
+                
+                <div class="property-group">
+                    <label class="property-label">Element Type</label>
+                    <input type="text" class="property-input" value="Button" disabled>
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Text Content</label>
+                    <input type="text" class="property-input" value="Click Me">
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Background Color</label>
+                    <input type="color" class="property-input color-input" value="#6366f1">
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Text Color</label>
+                    <input type="color" class="property-input color-input" value="#ffffff">
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Font Size</label>
+                    <input type="range" class="property-range" min="8" max="32" value="16">
+                    <span>16px</span>
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Padding</label>
+                    <input type="range" class="property-range" min="0" max="30" value="10">
+                    <span>10px</span>
+                </div>
+                
+                <div class="property-group">
+                    <label class="property-label">Border Radius</label>
+                    <input type="range" class="property-range" min="0" max="20" value="6">
+                    <span>6px</span>
+                </div>
+            </aside>
+        </div>
+        
+        <div class="code-output">
+            <div class="code-tabs">
+                <div class="code-tab active" data-tab="html">HTML</div>
+                <div class="code-tab" data-tab="css">CSS</div>
+                <div class="code-tab" data-tab="js">JavaScript</div>
             </div>
-        </section>
-
-        <!-- Edit Section -->
-        <aside id="edit-panel" class="edit-panel">
-            <h2>Edit Properties</h2>
-            <div id="edit-properties-content">
-                <!-- Properties will be populated dynamically -->
-                <p class="placeholder-text">Select an element to edit its properties.</p>
+            
+            <div class="code-content active" id="html-code">
+                <textarea class="code-textarea">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Page</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .button {
+            background-color: #6366f1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button class="button">Click Me</button>
+</body>
+</html>
+                </textarea>
+                <button class="copy-btn">Copy HTML</button>
             </div>
-        </aside>
-    </main>
+            
+            <div class="code-content" id="css-code">
+                <textarea class="code-textarea">
+.button {
+    background-color: #6366f1;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease;
+}
 
-    <section id="code-container">
-        <div class="code-block">
-            <h3>HTML</h3>
-            <textarea id="html-code" readonly></textarea>
-            <button class="copy-btn" data-target="html-code">Copy</button>
-        </div>
-        <div class="code-block">
-            <h3>CSS</h3>
-            <textarea id="css-code" readonly></textarea>
-            <button class="copy-btn" data-target="css-code">Copy</button>
-        </div>
-        <div class="code-block">
-            <h3>JavaScript</h3>
-            <textarea id="js-code" readonly></textarea>
-            <button class="copy-btn" data-target="js-code">Copy</button>
-        </div>
-    </section>
+.button:hover {
+    background-color: #4f46e5;
+}
 
-    <!-- View Mode Container (Initially Hidden) -->
-    <div id="view-mode-container">
-        <div class="view-header">
-            <button id="view-edit-btn">Edit</button>
-        </div>
-        <div id="view-mode-content">
-            <!-- The final page will be rendered here -->
+@media (max-width: 768px) {
+    .button {
+        width: 100%;
+        padding: 12px 20px;
+    }
+}
+                </textarea>
+                <button class="copy-btn">Copy CSS</button>
+            </div>
+            
+            <div class="code-content" id="js-code">
+                <textarea class="code-textarea">
+document.querySelector('.button').addEventListener('click', function() {
+    alert('Button clicked!');
+});
+
+// Mobile menu toggle functionality
+const menuToggle = document.querySelector('.menu-toggle');
+const navMenu = document.querySelector('.nav-menu');
+
+menuToggle.addEventListener('click', function() {
+    navMenu.classList.toggle('active');
+});
+                </textarea>
+                <button class="copy-btn">Copy JavaScript</button>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const pageDiv = document.getElementById('page-div');
-            const elementsListContainer = document.getElementById('elements-list-container');
-            const elementDropdown = document.getElementById('element-dropdown');
-            const editPanel = document.getElementById('edit-panel');
-            const editPanelContent = document.getElementById('edit-properties-content');
-            const deviceToggles = document.getElementById('device-toggles');
-            const mainContainer = document.getElementById('main-container');
-            const codeContainer = document.getElementById('code-container');
-            const viewModeContainer = document.getElementById('view-mode-container');
-            const viewModeContent = document.getElementById('view-mode-content');
-            const editModeBtn = document.getElementById('editModeBtn');
-            const viewModeBtn = document.getElementById('viewModeBtn');
-            const viewEditBtn = document.getElementById('view-edit-btn');
-            const htmlCode = document.getElementById('html-code');
-            const cssCode = document.getElementById('css-code');
-            const jsCode = document.getElementById('js-code');
-            const copyButtons = document.querySelectorAll('.copy-btn');
-
-            let selectedElement = null;
-            let isDragging = false;
-            let dragOffset = { x: 0, y: 0 };
-            let pageRect = pageDiv.getBoundingClientRect();
-
-            const elementCatalog = {
-                buttons: [
-                    { name: 'Primary Button', type: 'button', subtype: 'primary' },
-                    { name: 'Outline Button', type: 'button', subtype: 'outline' },
-                    { name: 'Secondary Button', type: 'button', subtype: 'secondary' },
-                    { name: 'Ghost Button', type: 'button', subtype: 'ghost' },
-                ],
-                typography: [
-                    { name: 'Heading 1', type: 'h1', subtype: null },
-                    { name: 'Heading 2', type: 'h2', subtype: null },
-                    { name: 'Paragraph', type: 'p', subtype: null },
-                    { name: 'Link', type: 'a', subtype: null },
-                ],
-                layout: [
-                    { name: 'Div', type: 'div', subtype: null },
-                    { name: 'Navbar', type: 'nav', subtype: null },
-                    { name: 'Footer', type: 'footer', subtype: null },
-                    { name: 'Grid', type: 'grid', subtype: null },
-                    { name: 'Flex', type: 'flex', subtype: null },
-                ],
-                media: [
-                    { name: 'Image', type: 'image-container', subtype: null },
-                    { name: 'Carousel', type: 'carousel', subtype: null },
-                ],
-                components: [
-                    { name: 'Input', type: 'input', subtype: null },
-                    { name: 'Toggle', type: 'toggle', subtype: null },
-                    { name: 'Modal', type: 'modal', subtype: null },
-                    { name: 'Card', type: 'card', subtype: null },
-                    { name: 'Form', type: 'form', subtype: null },
-                    { name: 'Accordion', type: 'accordion', subtype: null },
-                    { name: 'Social Icons', type: 'social-icons', subtype: null },
-                ]
-            };
-
-            // Mode Switching
-            function switchToEditMode() {
-                mainContainer.style.display = 'flex';
-                codeContainer.style.display = 'flex';
-                viewModeContainer.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mode Toggle
+            const editModeBtn = document.getElementById('edit-mode-btn');
+            const viewModeBtn = document.getElementById('view-mode-btn');
+            const appContainer = document.querySelector('.app-container');
+            
+            editModeBtn.addEventListener('click', function() {
+                appContainer.classList.remove('view-mode');
                 editModeBtn.classList.add('active');
                 viewModeBtn.classList.remove('active');
-            }
-
-            editModeBtn.addEventListener('click', switchToEditMode);
-            viewEditBtn.addEventListener('click', switchToEditMode);
-
-            viewModeBtn.addEventListener('click', () => {
-                mainContainer.style.display = 'none';
-                codeContainer.style.display = 'none';
-                viewModeContainer.classList.add('active');
-                editModeBtn.classList.remove('active');
+            });
+            
+            viewModeBtn.addEventListener('click', function() {
+                appContainer.classList.add('view-mode');
                 viewModeBtn.classList.add('active');
-                renderViewMode();
+                editModeBtn.classList.remove('active');
             });
-
-            function renderViewMode() {
-                const generatedHTML = htmlCode.value;
-                const generatedCSS = `<style>${cssCode.value}</style>`;
-                const generatedJS = `<script>${jsCode.value}<\/script>`;
-                viewModeContent.innerHTML = generatedHTML + generatedCSS + generatedJS;
-            }
-
-            // Element Selection and Adding
-            elementsListContainer.querySelectorAll('.category-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const category = e.currentTarget.dataset.category;
-                    toggleElementDropdown(category, e.currentTarget);
+            
+            // Screen Size Toggle
+            const sizeButtons = document.querySelectorAll('.size-btn');
+            const pageCanvas = document.getElementById('page-canvas');
+            
+            sizeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const size = this.getAttribute('data-size');
+                    
+                    // Remove all size classes
+                    pageCanvas.classList.remove('desktop-size', 'tablet-size', 'phone-size');
+                    
+                    // Add the selected size class
+                    pageCanvas.classList.add(size + '-size');
+                    
+                    // Update active button
+                    sizeButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
                 });
             });
-
-            elementDropdown.addEventListener('click', (e) => {
-                const target = e.target.closest('.selectable-element');
-                if (target) {
-                    const elementType = target.dataset.type;
-                    const elementSubtype = target.dataset.subtype;
-                    const newElement = createElement(elementType, elementSubtype);
-                    pageDiv.appendChild(newElement);
-                    selectElement(newElement);
-                    updateCode();
-                    hideElementDropdown();
-                }
-            });
-
-            function toggleElementDropdown(category, button) {
-                if (elementDropdown.classList.contains('visible') && elementDropdown.dataset.currentCategory === category) {
-                    hideElementDropdown();
-                } else {
-                    showElementDropdown(category, button);
-                }
-            }
-
-            function showElementDropdown(category, button) {
-                elementDropdown.innerHTML = '';
-                elementDropdown.dataset.currentCategory = category;
-
-                const elements = elementCatalog[category];
-                elements.forEach(el => {
-                    const elementItem = document.createElement('div');
-                    elementItem.classList.add('selectable-element');
-                    elementItem.dataset.type = el.type;
-                    if (el.subtype) {
-                        elementItem.dataset.subtype = el.subtype;
-                    }
-                    elementItem.textContent = el.name;
-                    elementDropdown.appendChild(elementItem);
-                });
-
-                const buttonRect = button.getBoundingClientRect();
-                const containerRect = elementsListContainer.getBoundingClientRect();
-                elementDropdown.style.top = `${buttonRect.bottom - containerRect.top + 10}px`;
-                elementDropdown.style.left = `${buttonRect.left - containerRect.left}px`;
-
-                elementDropdown.classList.add('visible');
-            }
             
-            function hideElementDropdown() {
-                elementDropdown.classList.remove('visible');
-                elementDropdown.dataset.currentCategory = '';
-            }
-
-            document.addEventListener('click', (e) => {
-                const isClickInsideDropdown = elementDropdown.contains(e.target);
-                const isClickOnCategoryButton = e.target.closest('.category-btn');
-                
-                if (!isClickInsideDropdown && !isClickOnCategoryButton) {
-                    hideElementDropdown();
-                }
-            });
-
-            // Handle element selection and deslection on document clicks
-            document.addEventListener('mousedown', (e) => {
-                const clickedElement = e.target.closest('#page-div > *');
-                if (clickedElement) {
-                    selectElement(clickedElement);
-                    isDragging = true;
-                    pageRect = pageDiv.getBoundingClientRect();
-                    dragOffset.x = e.clientX - clickedElement.getBoundingClientRect().left;
-                    dragOffset.y = e.clientY - clickedElement.getBoundingClientRect().top;
-                    e.stopPropagation();
-                } else if (!e.target.closest('#edit-panel') && !isDragging) {
-                    deselectElement();
-                }
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging && selectedElement) {
-                    const parentWidth = pageRect.width;
-                    const parentHeight = pageRect.height;
-                    const elementWidth = selectedElement.offsetWidth;
-                    const elementHeight = selectedElement.offsetHeight;
-
-                    let newLeft = e.clientX - pageRect.left - dragOffset.x;
-                    let newTop = e.clientY - pageRect.top - dragOffset.y;
-
-                    newLeft = Math.max(0, Math.min(newLeft, parentWidth - elementWidth));
-                    newTop = Math.max(0, Math.min(newTop, parentHeight - elementHeight));
-
-                    const newLeftPercent = (newLeft / parentWidth) * 100;
-                    const newTopPercent = (newTop / parentHeight) * 100;
-
-                    selectedElement.style.left = `${newLeftPercent}%`;
-                    selectedElement.style.top = `${newTopPercent}%`;
-
-                    const topInput = document.getElementById('edit-Top---');
-                    if (topInput) topInput.value = newTopPercent.toFixed(2);
-                    const leftInput = document.getElementById('edit-Left---');
-                    if (leftInput) leftInput.value = newLeftPercent.toFixed(2);
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    updateCode();
-                }
-            });
-
-            window.addEventListener('resize', () => {
-                pageRect = pageDiv.getBoundingClientRect();
-            });
-
-            pageRect = pageDiv.getBoundingClientRect();
-
-            function selectElement(element) {
-                if (selectedElement) {
-                    selectedElement.classList.remove('selected-element');
-                }
-                selectedElement = element;
-                selectedElement.classList.add('selected-element');
-                editPanel.style.display = 'flex';
-                populateEditPanel(selectedElement);
-            }
-
-            function deselectElement() {
-                if (selectedElement) {
-                    selectedElement.classList.remove('selected-element');
-                    selectedElement = null;
-                }
-                editPanel.style.display = 'none';
-                editPanelContent.innerHTML = '<p class="placeholder-text">Select an element to edit its properties.</p>';
-            }
-
-            // Element Creation
-            function createElement(type, subtype) {
-                let element;
-                switch (type) {
-                    case 'button':
-                        element = document.createElement('button');
-                        element.textContent = 'Click Me';
-                        element.dataset.url = '#';
-                        element.style.padding = '0.75rem 1.5rem';
-                        element.style.borderRadius = '0.5rem';
-                        element.style.fontWeight = 'bold';
-                        element.style.transition = 'background-color 0.2s, color 0.2s, border-color 0.2s';
-                        element.style.cursor = 'pointer';
-                        element.style.border = 'none';
-
-                        if (subtype === 'primary') {
-                            element.style.backgroundColor = '#3b82f6';
-                            element.style.color = '#fff';
-                        } else if (subtype === 'outline') {
-                            element.style.backgroundColor = 'transparent';
-                            element.style.border = '2px solid #3b82f6';
-                            element.style.color = '#3b82f6';
-                        } else if (subtype === 'secondary') {
-                            element.style.backgroundColor = '#6b7280';
-                            element.style.color = '#fff';
-                        } else if (subtype === 'ghost') {
-                            element.style.backgroundColor = 'transparent';
-                            element.style.color = '#1f2937';
-                        }
-                        break;
-                    case 'div':
-                        element = document.createElement('div');
-                        element.style.width = '100px';
-                        element.style.height = '100px';
-                        element.style.backgroundColor = '#6b7280';
-                        break;
-                    case 'h1':
-                        element = document.createElement('h1');
-                        element.textContent = 'Heading 1';
-                        break;
-                    case 'h2':
-                        element = document.createElement('h2');
-                        element.textContent = 'Heading 2';
-                        break;
-                    case 'p':
-                        element = document.createElement('p');
-                        element.textContent = 'Paragraph text here.';
-                        break;
-                    case 'a':
-                        element = document.createElement('a');
-                        element.textContent = 'Link';
-                        element.href = '#';
-                        element.style.color = '#3b82f6';
-                        element.style.textDecoration = 'none';
-                        break;
-                    case 'input':
-                        element = document.createElement('input');
-                        element.type = 'text';
-                        element.placeholder = 'Enter text...';
-                        element.style.padding = '0.5rem';
-                        element.style.border = '1px solid #ccc';
-                        element.style.borderRadius = '0.25rem';
-                        break;
-                    case 'nav':
-                        element = document.createElement('nav');
-                        element.innerHTML = '<a>Home</a><a>About</a><a>Contact</a>';
-                        element.style.display = 'flex';
-                        element.style.justifyContent = 'space-around';
-                        element.style.alignItems = 'center';
-                        element.style.width = '100%';
-                        element.style.padding = '10px';
-                        element.style.backgroundColor = '#9ca3af';
-                        break;
-                    case 'toggle':
-                        element = document.createElement('div');
-                        element.classList.add('toggle');
-                        element.innerHTML = `<span class="toggle-switch"></span>`;
-                        break;
-                    case 'modal':
-                        element = document.createElement('div');
-                        element.classList.add('modal');
-                        element.innerHTML = `<div class="modal-content"><span class="close-btn">&times;</span><p>Modal Content</p></div>`;
-                        break;
-                    case 'card':
-                        element = document.createElement('div');
-                        element.classList.add('card');
-                        element.innerHTML = '<h3>Card Title</h3><p>Some text.</p>';
-                        element.style.padding = '15px';
-                        element.style.border = '1px solid #ccc';
-                        element.style.borderRadius = '8px';
-                        break;
-                    case 'form':
-                        element = document.createElement('form');
-                        element.innerHTML = `<input type="text" placeholder="Name"><br><textarea placeholder="Message"></textarea><br><button type="submit">Submit</button>`;
-                        element.style.display = 'flex';
-                        element.style.flexDirection = 'column';
-                        element.style.gap = '10px';
-                        break;
-                    case 'image-container':
-                        element = document.createElement('img');
-                        element.src = 'https://via.placeholder.com/150';
-                        element.alt = 'Placeholder image';
-                        element.style.width = '150px';
-                        element.style.height = '150px';
-                        break;
-                    case 'carousel':
-                        element = document.createElement('div');
-                        element.classList.add('carousel');
-                        element.innerHTML = `<div class="carousel-track"><div class="carousel-slide">Slide 1</div><div class="carousel-slide">Slide 2</div><div class="carousel-slide">Slide 3</div></div>`;
-                        break;
-                    case 'footer':
-                        element = document.createElement('footer');
-                        element.innerHTML = '<p>&copy; 2023 My Website</p>';
-                        element.style.textAlign = 'center';
-                        element.style.padding = '1rem';
-                        element.style.backgroundColor = '#9ca3af';
-                        element.style.width = '100%';
-                        break;
-                    case 'accordion':
-                        element = document.createElement('div');
-                        element.classList.add('accordion');
-                        element.innerHTML = `<button class="accordion-header">Section 1</button><div class="accordion-content"><p>Content for section 1.</p></div>`;
-                        break;
-                    case 'social-icons':
-                        element = document.createElement('div');
-                        element.classList.add('social-icons');
-                        element.innerHTML = `<a href="#">Fb</a><a href="#">Tw</a><a href="#">Ig</a>`;
-                        element.style.display = 'flex';
-                        element.style.justifyContent = 'center';
-                        element.style.gap = '10px';
-                        break;
-                    case 'grid':
-                        element = document.createElement('div');
-                        element.classList.add('grid-container');
-                        element.style.display = 'grid';
-                        element.style.gridTemplateColumns = 'repeat(2, 1fr)';
-                        element.style.gap = '10px';
-                        element.innerHTML = `<div class="grid-item">Item 1</div><div class="grid-item">Item 2</div><div class="grid-item">Item 3</div>`;
-                        break;
-                    case 'flex':
-                        element = document.createElement('div');
-                        element.classList.add('flex-container');
-                        element.style.display = 'flex';
-                        element.style.gap = '10px';
-                        element.innerHTML = `<div class="flex-item">Item 1</div><div class="flex-item">Item 2</div><div class="flex-item">Item 3</div>`;
-                        break;
-                    default:
-                        element = document.createElement('div');
-                        element.textContent = 'New Element';
-                        break;
-                }
-                element.style.position = 'absolute';
-                element.style.top = '10%';
-                element.style.left = '10%';
-                return element;
-            }
+            // Code Tabs
+            const codeTabs = document.querySelectorAll('.code-tab');
+            const codeContents = document.querySelectorAll('.code-content');
             
-            // Property definitions
-            const propertyMap = {
-                'common': {
-                    'Top (%)': { type: 'number', prop: 'style.top', unit: '%' },
-                    'Left (%)': { type: 'number', prop: 'style.left', unit: '%' },
-                    'Width': { type: 'text', prop: 'style.width' },
-                    'Height': { type: 'text', prop: 'style.height' },
-                    'Padding': { type: 'text', prop: 'style.padding' },
-                    'Margin': { type: 'text', prop: 'style.margin' },
-                    'Background Color': { type: 'color', prop: 'style.backgroundColor' },
-                    'Border': { type: 'text', prop: 'style.border' },
-                    'Border Radius': { type: 'text', prop: 'style.borderRadius' },
-                    'Box Shadow': { type: 'text', prop: 'style.boxShadow' },
-                    'Opacity': { type: 'number', prop: 'style.opacity', min: 0, max: 1, step: 0.1 }
-                },
-                'text': {
-                    'Text Content': { type: 'textarea', prop: 'textContent' },
-                    'Font Size': { type: 'text', prop: 'style.fontSize' },
-                    'Color': { type: 'color', prop: 'style.color' },
-                    'Text Align': { type: 'select', prop: 'style.textAlign', options: ['left', 'center', 'right'] },
-                    'Font Weight': { type: 'select', prop: 'style.fontWeight', options: ['normal', 'bold', 'bolder', 'lighter'] },
-                    'Letter Spacing': { type: 'text', prop: 'style.letterSpacing' },
-                    'Line Height': { type: 'text', prop: 'style.lineHeight' }
-                },
-                'button': {
-                    'Text Content': { type: 'text', prop: 'textContent' },
-                    'Background Color': { type: 'color', prop: 'style.backgroundColor' },
-                    'Color': { type: 'color', prop: 'style.color' },
-                    'Border Radius': { type: 'text', prop: 'style.borderRadius' },
-                    'URL/Page Reference': { type: 'text', prop: 'dataset.url' }
-                },
-                'img': {
-                    'Source URL': { type: 'text', prop: 'src' },
-                    'Alt Text': { type: 'text', prop: 'alt' },
-                    'Width': { type: 'text', prop: 'style.width' },
-                    'Height': { type: 'text', prop: 'style.height' },
-                    'Object Fit': { type: 'select', prop: 'style.objectFit', options: ['fill', 'contain', 'cover', 'none', 'scale-down'] }
-                },
-                 'a': {
-                    'Text Content': { type: 'text', prop: 'textContent' },
-                    'Link URL': { type: 'text', prop: 'href' },
-                    'Color': { type: 'color', prop: 'style.color' },
-                    'Text Decoration': { type: 'select', prop: 'style.textDecoration', options: ['none', 'underline', 'overline', 'line-through'] }
-                },
-                'input': {
-                    'Placeholder': { type: 'text', prop: 'placeholder' },
-                    'Input Type': { type: 'select', prop: 'type', options: ['text', 'password', 'email', 'number', 'date', 'color'] },
-                    'Border': { type: 'text', prop: 'style.border' },
-                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
-                }
-            };
-
-            function populateEditPanel(element) {
-                editPanelContent.innerHTML = '';
-                if (!element) {
-                    editPanelContent.innerHTML = '<p class="placeholder-text">Select an element to edit its properties.</p>';
-                    return;
-                }
-                
-                const elementType = element.tagName.toLowerCase();
-                
-                const propsToShow = { ...propertyMap.common };
-                if (propertyMap[elementType]) {
-                    Object.assign(propsToShow, propertyMap[elementType]);
-                }
-                if (element.textContent && !propsToShow['Text Content'] && elementType !== 'img' && elementType !== 'input') {
-                    Object.assign(propsToShow, propertyMap.text);
-                }
-
-                for (const label in propsToShow) {
-                    const prop = propsToShow[label];
-                    const div = document.createElement('div');
-                    div.classList.add('edit-field');
-                    const inputId = `edit-${label.replace(/[\s(%)]/g, '-')}`;
-
-                    const labelEl = document.createElement('label');
-                    labelEl.textContent = label;
-                    labelEl.htmlFor = inputId;
-                    div.appendChild(labelEl);
-
-                    let input;
-                    if (prop.type === 'textarea') {
-                        input = document.createElement('textarea');
-                        input.value = element.textContent;
-                    } else if (prop.type === 'select') {
-                        input = document.createElement('select');
-                        prop.options.forEach(option => {
-                            const opt = document.createElement('option');
-                            opt.value = option;
-                            opt.textContent = option;
-                            input.appendChild(opt);
-                        });
-                        if (prop.prop.startsWith('style.')) {
-                            input.value = element.style[prop.prop.split('.').pop()] || '';
-                        } else {
-                            input.value = element[prop.prop] || '';
+            codeTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    codeTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    codeContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabName + '-code') {
+                            content.classList.add('active');
                         }
-                    } else {
-                        input = document.createElement('input');
-                        input.type = prop.type;
-                        if (prop.prop.startsWith('style.')) {
-                            const styleProp = prop.prop.split('.').pop();
-                            const value = element.style[styleProp];
-                            if (value && value.includes('%')) {
-                                input.value = parseFloat(value);
-                            } else {
-                                input.value = value;
-                            }
-                        } else if (prop.prop.startsWith('dataset.')) {
-                            const dataProp = prop.prop.split('.').pop();
-                            input.value = element.dataset[dataProp] || '';
-                        } else {
-                             input.value = element[prop.prop];
-                        }
-                        if (prop.min !== undefined) input.min = prop.min;
-                        if (prop.max !== undefined) input.max = prop.max;
-                        if (prop.step !== undefined) input.step = prop.step;
-                    }
-                    input.id = inputId;
-
-                    input.addEventListener('input', (e) => {
-                        if (prop.prop.startsWith('style.')) {
-                            const styleProp = prop.prop.split('.').pop();
-                            let value = e.target.value;
-                            if (prop.unit) {
-                                value += prop.unit;
-                            }
-                            element.style[styleProp] = value;
-                        } else if (prop.prop.startsWith('dataset.')) {
-                            const dataProp = prop.prop.split('.').pop();
-                            element.dataset[dataProp] = e.target.value;
-                        } else {
-                            element[prop.prop] = e.target.value;
-                        }
-                        updateCode();
                     });
-                    
-                    div.appendChild(input);
-                    editPanelContent.appendChild(div);
-                }
-            }
-
-            function rgbToHex(rgb) {
-                if (!rgb) return '#000000';
-                const result = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(rgb);
-                return result ? `#${(1 << 24 | result[1] << 16 | result[2] << 8 | result[3]).toString(16).slice(1)}` : rgb;
-            }
-
-            // Device Toggles
-            deviceToggles.querySelectorAll('button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    deviceToggles.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    pageDiv.style.width = btn.dataset.size;
-                    pageRect = pageDiv.getBoundingClientRect();
                 });
             });
-
-            // Code Generation
-            function updateCode() {
-                let generatedHTML = '';
-                let generatedCSS = '';
-                let generatedJS = '';
-                const styleMap = new Map();
-                let jsSnippets = '';
-
-                Array.from(pageDiv.children).forEach((el, index) => {
-                    const originalStyle = el.getAttribute('style') || '';
-                    const classId = `elem-${index}`;
-                    el.classList.add(classId);
-
-                    const styleProps = originalStyle.split(';').filter(s => s.trim() !== '');
-                    if (styleProps.length > 0) {
-                        const styleBlock = styleProps.map(prop => prop.trim()).join('; ');
-                        styleMap.set(classId, styleBlock);
-                    }
-                    
-                    if (el.tagName.toLowerCase() === 'button' && el.dataset.url) {
-                        el.setAttribute('id', `button-${index}`);
-                        jsSnippets += `
-document.getElementById('button-${index}').addEventListener('click', () => {
-    window.location.href = '${el.dataset.url}';
-});\n`;
-                    }
-                    if (el.tagName.toLowerCase() === 'a' && el.href) {
-                        el.setAttribute('href', el.href);
-                    }
-                    
-                    const cleanedEl = el.cloneNode(true);
-                    cleanedEl.removeAttribute('style');
-                    if (cleanedEl.dataset.url) {
-                        cleanedEl.removeAttribute('data-url');
-                    }
-                    
-                    generatedHTML += cleanedEl.outerHTML + '\n';
-                    
-                    el.setAttribute('style', originalStyle);
-                    
-                    if (el.classList.contains('modal')) {
-                        jsSnippets += `
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.style.display = 'block';
-    const closeBtn = modal.querySelector('.close-btn');
-    closeBtn.onclick = () => { modal.style.display = 'none'; }
-    window.onclick = (event) => { if (event.target === modal) { modal.style.display = 'none'; } }
-});\n`;
-                    }
-                    if (el.classList.contains('toggle')) {
-                        jsSnippets += `
-document.querySelectorAll('.toggle').forEach(toggle => {
-    toggle.onclick = () => { toggle.classList.toggle('active'); }
-});\n`;
-                    }
-                });
-
-                generatedCSS += `#page-div > * { position: absolute; }\n\n`;
-                for (const [cls, style] of styleMap) {
-                    generatedCSS += `.${cls} { ${style}; }\n`;
-                }
-
-                htmlCode.value = generatedHTML.trim();
-                cssCode.value = generatedCSS.trim();
-                jsCode.value = jsSnippets.trim();
-            }
             
-            // Copy to Clipboard
-            copyButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const targetId = e.target.dataset.target;
-                    const targetTextarea = document.getElementById(targetId);
-                    targetTextarea.select();
+            // Copy Buttons
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const codeTextarea = this.previousElementSibling;
+                    codeTextarea.select();
                     document.execCommand('copy');
-                    btn.textContent = 'Copied!';
+                    
+                    // Provide visual feedback
+                    const originalText = this.textContent;
+                    this.textContent = 'Copied!';
+                    
                     setTimeout(() => {
-                        btn.textContent = 'Copy';
+                        this.textContent = originalText;
                     }, 2000);
                 });
             });
-
-            updateCode();
+            
+            // Element Dragging (simplified)
+            const elementItems = document.querySelectorAll('.element-item');
+            const canvasPlaceholder = document.querySelector('.canvas-placeholder');
+            
+            elementItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Hide placeholder when first element is added
+                    canvasPlaceholder.style.display = 'none';
+                    
+                    const type = this.getAttribute('data-type');
+                    addElementToCanvas(type);
+                });
+            });
+            
+            function addElementToCanvas(type) {
+                const element = document.createElement('div');
+                element.className = 'canvas-element';
+                element.innerHTML = `
+                    <div class="element-content">
+                        ${getElementContentByType(type)}
+                    </div>
+                    <div class="element-controls">
+                        <i class="fas fa-grip-horizontal"></i>
+                        <i class="fas fa-times"></i>
+                    </div>
+                `;
+                
+                // Add some basic styling
+                element.style.position = 'absolute';
+                element.style.top = '50px';
+                element.style.left = '50px';
+                element.style.padding = '10px';
+                element.style.border = '2px dashed #6366f1';
+                element.style.borderRadius = '6px';
+                element.style.cursor = 'move';
+                
+                pageCanvas.appendChild(element);
+                
+                // Add delete functionality
+                const deleteBtn = element.querySelector('.fa-times');
+                deleteBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    element.remove();
+                    
+                    // Show placeholder if no elements left
+                    if (pageCanvas.children.length === 1) {
+                        canvasPlaceholder.style.display = 'block';
+                    }
+                });
+            }
+            
+            function getElementContentByType(type) {
+                switch(type) {
+                    case 'heading':
+                        return '<h2>Heading</h2>';
+                    case 'paragraph':
+                        return '<p>This is a paragraph text. You can edit this content.</p>';
+                    case 'button':
+                        return '<button style="padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 6px;">Button</button>';
+                    case 'image':
+                        return '<img src="https://via.placeholder.com/150" alt="Placeholder Image">';
+                    case 'input':
+                        return '<input type="text" placeholder="Enter text here" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">';
+                    case 'navbar':
+                        return `
+                            <div style="display: flex; justify-content: space-between; padding: 15px; background: #2c3036; color: white;">
+                                <div>Logo</div>
+                                <div>
+                                    <a href="#" style="color: white; margin: 0 10px;">Home</a>
+                                    <a href="#" style="color: white; margin: 0 10px;">About</a>
+                                    <a href="#" style="color: white; margin: 0 10px;">Contact</a>
+                                </div>
+                            </div>
+                        `;
+                    default:
+                        return '<div>New Element</div>';
+                }
+            }
         });
     </script>
 </body>
