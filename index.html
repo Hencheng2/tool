@@ -105,6 +105,13 @@
       border-radius: 6px;
       cursor: move;
     }
+    #canvas .draggable.drop-target {
+      background: #444;
+      border: 2px dashed #666;
+    }
+    #canvas .draggable.drop-target:hover {
+      background: #555;
+    }
 
     /* ===== Inspector ===== */
     .inspector {
@@ -208,6 +215,10 @@
       <div class="element" draggable="true" data-type="card">Card</div>
       <div class="element" draggable="true" data-type="form">Form</div>
       <div class="element" draggable="true" data-type="grid">Grid</div>
+      <div class="element" draggable="true" data-type="section">Section</div>
+      <div class="element" draggable="true" data-type="hero">Hero</div>
+      <div class="element" draggable="true" data-type="carousel">Carousel</div>
+      <div class="element" draggable="true" data-type="divider">Divider</div>
     </aside>
 
     <!-- Canvas -->
@@ -265,17 +276,36 @@
     let viewMode = false;
 
     // === Drag & Drop ===
-    function allowDrop(ev) { ev.preventDefault(); }
+    function allowDrop(ev) {
+      ev.preventDefault();
+      let target = ev.target.closest('.draggable');
+      if (target && (target.dataset.type === 'navbar' || target.dataset.type === 'section' || target.dataset.type === 'grid' || target.dataset.type === 'card')) {
+        target.classList.add('drop-target');
+      }
+    }
     document.querySelectorAll(".element").forEach(el => {
       el.addEventListener("dragstart", e => {
         e.dataTransfer.setData("type", e.target.dataset.type);
       });
     });
+    canvas.addEventListener('dragleave', (ev) => {
+      let target = ev.target.closest('.draggable');
+      if (target) {
+        target.classList.remove('drop-target');
+      }
+    });
     function drop(ev) {
       ev.preventDefault();
       let type = ev.dataTransfer.getData("type");
+      let target = ev.target.closest('.draggable');
       let newEl = createElement(type);
-      canvas.appendChild(newEl);
+      
+      if (target && (target.dataset.type === 'navbar' || target.dataset.type === 'section' || target.dataset.type === 'grid' || target.dataset.type === 'card')) {
+        target.appendChild(newEl);
+        target.classList.remove('drop-target');
+      } else {
+        canvas.appendChild(newEl);
+      }
       saveHistory();
       updateCode();
     }
@@ -283,22 +313,48 @@
     function createElement(type) {
       let el = document.createElement("div");
       el.classList.add("draggable");
-      el.onclick = () => selectElement(el);
+      el.dataset.type = type;
+      el.onclick = (e) => { e.stopPropagation(); selectElement(el); };
 
       switch(type) {
-        case "navbar": el.innerHTML = "<nav>Navbar</nav>"; break;
-        case "footer": el.innerHTML = "<footer>Footer</footer>"; break;
-        case "text": el.innerHTML = "<p>Editable text</p>"; break;
-        case "button": el.innerHTML = "<button>Click Me</button>"; break;
-        case "image": el.innerHTML = '<img src="https://via.placeholder.com/150" alt="Image">'; break;
-        case "icon": el.innerHTML = "★"; break;
+        case "navbar": 
+          el.innerHTML = `
+            <nav style="display:flex; justify-content:space-between; align-items:center; padding:10px;">
+              <div>Logo</div>
+              <div style="display:flex; gap:10px;">
+                <button data-link="home.html">Home</button>
+                <button data-link="about.html">About</button>
+                <button data-link="contact.html">Contact</button>
+              </div>
+            </nav>`;
+          break;
+        case "footer": 
+          el.innerHTML = `
+            <footer style="padding:20px; text-align:center;">
+              <p>&copy; 2025 Your Site</p>
+              <a href="privacy.html">Privacy Policy</a> | 
+              <a href="terms.html">Terms of Service</a>
+            </footer>`;
+          break;
+        case "text": 
+          el.innerHTML = "<p>Editable text</p>";
+          break;
+        case "button": 
+          el.innerHTML = `<button data-link="action.html">Click Me</button>`;
+          break;
+        case "image": 
+          el.innerHTML = '<img src="https://via.placeholder.com/150" alt="Image">';
+          break;
+        case "icon": 
+          el.innerHTML = "★";
+          break;
         case "card":
           el.innerHTML = `
             <div style="padding:10px; border:1px solid #666; border-radius:6px; background:#444;">
               <img src="https://via.placeholder.com/150" style="max-width:100%; border-radius:6px;">
               <h3>Card Title</h3>
               <p>Card description text.</p>
-              <button>Read More</button>
+              <button data-link="details.html">Read More</button>
             </div>`;
           break;
         case "form":
@@ -306,7 +362,7 @@
             <form>
               <input type="text" placeholder="Your name" style="width:100%; margin-bottom:5px;">
               <textarea placeholder="Your message" style="width:100%; margin-bottom:5px;"></textarea>
-              <button type="submit">Submit</button>
+              <button type="submit" data-link="submit.html">Submit</button>
             </form>`;
           break;
         case "grid":
@@ -316,26 +372,71 @@
               <div style="background:#555; padding:10px;">Grid Item 2</div>
             </div>`;
           break;
+        case "section":
+          el.innerHTML = `
+            <section style="padding:20px; background:#333;">
+              <h2>Section Title</h2>
+              <p>Section content goes here.</p>
+            </section>`;
+          break;
+        case "hero":
+          el.innerHTML = `
+            <section style="text-align:center; padding:50px; background:#2a2a2a;">
+              <h1>Welcome to Our Site</h1>
+              <p>Discover amazing content.</p>
+              <button data-link="explore.html">Explore Now</button>
+            </section>`;
+          break;
+        case "carousel":
+          el.innerHTML = `
+            <div style="display:flex; overflow-x:auto; gap:10px; padding:10px;">
+              <img src="https://via.placeholder.com/300x150" alt="Slide 1">
+              <img src="https://via.placeholder.com/300x150" alt="Slide 2">
+              <img src="https://via.placeholder.com/300x150" alt="Slide 3">
+            </div>`;
+          break;
+        case "divider":
+          el.innerHTML = `<hr style="border:1px solid #666; margin:10px 0;">`;
+          break;
       }
+      // Add click handlers for buttons and links
+      el.querySelectorAll('button[data-link], a[data-link]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          if (viewMode) {
+            e.preventDefault();
+            alert(`Navigating to: ${link.dataset.link}`);
+            // In a real application, use: window.location.href = link.dataset.link;
+          }
+        });
+      });
       return el;
     }
 
     // === Inspector ===
     function selectElement(el) {
       selectedElement = el;
+      let linkInput = '';
+      if (el.querySelector('button[data-link], a[data-link]')) {
+        let linkEl = el.querySelector('button[data-link], a[data-link]');
+        linkInput = `
+          <label>Link URL</label>
+          <input type="text" value="${linkEl ? linkEl.dataset.link : ''}" onchange="updateLink(this.value)">
+        `;
+      }
       inspector.innerHTML = `
         <label>Content</label>
         <input type="text" value="${el.innerText}" onchange="updateContent(this.value)">
+        ${linkInput}
         <label>Background</label>
         <input type="color" onchange="updateBackground(this.value)">
         <label>Text Color</label>
         <input type="color" onchange="updateTextColor(this.value)">
         <label>Font Size (px)</label>
-        <input type="number" value="14" onchange="updateFontSize(this.value)">
+        <input type="number" value="${parseInt(el.style.fontSize) || 14}" onchange="updateFontSize(this.value)">
         <label>Padding (px)</label>
-        <input type="number" value="10" onchange="updatePadding(this.value)">
+        <input type="number" value="${parseInt(el.style.padding) || 10}" onchange="updatePadding(this.value)">
         <label>Border Width (px)</label>
-        <input type="number" value="1" onchange="updateBorderWidth(this.value)">
+        <input type="number" value="${parseInt(el.style.borderWidth) || 1}" onchange="updateBorderWidth(this.value)">
         <label>Border Style</label>
         <select onchange="updateBorderStyle(this.value)">
           <option value="solid">Solid</option>
@@ -346,19 +447,83 @@
         <label>Border Color</label>
         <input type="color" onchange="updateBorderColor(this.value)">
         <label>Border Radius (px)</label>
-        <input type="number" value="6" onchange="updateBorderRadius(this.value)">
+        <input type="number" value="${parseInt(el.style.borderRadius) || 6}" onchange="updateBorderRadius(this.value)">
       `;
     }
 
-    function updateContent(val) { if (selectedElement) { selectedElement.innerText = val; saveHistory(); updateCode(); } }
-    function updateBackground(val) { if (selectedElement) { selectedElement.style.background = val; saveHistory(); updateCode(); } }
-    function updateTextColor(val) { if (selectedElement) { selectedElement.style.color = val; saveHistory(); updateCode(); } }
-    function updateFontSize(val) { if (selectedElement) { selectedElement.style.fontSize = val + "px"; saveHistory(); updateCode(); } }
-    function updatePadding(val) { if (selectedElement) { selectedElement.style.padding = val + "px"; saveHistory(); updateCode(); } }
-    function updateBorderWidth(val) { if (selectedElement) { selectedElement.style.borderWidth = val + "px"; saveHistory(); updateCode(); } }
-    function updateBorderStyle(val) { if (selectedElement) { selectedElement.style.borderStyle = val; saveHistory(); updateCode(); } }
-    function updateBorderColor(val) { if (selectedElement) { selectedElement.style.borderColor = val; saveHistory(); updateCode(); } }
-    function updateBorderRadius(val) { if (selectedElement) { selectedElement.style.borderRadius = val + "px"; saveHistory(); updateCode(); } }
+    function updateContent(val) { 
+      if (selectedElement) { 
+        selectedElement.innerText = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateLink(val) {
+      if (selectedElement) {
+        let linkEl = selectedElement.querySelector('button[data-link], a[data-link]');
+        if (linkEl) {
+          linkEl.dataset.link = val;
+          saveHistory();
+          updateCode();
+        }
+      }
+    }
+    function updateBackground(val) { 
+      if (selectedElement) { 
+        selectedElement.style.background = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateTextColor(val) { 
+      if (selectedElement) { 
+        selectedElement.style.color = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateFontSize(val) { 
+      if (selectedElement) { 
+        selectedElement.style.fontSize = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updatePadding(val) { 
+      if (selectedElement) { 
+        selectedElement.style.padding = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderWidth(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderWidth = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderStyle(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderStyle = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderColor(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderColor = val; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
+    function updateBorderRadius(val) { 
+      if (selectedElement) { 
+        selectedElement.style.borderRadius = val + "px"; 
+        saveHistory(); 
+        updateCode(); 
+      } 
+    }
 
     // === Undo/Redo ===
     function saveHistory() {
@@ -388,8 +553,14 @@
     }
 
     // === Zoom ===
-    function zoomIn() { zoomLevel += 0.1; canvas.style.transform = `scale(${zoomLevel})`; }
-    function zoomOut() { zoomLevel = Math.max(0.5, zoomLevel - 0.1); canvas.style.transform = `scale(${zoomLevel})`; }
+    function zoomIn() { 
+      zoomLevel += 0.1; 
+      canvas.style.transform = `scale(${zoomLevel})`; 
+    }
+    function zoomOut() { 
+      zoomLevel = Math.max(0.5, zoomLevel - 0.1); 
+      canvas.style.transform = `scale(${zoomLevel})`; 
+    }
 
     // === Device Preview ===
     function setDevice(device) {
@@ -409,8 +580,38 @@
     // === Code Generation ===
     function updateCode() {
       document.getElementById("htmlCode").value = canvas.innerHTML;
-      document.getElementById("cssCode").value = "/* Custom styles will appear here */";
-      document.getElementById("jsCode").value = "// Custom scripts will appear here";
+      let css = `
+.draggable {
+  position: relative;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #666;
+  background: #333;
+  border-radius: 6px;
+}
+.draggable button, .draggable a {
+  padding: 5px 10px;
+  background: #3a3a3a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.draggable button:hover, .draggable a:hover {
+  background: #555;
+}
+`;
+      document.getElementById("cssCode").value = css;
+      let js = `
+document.querySelectorAll('button[data-link], a[data-link]').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = link.dataset.link;
+  });
+});
+`;
+      document.getElementById("jsCode").value = js;
     }
     function copyCode(id) {
       let ta = document.getElementById(id);
