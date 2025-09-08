@@ -1,1306 +1,583 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Builder | Visual Web Development Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --dark-bg: #1a1a1a;
-            --darker-bg: #121212;
-            --panel-bg: #242424;
-            --accent: #646cff;
-            --accent-hover: #747bff;
-            --text: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border: #444;
-            --success: #4CAF50;
-            --danger: #f44336;
-            --warning: #ff9800;
-            --info: #2196F3;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .app-container {
-            display: grid;
-            grid-template-columns: 250px 1fr 300px;
-            grid-template-rows: 60px 1fr 200px;
-            height: 100vh;
-            gap: 1px;
-            background-color: var(--border);
-        }
-
-        .header {
-            grid-column: 1 / 4;
-            background-color: var(--darker-bg);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .device-selector {
-            display: flex;
-            gap: 10px;
-        }
-
-        .device-btn {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .device-btn.active {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .device-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background-color: #333;
-        }
-
-        .elements-panel {
-            grid-column: 1;
-            grid-row: 2 / 4;
-            background-color: var(--darker-bg);
-            overflow-y: auto;
-            padding: 15px;
-            border-right: 1px solid var(--border);
-        }
-
-        .elements-category {
-            margin-bottom: 20px;
-        }
-
-        .category-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .elements-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .element-item {
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .element-item:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .element-icon {
-            font-size: 20px;
-            margin-bottom: 5px;
-            color: var(--accent);
-        }
-
-        .element-name {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .workspace {
-            grid-column: 2;
-            grid-row: 2;
-            background-color: var(--darker-bg);
-            overflow: auto;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .canvas-container {
-            background-color: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .canvas {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: auto;
-        }
-
-        .canvas-content {
-            min-height: 100%;
-            position: relative;
-            background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), 
-                              linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), 
-                              linear-gradient(45deg, transparent 75%, #f0f0f0 75%), 
-                              linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-        }
-
-        .empty-canvas {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #999;
-        }
-
-        .empty-canvas i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            display: block;
-            color: #ccc;
-        }
-
-        .properties-panel {
-            grid-column: 3;
-            grid-row: 2 / 4;
-            background-color: var(--darker-bg);
-            overflow-y: auto;
-            padding: 15px;
-            border-left: 1px solid var(--border);
-        }
-
-        .properties-section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .property-group {
-            margin-bottom: 15px;
-        }
-
-        .property-label {
-            display: block;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-            color: var(--text-secondary);
-        }
-
-        .property-input {
-            width: 100%;
-            background-color: var(--panel-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px;
-            border-radius: 4px;
-        }
-
-        .property-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .color-input {
-            height: 40px;
-        }
-
-        .code-panel {
-            grid-column: 2 / 4;
-            grid-row: 3;
-            background-color: var(--darker-bg);
-            overflow: hidden;
-            border-top: 1px solid var(--border);
-        }
-
-        .code-tabs {
-            display: flex;
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-        }
-
-        .code-tab.active {
-            background-color: var(--accent);
-        }
-
-        .code-content {
-            display: flex;
-            height: calc(100% - 41px);
-        }
-
-        .code-editor {
-            flex: 1;
-            position: relative;
-            border-right: 1px solid var(--border);
-            display: none;
-        }
-
-        .code-editor.active {
-            display: block;
-        }
-
-        .code-textarea {
-            width: 100%;
-            height: 100%;
-            background-color: var(--darker-bg);
-            color: var(--text);
-            border: none;
-            padding: 15px;
-            resize: none;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--panel-bg);
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .copy-btn:hover {
-            background-color: var(--accent);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 1200px) {
-            .app-container {
-                grid-template-columns: 200px 1fr 250px;
-            }
-        }
-
-        @media (max-width: 900px) {
-            .app-container {
-                grid-template-columns: 180px 1fr;
-            }
-            .properties-panel {
-                display: none;
-            }
-            .code-panel {
-                grid-column: 1 / 3;
-            }
-        }
-
-        /* View mode styles */
-        .view-mode .elements-panel,
-        .view-mode .properties-panel,
-        .view-mode .code-panel,
-        .view-mode .device-selector,
-        .view-mode .btn-secondary {
-            display: none;
-        }
-
-        .view-mode .workspace {
-            grid-column: 1 / 4;
-        }
-
-        .view-mode .header-actions .btn:not(.view-btn) {
-            display: none;
-        }
-
-        /* Canvas device sizes */
-        .desktop .canvas-container {
-            width: 1000px;
-            height: 700px;
-        }
-
-        .tablet .canvas-container {
-            width: 768px;
-            height: 900px;
-        }
-
-        .mobile .canvas-container {
-            width: 375px;
-            height: 667px;
-        }
-
-        /* Element selection styling */
-        .selected {
-            outline: 2px solid var(--accent) !important;
-        }
-
-        /* Toast notification */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-        /* Canvas elements styles */
-        .canvas-element {
-            position: absolute;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        /* Specific element styles */
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background-color: #646cff;
-            color: white;
-            width: 100%;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-        }
-
-        .ui-button {
-            background-color: #646cff;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            width: 300px;
-            color: #333;
-        }
-
-        .card-header {
-            padding: 1rem;
-            background: #f0f0f0;
-            font-weight: bold;
-        }
-
-        .card-body {
-            padding: 1rem;
-        }
-
-        .card-footer {
-            padding: 1rem;
-            background: #f9f9f9;
-            text-align: right;
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            background: #333;
-            color: white;
-            width: 100%;
-        }
-
-        .hero-section {
-            padding: 4rem 2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #646cff, #af62ff);
-            color: white;
-            width: 100%;
-        }
-
-        .form-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 400px;
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .add-element-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .element-position {
-            position: absolute;
-            font-size: 12px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 2px 5px;
-            border-radius: 3px;
-            bottom: 5px;
-            right: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Web Design Tool</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      padding: 1rem;
+      background-color: #2d3748;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .main-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .sidebar, .properties-panel {
+      width: 280px;
+      background-color: #212121;
+      padding: 1rem;
+      overflow-y: auto;
+      transition: width 0.3s ease;
+    }
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .page-canvas {
+      background-color: #2d3748;
+      border: 2px dashed #4a5568;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      transition: width 0.3s ease, height 0.3s ease, transform 0.3s ease;
+      transform-origin: top center;
+    }
+    .element-item {
+      padding: 0.75rem;
+      background-color: #2d3748;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: background-color 0.2s ease;
+    }
+    .element-item:hover {
+      background-color: #4a90e2;
+    }
+    .tool-button {
+      padding: 0.5rem 1rem;
+      background-color: #4a5568;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .tool-button:hover {
+      background-color: #636b77;
+    }
+    .tool-button.active {
+      background-color: #4a90e2;
+    }
+    .element {
+      position: absolute;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border 0.2s ease;
+    }
+    .element.selected {
+      border-color: #4a90e2;
+    }
+    .resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #4a90e2;
+      border: 1px solid #1a1a1a;
+      z-index: 100;
+    }
+    .handle-tl { top: -5px; left: -5px; cursor: nw-resize; }
+    .handle-tr { top: -5px; right: -5px; cursor: ne-resize; }
+    .handle-bl { bottom: -5px; left: -5px; cursor: sw-resize; }
+    .handle-br { bottom: -5px; right: -5px; cursor: se-resize; }
+    .code-output {
+      padding: 1rem;
+      background-color: #212121;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      background-color: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid #4a5568;
+      padding: 0.5rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-code"></i>
-                <span>Web Builder</span>
-            </div>
-            <div class="device-selector">
-                <button class="device-btn active" data-device="desktop">
-                    <i class="fas fa-desktop"></i> Desktop
-                </button>
-                <button class="device-btn" data-device="tablet">
-                    <i class="fas fa-tablet-alt"></i> Tablet
-                </button>
-                <button class="device-btn" data-device="mobile">
-                    <i class="fas fa-mobile-alt"></i> Mobile
-                </button>
-            </div>
-            <div class="header-actions">
-                <button class="btn view-btn">
-                    <i class="fas fa-eye"></i> View Mode
-                </button>
-                <button class="btn" id="clear-canvas">
-                    <i class="fas fa-trash"></i> Clear
-                </button>
-                <button class="btn">
-                    <i class="fas fa-download"></i> Export
-                </button>
-            </div>
-        </header>
 
-        <aside class="elements-panel">
-            <div class="elements-category">
-                <h3 class="category-title">Navigation</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="navbar">
-                        <div class="element-icon"><i class="fas fa-bars"></i></div>
-                        <div class="element-name">Navbar</div>
-                    </div>
-                    <div class="element-item" data-type="sidebar">
-                        <div class="element-icon"><i class="fas fa-columns"></i></div>
-                        <div class="element-name">Sidebar</div>
-                    </div>
-                    <div class="element-item" data-type="footer">
-                        <div class="element-icon"><i class="fas fa-window-minimize"></i></div>
-                        <div class="element-name">Footer</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="elements-category">
-                <h3 class="category-title">Content</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="hero">
-                        <div class="element-icon"><i class="fas fa-star"></i></div>
-                        <div class="element-name">Hero Section</div>
-                    </div>
-                    <div class="element-item" data-type="card">
-                        <div class="element-icon"><i class="far fa-square"></i></div>
-                        <div class="element-name">Card</div>
-                    </div>
-                    <div class="element-item" data-type="button">
-                        <div class="element-icon"><i class="fas fa-square"></i></div>
-                        <div class="element-name">Button</div>
-                    </div>
-                    <div class="element-item" data-type="text">
-                        <div class="element-icon"><i class="fas fa-text-height"></i></div>
-                        <div class="element-name">Text Block</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="elements-category">
-                <h3 class="category-title">Forms</h3>
-                <div class="elements-grid">
-                    <div class="element-item" data-type="form">
-                        <div class="element-icon"><i class="far fa-window-restore"></i></div>
-                        <div class="element-name">Form</div>
-                    </div>
-                    <div class="element-item" data-type="input">
-                        <div class="element-icon"><i class="fas fa-pen"></i></div>
-                        <div class="element-name">Input</div>
-                    </div>
-                </div>
-            </div>
-
-            <button class="add-element-btn" id="add-element">
-                <i class="fas fa-plus"></i> Add Selected Element
-            </button>
-
-            <div class="elements-category">
-                <h3 class="category-title">Background</h3>
-                <div class="property-group">
-                    <label class="property-label">Page Background</label>
-                    <input type="color" class="property-input color-input" id="page-bg-color" value="#f0f0f0">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Grid Visibility</label>
-                    <select class="property-input" id="grid-visibility">
-                        <option value="visible">Visible</option>
-                        <option value="hidden">Hidden</option>
-                    </select>
-                </div>
-            </div>
-        </aside>
-
-        <main class="workspace">
-            <div class="canvas-container desktop">
-                <div class="canvas" id="canvas">
-                    <div class="canvas-content" id="canvas-content">
-                        <!-- Default page structure -->
-                        <div class="canvas-element" data-type="container" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0;">
-                            <!-- Elements will be added here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <aside class="properties-panel">
-            <div class="properties-section">
-                <h3 class="section-title">Element Properties</h3>
-                <div class="property-group">
-                    <label class="property-label">Background Color</label>
-                    <input type="color" class="property-input color-input" id="bgColor" value="#ffffff">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Text Color</label>
-                    <input type="color" class="property-input color-input" id="textColor" value="#000000">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Width</label>
-                    <input type="text" class="property-input" id="element-width" placeholder="e.g., 100% or 200px">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Height</label>
-                    <input type="text" class="property-input" id="element-height" placeholder="e.g., auto or 100px">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">X Position</label>
-                    <input type="number" class="property-input" id="element-x" value="0" min="0">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Y Position</label>
-                    <input type="number" class="property-input" id="element-y" value="0" min="0">
-                </div>
-                <button class="btn" id="apply-properties">
-                    <i class="fas fa-check"></i> Apply Changes
-                </button>
-                <button class="btn btn-secondary" id="delete-element">
-                    <i class="fas fa-trash"></i> Delete Element
-                </button>
-            </div>
-        </aside>
-
-        <section class="code-panel">
-            <div class="code-tabs">
-                <div class="code-tab active" data-tab="html">HTML</div>
-                <div class="code-tab" data-tab="css">CSS</div>
-                <div class="code-tab" data-tab="js">JavaScript</div>
-            </div>
-            <div class="code-content">
-                <div class="code-editor active" data-code="html">
-                    <textarea class="code-textarea" id="html-code"><!-- Generated HTML will appear here --></textarea>
-                    <button class="copy-btn" data-code="html">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <div class="code-editor" data-code="css">
-                    <textarea class="code-textarea" id="css-code">/* Generated CSS will appear here */</textarea>
-                    <button class="copy-btn" data-code="css">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-                <div class="code-editor" data-code="js">
-                    <textarea class="code-textarea" id="js-code">// Generated JavaScript will appear here</textarea>
-                    <button class="copy-btn" data-code="js">
-                        <i class="fas fa-copy"></i> Copy
-                    </button>
-                </div>
-            </div>
-        </section>
+  <header>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <h1 style="font-size: 1.5rem; font-weight: bold;">Web Design Tool</h1>
+      <div id="mode-toggles" style="display: flex; gap: 0.5rem;">
+        <button id="edit-mode-btn" class="tool-button active">Edit Mode</button>
+        <button id="view-mode-btn" class="tool-button">View Mode</button>
+      </div>
+      <div id="screen-size-toggles" style="display: flex; gap: 0.5rem;">
+        <button id="phone-btn" class="tool-button">Phone</button>
+        <button id="tablet-btn" class="tool-button">Tablet</button>
+        <button id="laptop-btn" class="tool-button active">Laptop</button>
+      </div>
     </div>
-
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span>Code copied to clipboard!</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button id="undo-btn" class="tool-button">Undo</button>
+      <button id="redo-btn" class="tool-button">Redo</button>
+      <button id="save-btn" class="tool-button">Save</button>
+      <button id="load-btn" class="tool-button">Load</button>
     </div>
+  </header>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Device selection
-            const deviceButtons = document.querySelectorAll('.device-btn');
-            const canvasContainer = document.querySelector('.canvas-container');
-            
-            deviceButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const device = this.getAttribute('data-device');
-                    
-                    // Update active button
-                    deviceButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update canvas size
-                    canvasContainer.className = 'canvas-container ' + device;
-                    updateCode();
-                });
-            });
-            
-            // View mode toggle
-            const viewBtn = document.querySelector('.view-btn');
-            const appContainer = document.querySelector('.app-container');
-            
-            viewBtn.addEventListener('click', function() {
-                appContainer.classList.toggle('view-mode');
-                if (appContainer.classList.contains('view-mode')) {
-                    this.innerHTML = '<i class="fas fa-edit"></i> Edit Mode';
-                } else {
-                    this.innerHTML = '<i class="fas fa-eye"></i> View Mode';
-                }
-            });
-            
-            // Element selection functionality
-            const elementItems = document.querySelectorAll('.element-item');
-            const addElementBtn = document.getElementById('add-element');
-            const canvasContent = document.getElementById('canvas-content');
-            const containerElement = canvasContent.querySelector('.canvas-element');
-            let selectedElementType = null;
-            
-            elementItems.forEach(element => {
-                element.addEventListener('click', function() {
-                    // Update selected element
-                    elementItems.forEach(el => el.style.borderColor = '');
-                    this.style.borderColor = var(--accent);
-                    selectedElementType = this.getAttribute('data-type');
-                });
-            });
-            
-            // Add element button
-            addElementBtn.addEventListener('click', function() {
-                if (!selectedElementType) {
-                    alert('Please select an element type first');
-                    return;
-                }
-                
-                addElementToCanvas(selectedElementType);
-            });
-            
-            function addElementToCanvas(type) {
-                const element = document.createElement('div');
-                element.className = 'canvas-element';
-                element.setAttribute('data-type', type);
-                
-                // Set default position and size
-                element.style.left = '50px';
-                element.style.top = '50px';
-                element.style.width = '300px';
-                
-                // Add content based on element type
-                switch(type) {
-                    case 'navbar':
-                        element.innerHTML = `
-                            <div class="navbar">
-                                <div class="nav-brand">Logo</div>
-                                <ul class="nav-menu">
-                                    <li><a href="#">Home</a></li>
-                                    <li><a href="#">About</a></li>
-                                    <li><a href="#">Services</a></li>
-                                    <li><a href="#">Contact</a></li>
-                                </ul>
-                            </div>
-                            <div class="element-position">50px, 50px</div>
-                        `;
-                        element.style.width = '100%';
-                        element.style.left = '0';
-                        element.style.top = '0';
-                        break;
-                    case 'button':
-                        element.innerHTML = `
-                            <button class="ui-button">Click Me</button>
-                            <div class="element-position">50px, 50px</div>
-                        `;
-                        element.style.width = 'auto';
-                        break;
-                    case 'card':
-                        element.innerHTML = `
-                            <div class="card">
-                                <div class="card-header">Card Title</div>
-                                <div class="card-body">
-                                    <p>This is a sample card with some content.</p>
-                                </div>
-                                <div class="card-footer">
-                                    <button>Action</button>
-                                </div>
-                            </div>
-                            <div class="element-position">50px, 50px</div>
-                        `;
-                        break;
-                    case 'footer':
-                        element.innerHTML = `
-                            <div class="footer">
-                                <p>&copy; 2023 Your Company. All rights reserved.</p>
-                            </div>
-                            <div class="element-position">0px, bottom</div>
-                        `;
-                        element.style.width = '100%';
-                        element.style.left = '0';
-                        element.style.bottom = '0';
-                        element.style.top = 'auto';
-                        break;
-                    case 'hero':
-                        element.innerHTML = `
-                            <div class="hero-section">
-                                <h1>Welcome to our website</h1>
-                                <p>This is a hero section that captures attention</p>
-                                <button class="ui-button">Get Started</button>
-                            </div>
-                            <div class="element-position">0px, 100px</div>
-                        `;
-                        element.style.width = '100%';
-                        element.style.left = '0';
-                        element.style.top = '100px';
-                        break;
-                    case 'form':
-                        element.innerHTML = `
-                            <div class="form-container">
-                                <h2>Contact Us</h2>
-                                <div class="form-group">
-                                    <label for="name">Name</label>
-                                    <input type="text" id="name" placeholder="Your name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Email</label>
-                                    <input type="email" id="email" placeholder="Your email">
-                                </div>
-                                <button class="ui-button">Submit</button>
-                            </div>
-                            <div class="element-position">50px, 50px</div>
-                        `;
-                        break;
-                    case 'text':
-                        element.innerHTML = `
-                            <div style="padding: 20px; background: white; border-radius: 8px;">
-                                <h2>Text Block</h2>
-                                <p>This is a sample text block. You can edit this content to add your own text.</p>
-                            </div>
-                            <div class="element-position">50px, 50px</div>
-                        `;
-                        break;
-                    default:
-                        element.innerHTML = `<div style="padding: 10px;">${type} element</div>`;
-                }
-                
-                // Select element on click
-                element.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    selectElement(this);
-                });
-                
-                containerElement.appendChild(element);
-                selectElement(element);
-                updateCode();
-            }
-            
-            // Clear canvas button
-            document.getElementById('clear-canvas').addEventListener('click', function() {
-                if (confirm('Are you sure you want to clear the canvas? All elements will be removed.')) {
-                    const container = canvasContent.querySelector('.canvas-element');
-                    container.innerHTML = '';
-                    updateCode();
-                }
-            });
-            
-            // Background color change
-            document.getElementById('page-bg-color').addEventListener('input', function() {
-                canvasContent.style.backgroundColor = this.value;
-            });
-            
-            // Grid visibility toggle
-            document.getElementById('grid-visibility').addEventListener('change', function() {
-                if (this.value === 'hidden') {
-                    canvasContent.style.backgroundImage = 'none';
-                } else {
-                    canvasContent.style.backgroundImage = 
-                        'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), ' +
-                        'linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), ' +
-                        'linear-gradient(45deg, transparent 75%, #f0f0f0 75%), ' +
-                        'linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)';
-                }
-            });
-            
-            // Element selection
-            let currentlySelectedElement = null;
-            
-            function selectElement(element) {
-                // Deselect all elements
-                document.querySelectorAll('.canvas-element').forEach(el => {
-                    if (el !== containerElement) {
-                        el.classList.remove('selected');
-                    }
-                });
-                
-                // Select clicked element
-                element.classList.add('selected');
-                currentlySelectedElement = element;
-                
-                // Update properties panel
-                updatePropertiesPanel(element);
-            }
-            
-            function updatePropertiesPanel(element) {
-                // Get position values
-                const x = parseInt(element.style.left) || 0;
-                const y = parseInt(element.style.top) || 0;
-                
-                // Update input values
-                document.getElementById('element-width').value = element.style.width || '';
-                document.getElementById('element-height').value = element.style.height || '';
-                document.getElementById('element-x').value = x;
-                document.getElementById('element-y').value = y;
-                
-                // Set color values if available
-                const bgColor = element.style.backgroundColor || '#ffffff';
-                const textColor = element.style.color || '#000000';
-                
-                document.getElementById('bgColor').value = rgbToHex(bgColor);
-                document.getElementById('textColor').value = rgbToHex(textColor);
-            }
-            
-            // Apply properties button
-            document.getElementById('apply-properties').addEventListener('click', function() {
-                if (!currentlySelectedElement) return;
-                
-                // Get values from inputs
-                const width = document.getElementById('element-width').value;
-                const height = document.getElementById('element-height').value;
-                const x = document.getElementById('element-x').value;
-                const y = document.getElementById('element-y').value;
-                const bgColor = document.getElementById('bgColor').value;
-                const textColor = document.getElementById('textColor').value;
-                
-                // Apply values to element
-                if (width) currentlySelectedElement.style.width = width;
-                if (height) currentlySelectedElement.style.height = height;
-                currentlySelectedElement.style.left = x + 'px';
-                currentlySelectedElement.style.top = y + 'px';
-                currentlySelectedElement.style.backgroundColor = bgColor;
-                currentlySelectedElement.style.color = textColor;
-                
-                // Update position indicator
-                const positionEl = currentlySelectedElement.querySelector('.element-position');
-                if (positionEl) {
-                    positionEl.textContent = `${x}px, ${y}px`;
-                }
-                
-                updateCode();
-            });
-            
-            // Delete element button
-            document.getElementById('delete-element').addEventListener('click', function() {
-                if (currentlySelectedElement && currentlySelectedElement !== containerElement) {
-                    currentlySelectedElement.remove();
-                    currentlySelectedElement = null;
-                    updateCode();
-                }
-            });
-            
-            // Deselect when clicking on canvas
-            canvasContent.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    document.querySelectorAll('.canvas-element').forEach(el => {
-                        el.classList.remove('selected');
-                    });
-                    currentlySelectedElement = null;
-                }
-            });
-            
-            // Copy code buttons
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            const toast = document.getElementById('toast');
-            
-            copyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const codeType = this.getAttribute('data-code');
-                    const textarea = document.getElementById(`${codeType}-code`);
-                    
-                    textarea.select();
-                    document.execCommand('copy');
-                    
-                    // Show toast notification
-                    toast.classList.add('show');
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                    }, 2000);
-                });
-            });
-            
-            // Code tab switching
-            const codeTabs = document.querySelectorAll('.code-tab');
-            const codeEditors = document.querySelectorAll('.code-editor');
-            
-            codeTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    codeTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show corresponding editor
-                    codeEditors.forEach(editor => {
-                        if (editor.getAttribute('data-code') === tabName) {
-                            editor.classList.add('active');
-                        } else {
-                            editor.classList.remove('active');
-                        }
-                    });
-                });
-            });
-            
-            // Helper function to convert RGB to Hex
-            function rgbToHex(rgb) {
-                if (rgb.startsWith('#')) return rgb;
-                
-                const rgbValues = rgb.match(/\d+/g);
-                if (!rgbValues || rgbValues.length < 3) return '#ffffff';
-                
-                return '#' + rgbValues.map(x => {
-                    const hex = parseInt(x).toString(16);
-                    return hex.length === 1 ? '0' + hex : hex;
-                }).join('');
-            }
-            
-            // Generate initial code
-            updateCode();
-            
-            // Function to update code panels
-            function updateCode() {
-                // In a real implementation, this would generate code based on the canvas content
-                document.getElementById('html-code').value = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Generated Page</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-        
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background-color: #646cff;
-            color: white;
-        }
-        
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            gap: 1.5rem;
-        }
-        
-        .nav-menu a {
-            color: white;
-            text-decoration: none;
-        }
-        
-        .ui-button {
-            background-color: #646cff;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-            max-width: 300px;
-        }
-        
-        .card-header {
-            padding: 1rem;
-            background: #f0f0f0;
-            font-weight: bold;
-        }
-        
-        .card-body {
-            padding: 1rem;
-        }
-        
-        .card-footer {
-            padding: 1rem;
-            background: #f9f9f9;
-            text-align: right;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            background: #333;
-            color: white;
-        }
-        
-        .hero-section {
-            padding: 4rem 2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #646cff, #af62ff);
-            color: white;
-        }
-        
-        .form-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 400px;
-        }
-        
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <!-- Your generated content here -->
-    <div class="navbar">
-        <div class="nav-brand">Logo</div>
-        <ul class="nav-menu">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Contact</a></li>
-        </ul>
+  <div class="main-container">
+    <aside id="element-panel" class="sidebar">
+      <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Elements</h2>
+      <div id="element-list">
+        </div>
+    </aside>
+
+    <main class="canvas-container" id="canvas-container">
+      <div id="page-canvas" class="page-canvas">
+        </div>
+    </main>
+
+    <aside id="properties-panel" class="properties-panel hidden">
+      <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Element Properties</h2>
+      <div id="properties-editor">
+        </div>
+    </aside>
+  </div>
+
+  <footer id="code-area" class="code-output">
+    <div>
+      <h3 style="font-weight: bold;">HTML <button onclick="copyCode('html')" class="tool-button">Copy</button></h3>
+      <textarea id="html-output" readonly></textarea>
     </div>
-    
-    <div class="hero-section">
-        <h1>Welcome to our website</h1>
-        <p>This is a hero section that captures attention</p>
-        <button class="ui-button">Get Started</button>
+    <div>
+      <h3 style="font-weight: bold;">CSS <button onclick="copyCode('css')" class="tool-button">Copy</button></h3>
+      <textarea id="css-output" readonly></textarea>
     </div>
+    <div>
+      <h3 style="font-weight: bold;">JavaScript <button onclick="copyCode('js')" class="tool-button">Copy</button></h3>
+      <textarea id="js-output" readonly></textarea>
+    </div>
+  </footer>
 
-    <script>
-        // Simple interactive functionality
-        document.querySelector('.ui-button').addEventListener('click', function() {
-            alert('Button clicked!');
+  <script>
+    const state = {
+      mode: 'edit',
+      screenSize: 'laptop',
+      elements: [],
+      selectedElementId: null,
+      history: [[]],
+      historyIndex: 0
+    };
+
+    const elementsList = [
+      { type: 'heading', label: 'Heading', defaultContent: 'New Heading', defaultStyles: { fontSize: '2rem', fontWeight: 'bold' } },
+      { type: 'paragraph', label: 'Paragraph', defaultContent: 'Lorem ipsum dolor sit amet.', defaultStyles: { fontSize: '1rem' } },
+      { type: 'button', label: 'Button', defaultContent: 'Click Me', defaultStyles: { backgroundColor: '#4a90e2', color: 'white', padding: '8px 16px', borderRadius: '4px', border: 'none' } },
+      { type: 'image', label: 'Image', defaultContent: 'https://via.placeholder.com/150', defaultStyles: { width: '150px', height: '150px' } },
+      { type: 'link', label: 'Link', defaultContent: 'Link', defaultStyles: { color: '#4a90e2' } },
+    ];
+
+    const screenSizes = {
+      phone: { width: 375, height: 667 },
+      tablet: { width: 768, height: 1024 },
+      laptop: { width: 1366, height: 768 },
+    };
+
+    // DOM Elements
+    const pageCanvas = document.getElementById('page-canvas');
+    const elementPanel = document.getElementById('element-panel');
+    const propertiesPanel = document.getElementById('properties-panel');
+    const propertiesEditor = document.getElementById('properties-editor');
+    const codeArea = document.getElementById('code-area');
+    const htmlOutput = document.getElementById('html-output');
+    const cssOutput = document.getElementById('css-output');
+    const jsOutput = document.getElementById('js-output');
+    const editModeBtn = document.getElementById('edit-mode-btn');
+    const viewModeBtn = document.getElementById('view-mode-btn');
+    const phoneBtn = document.getElementById('phone-btn');
+    const tabletBtn = document.getElementById('tablet-btn');
+    const laptopBtn = document.getElementById('laptop-btn');
+    const undoBtn = document.getElementById('undo-btn');
+    const redoBtn = document.getElementById('redo-btn');
+    const saveBtn = document.getElementById('save-btn');
+    const loadBtn = document.getElementById('load-btn');
+
+    // --- Core Functions ---
+
+    function saveState() {
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(JSON.parse(JSON.stringify(state.elements)));
+      state.historyIndex = state.history.length - 1;
+    }
+
+    function render() {
+      // Clear canvas
+      pageCanvas.innerHTML = '';
+      pageCanvas.style.width = `${screenSizes[state.screenSize].width}px`;
+      pageCanvas.style.height = `${screenSizes[state.screenSize].height}px`;
+      
+      const containerWidth = document.getElementById('canvas-container').offsetWidth;
+      const scale = Math.min(1, containerWidth / (screenSizes[state.screenSize].width + 40));
+      pageCanvas.style.transform = `scale(${scale})`;
+
+      // Render elements
+      state.elements.forEach(el => {
+        const elementDiv = document.createElement('div');
+        elementDiv.classList.add('element');
+        if (state.mode === 'edit' && state.selectedElementId === el.id) {
+          elementDiv.classList.add('selected');
+        }
+
+        elementDiv.dataset.id = el.id;
+        elementDiv.style.position = 'absolute';
+        elementDiv.style.left = `${el.x}px`;
+        elementDiv.style.top = `${el.y}px`;
+        elementDiv.style.width = `${el.width}px`;
+        elementDiv.style.height = `${el.height}px`;
+
+        const finalStyles = { ...el.styles, ...(el.responsive[state.screenSize] || {}) };
+        Object.entries(finalStyles).forEach(([key, value]) => {
+          elementDiv.style[key] = value;
         });
-    <\/script>
-</body>
-</html>`;
 
-                document.getElementById('css-code').value = `/* Additional CSS styles would be generated here */
+        // Add content based on type
+        let contentEl;
+        switch (el.type) {
+          case 'heading':
+            contentEl = document.createElement('h1');
+            contentEl.textContent = el.content;
+            break;
+          case 'paragraph':
+            contentEl = document.createElement('p');
+            contentEl.textContent = el.content;
+            break;
+          case 'button':
+            contentEl = document.createElement('button');
+            contentEl.textContent = el.content;
+            break;
+          case 'image':
+            contentEl = document.createElement('img');
+            contentEl.src = el.content;
+            contentEl.style.width = '100%';
+            contentEl.style.height = '100%';
+            break;
+          case 'link':
+            contentEl = document.createElement('a');
+            contentEl.textContent = el.content;
+            contentEl.href = '#';
+            break;
+          default:
+            contentEl = document.createElement('div');
+            contentEl.textContent = el.type;
+            break;
+        }
+
+        elementDiv.appendChild(contentEl);
+        pageCanvas.appendChild(elementDiv);
+
+        if (state.mode === 'edit') {
+          elementDiv.draggable = true;
+          elementDiv.ondragstart = (e) => onDragStart(e, el.id);
+
+          if (state.selectedElementId === el.id) {
+            addResizeHandles(elementDiv, el.id);
+          }
+        }
+      });
+      
+      updatePropertiesPanel();
+      updateCodeOutput();
+    }
+
+    function addResizeHandles(element, id) {
+      const handles = ['tl', 'tr', 'bl', 'br'];
+      handles.forEach(handleType => {
+        const handle = document.createElement('div');
+        handle.classList.add('resize-handle', `handle-${handleType}`);
+        handle.onmousedown = (e) => onResizeStart(e, id, handleType);
+        element.appendChild(handle);
+      });
+    }
+
+    function updatePropertiesPanel() {
+      propertiesEditor.innerHTML = '';
+      if (state.mode === 'edit' && state.selectedElementId) {
+        propertiesPanel.classList.remove('hidden');
+        const selectedEl = state.elements.find(el => el.id === state.selectedElementId);
         
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
+        const contentLabel = document.createElement('label');
+        contentLabel.textContent = 'Content';
+        propertiesEditor.appendChild(contentLabel);
+        
+        const contentInput = document.createElement('textarea');
+        contentInput.value = selectedEl.content;
+        contentInput.oninput = (e) => {
+          saveState();
+          selectedEl.content = e.target.value;
+          render();
+        };
+        propertiesEditor.appendChild(contentInput);
+        
+        const styleHeader = document.createElement('h3');
+        styleHeader.textContent = 'Styles';
+        propertiesEditor.appendChild(styleHeader);
 
-.feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 3rem 0;
-}
-
-.testimonial {
-    background: #f9f9f9;
-    padding: 2rem;
-    border-left: 4px solid #646cff;
-    border-radius: 4px;
-}
-
-@media (max-width: 768px) {
-    .nav-menu {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .hero-section {
-        padding: 2rem 1rem;
-    }
-}`;
-
-                document.getElementById('js-code').value = `// JavaScript for interactive elements
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile menu toggle
-    const menuToggle = document.querySelector('.menu-toggle');
-    const navMenu = document.querySelector('.nav-menu');
-    
-    if (menuToggle) {
-        menuToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
+        const styleKeys = ['width', 'height', 'backgroundColor', 'color', 'fontSize', 'padding', 'borderRadius', 'border'];
+        styleKeys.forEach(key => {
+          const styleValue = selectedEl.styles[key] || '';
+          
+          const label = document.createElement('label');
+          label.textContent = key;
+          propertiesEditor.appendChild(label);
+          
+          const input = document.createElement('input');
+          input.type = (key.includes('color')) ? 'color' : 'text';
+          input.value = styleValue;
+          input.oninput = (e) => {
+            saveState();
+            selectedEl.styles[key] = e.target.value;
+            render();
+          };
+          propertiesEditor.appendChild(input);
         });
+
+      } else {
+        propertiesPanel.classList.add('hidden');
+      }
+    }
+
+    function updateCodeOutput() {
+      if (state.mode === 'edit') {
+        codeArea.style.display = 'grid';
+        htmlOutput.value = generateHTML();
+        cssOutput.value = generateCSS();
+        jsOutput.value = generateJS();
+      } else {
+        codeArea.style.display = 'none';
+      }
+    }
+
+    // --- Event Handlers ---
+
+    document.getElementById('element-list').innerHTML = elementsList.map(el =>
+      `<div class="element-item" data-type="${el.type}">${el.label}</div>`
+    ).join('');
+
+    elementPanel.addEventListener('click', (e) => {
+      if (e.target.classList.contains('element-item')) {
+        const type = e.target.dataset.type;
+        const defaultEl = elementsList.find(el => el.type === type);
+        const newElement = {
+          id: `el${Date.now()}`,
+          type,
+          content: defaultEl.defaultContent,
+          x: 50,
+          y: 50,
+          width: 150,
+          height: 50,
+          styles: { ...defaultEl.defaultStyles },
+          responsive: { phone: {}, tablet: {}, laptop: {} }
+        };
+        saveState();
+        state.elements.push(newElement);
+        state.selectedElementId = newElement.id;
+        render();
+      }
+    });
+
+    pageCanvas.addEventListener('click', (e) => {
+      let targetElement = e.target.closest('.element');
+      if (targetElement) {
+        const id = targetElement.dataset.id;
+        state.selectedElementId = id;
+      } else {
+        state.selectedElementId = null;
+      }
+      render();
+    });
+
+    pageCanvas.addEventListener('dragover', (e) => e.preventDefault());
+    pageCanvas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const id = e.dataTransfer.getData('id');
+      const x = e.clientX - pageCanvas.getBoundingClientRect().left;
+      const y = e.clientY - pageCanvas.getBoundingClientRect().top;
+      const el = state.elements.find(e => e.id === id);
+      if (el) {
+        saveState();
+        el.x = x - (e.offsetX);
+        el.y = y - (e.offsetY);
+        render();
+      }
+    });
+
+    function onDragStart(e, id) {
+      e.dataTransfer.setData('id', id);
+    }
+
+    function onResizeStart(e, id, handleType) {
+      e.preventDefault();
+      const el = state.elements.find(e => e.id === id);
+      if (!el) return;
+
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = el.width;
+      const startHeight = el.height;
+      const startXPos = el.x;
+      const startYPos = el.y;
+
+      const onMouseMove = (moveEvent) => {
+        let dx = moveEvent.clientX - startX;
+        let dy = moveEvent.clientY - startY;
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newX = startXPos;
+        let newY = startYPos;
+
+        if (handleType.includes('r')) newWidth = startWidth + dx;
+        if (handleType.includes('l')) { newWidth = startWidth - dx; newX = startXPos + dx; }
+        if (handleType.includes('b')) newHeight = startHeight + dy;
+        if (handleType.includes('t')) { newHeight = startHeight - dy; newY = startYPos + dy; }
+
+        el.width = newWidth;
+        el.height = newHeight;
+        el.x = newX;
+        el.y = newY;
+        render();
+      };
+
+      const onMouseUp = () => {
+        saveState();
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     }
     
-    // Form validation example
-    const contactForm = document.querySelector('.form-container');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const email = document.querySelector('#email').value;
-            if (!isValidEmail(email)) {
-                alert('Please enter a valid email address');
-                return;
-            }
-            
-            // Form is valid, proceed with submission
-            alert('Form submitted successfully!');
-        });
+    editModeBtn.addEventListener('click', () => { state.mode = 'edit'; render(); updateButtons(); });
+    viewModeBtn.addEventListener('click', () => { state.mode = 'view'; render(); updateButtons(); });
+    phoneBtn.addEventListener('click', () => { state.screenSize = 'phone'; render(); updateButtons(); });
+    tabletBtn.addEventListener('click', () => { state.screenSize = 'tablet'; render(); updateButtons(); });
+    laptopBtn.addEventListener('click', () => { state.screenSize = 'laptop'; render(); updateButtons(); });
+    undoBtn.addEventListener('click', () => {
+        if (state.historyIndex > 0) {
+            state.historyIndex--;
+            state.elements = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+            render();
+        }
+    });
+    redoBtn.addEventListener('click', () => {
+        if (state.historyIndex < state.history.length - 1) {
+            state.historyIndex++;
+            state.elements = JSON.parse(JSON.stringify(state.history[state.historyIndex]));
+            render();
+        }
+    });
+    saveBtn.addEventListener('click', () => {
+        localStorage.setItem('webDesignTool', JSON.stringify(state.elements));
+        alert('Design saved!');
+    });
+    loadBtn.addEventListener('click', () => {
+        const savedElements = localStorage.getItem('webDesignTool');
+        if (savedElements) {
+            state.elements = JSON.parse(savedElements);
+            state.history = [JSON.parse(savedElements)];
+            state.historyIndex = 0;
+            render();
+            alert('Design loaded!');
+        }
+    });
+
+    function updateButtons() {
+      editModeBtn.classList.toggle('active', state.mode === 'edit');
+      viewModeBtn.classList.toggle('active', state.mode === 'view');
+      phoneBtn.classList.toggle('active', state.screenSize === 'phone');
+      tabletBtn.classList.toggle('active', state.screenSize === 'tablet');
+      laptopBtn.classList.toggle('active', state.screenSize === 'laptop');
+      
+      const isEditMode = state.mode === 'edit';
+      elementPanel.style.display = isEditMode ? 'block' : 'none';
+      codeArea.style.display = isEditMode ? 'grid' : 'none';
+      propertiesPanel.style.display = isEditMode ? 'block' : 'none';
+    }
+
+    // --- Code Generation Functions ---
+    function generateHTML() {
+      let html = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>My Generated Page</title>\n  <link rel="stylesheet" href="styles.css">\n</head>\n<body>\n';
+      state.elements.forEach(el => {
+        let tag = '';
+        switch(el.type) {
+          case 'heading': tag = 'h1'; break;
+          case 'paragraph': tag = 'p'; break;
+          case 'button': tag = 'button'; break;
+          case 'image': tag = 'img'; break;
+          case 'link': tag = 'a'; break;
+          default: tag = 'div';
+        }
+        const attrs = el.type === 'image' ? `src="${el.content}"` : ``;
+        const content = el.type !== 'image' ? el.content : '';
+        html += `  <${tag} id="${el.id}" ${attrs}>${content}</${tag}>\n`;
+      });
+      html += '</body>\n</html>';
+      return html;
     }
     
-    function isValidEmail(email) {
-        const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
-        return re.test(email);
-    }
-});`;
-            }
+    function generateCSS() {
+      let css = `body { background-color: #1a1a1a; color: #e0e0e0; font-family: sans-serif; }\n\n`;
+      state.elements.forEach(el => {
+        css += `#${el.id} {\n`;
+        css += `  position: absolute;\n`;
+        css += `  left: ${el.x}px;\n`;
+        css += `  top: ${el.y}px;\n`;
+        css += `  width: ${el.width}px;\n`;
+        css += `  height: ${el.height}px;\n`;
+        Object.entries(el.styles).forEach(([key, value]) => {
+          css += `  ${key.replace(/([A-Z])/g, '-$1').toLowerCase()}: ${value};\n`;
         });
-    </script>
+        css += `}\n\n`;
+      });
+      return css;
+    }
+
+    function generateJS() {
+      return `// No interactive scripts generated for this simple version.`;
+    }
+
+    function copyCode(type) {
+      const textarea = document.getElementById(`${type}-output`);
+      textarea.select();
+      document.execCommand('copy');
+      alert(`Copied ${type.toUpperCase()} code to clipboard!`);
+    }
+
+    // Initial render
+    render();
+    updateButtons();
+  </script>
+
 </body>
 </html>
