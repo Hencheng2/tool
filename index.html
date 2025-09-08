@@ -161,11 +161,14 @@
             background-color: #fff;
             color: #000;
         }
+        
+        #page-div > * {
+            position: absolute;
+        }
 
         .selected-element {
             outline: 2px solid var(--selected-border) !important;
             outline-offset: 3px;
-            cursor: move;
         }
 
         .placeholder-text {
@@ -249,6 +252,18 @@
             display: block;
         }
 
+        #view-mode-container .view-header {
+            background-color: #eee;
+            padding: 1rem;
+            text-align: right;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        #view-mode-container .view-header button {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -295,6 +310,7 @@
     </header>
 
     <main id="main-container">
+        <!-- Elements Panel -->
         <aside id="elements-panel" class="panel">
             <h2>Elements</h2>
             <div id="elements-list">
@@ -353,6 +369,7 @@
             </div>
         </aside>
 
+        <!-- Work Space -->
         <section id="work-space-container">
             <div id="device-toggles">
                 <button id="phone-btn" class="active" data-size="375px">
@@ -367,13 +384,16 @@
             </div>
             <div id="work-space">
                 <div id="page-div">
-                    </div>
+                    <!-- Elements will be added here -->
+                </div>
             </div>
         </section>
 
+        <!-- Edit Section -->
         <aside id="edit-panel" class="panel">
             <h2>Edit Properties</h2>
             <div id="edit-properties-content">
+                <!-- Properties will be populated dynamically -->
                 <p class="placeholder-text">Select an element to edit its properties.</p>
             </div>
         </aside>
@@ -398,9 +418,14 @@
         </div>
     </section>
 
+    <!-- View Mode Container (Initially Hidden) -->
     <div id="view-mode-container">
+        <div class="view-header">
+            <button id="view-edit-btn">Edit</button>
+        </div>
         <div id="view-mode-content">
-            </div>
+            <!-- The final page will be rendered here -->
+        </div>
     </div>
 
     <script>
@@ -415,21 +440,28 @@
             const viewModeContent = document.getElementById('view-mode-content');
             const editModeBtn = document.getElementById('editModeBtn');
             const viewModeBtn = document.getElementById('viewModeBtn');
+            const viewEditBtn = document.getElementById('view-edit-btn');
             const htmlCode = document.getElementById('html-code');
             const cssCode = document.getElementById('css-code');
             const jsCode = document.getElementById('js-code');
             const copyButtons = document.querySelectorAll('.copy-btn');
 
             let selectedElement = null;
+            let isDragging = false;
+            let dragOffset = { x: 0, y: 0 };
+            let pageRect = pageDiv.getBoundingClientRect();
 
             // Mode Switching
-            editModeBtn.addEventListener('click', () => {
+            function switchToEditMode() {
                 mainContainer.style.display = 'flex';
                 codeContainer.style.display = 'block';
                 viewModeContainer.classList.remove('active');
                 editModeBtn.classList.add('active');
                 viewModeBtn.classList.remove('active');
-            });
+            }
+
+            editModeBtn.addEventListener('click', switchToEditMode);
+            viewEditBtn.addEventListener('click', switchToEditMode);
 
             viewModeBtn.addEventListener('click', () => {
                 mainContainer.style.display = 'none';
@@ -458,13 +490,42 @@
                 });
             });
 
-            // Element Selection on Page
-            pageDiv.addEventListener('click', (e) => {
+            // Element Selection on Page (with drag prevention)
+            pageDiv.addEventListener('mousedown', (e) => {
                 const clickedElement = e.target.closest('#page-div > *');
                 if (clickedElement) {
                     selectElement(clickedElement);
+                    isDragging = true;
+                    dragOffset.x = e.clientX - clickedElement.getBoundingClientRect().left;
+                    dragOffset.y = e.clientY - clickedElement.getBoundingClientRect().top;
                 }
             });
+
+            pageDiv.addEventListener('mousemove', (e) => {
+                if (isDragging && selectedElement) {
+                    let newLeft = e.clientX - pageRect.left - dragOffset.x;
+                    let newTop = e.clientY - pageRect.top - dragOffset.y;
+
+                    // Clamp to page boundaries
+                    newLeft = Math.max(0, Math.min(newLeft, pageRect.width - selectedElement.offsetWidth));
+                    newTop = Math.max(0, Math.min(newTop, pageRect.height - selectedElement.offsetHeight));
+
+                    selectedElement.style.left = `${newLeft}px`;
+                    selectedElement.style.top = `${newTop}px`;
+                    updateCode();
+                }
+            });
+
+            pageDiv.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            window.addEventListener('resize', () => {
+                pageRect = pageDiv.getBoundingClientRect();
+            });
+
+            // Initialize page dimensions for dragging
+            pageRect = pageDiv.getBoundingClientRect();
 
             function selectElement(element) {
                 if (selectedElement) {
@@ -589,6 +650,9 @@
                         element.textContent = 'New Element';
                         break;
                 }
+                element.style.position = 'absolute';
+                element.style.top = '10px';
+                element.style.left = '10px';
                 return element;
             }
 
@@ -687,6 +751,7 @@
                     deviceToggles.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     pageDiv.style.width = btn.dataset.size;
+                    pageRect = pageDiv.getBoundingClientRect(); // Update page rect on resize
                 });
             });
 
@@ -715,7 +780,7 @@
                     if (originalStyle) {
                         el.setAttribute('style', originalStyle);
                     }
-
+                    
                     // Check for JS-dependent elements
                     if (el.classList.contains('modal')) {
                         jsSnippets += `
@@ -737,6 +802,7 @@ document.querySelectorAll('.toggle').forEach(toggle => {
                 });
 
                 // Generate CSS from the map
+                generatedCSS += `#page-div > * { position: absolute; }\n\n`;
                 for (const [cls, style] of styleMap) {
                     generatedCSS += `.${cls} { ${style}; }\n`;
                 }
