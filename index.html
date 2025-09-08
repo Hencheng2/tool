@@ -204,21 +204,32 @@
             display: flex;
             gap: 10px;
         }
+        
+        .edit-field-group input {
+            flex: 1;
+        }
 
         #code-container {
             background-color: var(--dark-panel);
             border-top: 1px solid var(--dark-border);
             padding: 1rem;
+            display: flex;
+            gap: 1rem;
         }
 
         .code-block {
-            margin-bottom: 1.5rem;
+            flex: 1;
             position: relative;
+        }
+
+        .code-block h3 {
+            text-align: center;
+            margin-bottom: 0.5rem;
         }
 
         .code-block textarea {
             width: 100%;
-            height: 150px;
+            height: 400px;
             background-color: #111;
             color: #00ff00;
             border: 1px solid #333;
@@ -401,7 +412,6 @@
     </main>
 
     <section id="code-container">
-        <h2>Generated Code</h2>
         <div class="code-block">
             <h3>HTML</h3>
             <textarea id="html-code" readonly></textarea>
@@ -453,10 +463,13 @@
             // Mode Switching
             function switchToEditMode() {
                 mainContainer.style.display = 'flex';
-                codeContainer.style.display = 'block';
+                codeContainer.style.display = 'flex';
                 viewModeContainer.classList.remove('active');
                 editModeBtn.classList.add('active');
                 viewModeBtn.classList.remove('active');
+                if (selectedElement) {
+                    populateEditPanel(selectedElement);
+                }
             }
 
             editModeBtn.addEventListener('click', switchToEditMode);
@@ -504,13 +517,13 @@
 
             document.addEventListener('mousemove', (e) => {
                 if (isDragging && selectedElement) {
-                    let newLeft = e.clientX - pageRect.left - dragOffset.x;
-                    let newTop = e.clientY - pageRect.top - dragOffset.y;
-
                     const parentWidth = pageRect.width;
                     const parentHeight = pageRect.height;
                     const elementWidth = selectedElement.offsetWidth;
                     const elementHeight = selectedElement.offsetHeight;
+
+                    let newLeft = e.clientX - pageRect.left - dragOffset.x;
+                    let newTop = e.clientY - pageRect.top - dragOffset.y;
 
                     const newLeftPercent = (newLeft / parentWidth) * 100;
                     const newTopPercent = (newTop / parentHeight) * 100;
@@ -519,9 +532,9 @@
                     selectedElement.style.top = `${newTopPercent}%`;
 
                     // Update edit panel inputs in real-time
-                    const topInput = document.getElementById('edit-Top');
+                    const topInput = document.getElementById('edit-Top---');
                     if (topInput) topInput.value = newTopPercent.toFixed(2);
-                    const leftInput = document.getElementById('edit-Left');
+                    const leftInput = document.getElementById('edit-Left---');
                     if (leftInput) leftInput.value = newLeftPercent.toFixed(2);
                 }
             });
@@ -532,6 +545,12 @@
                     updateCode();
                 }
             });
+
+            window.addEventListener('resize', () => {
+                pageRect = pageDiv.getBoundingClientRect();
+            });
+
+            pageRect = pageDiv.getBoundingClientRect();
 
             function selectElement(element) {
                 if (selectedElement) {
@@ -554,7 +573,8 @@
                         element = document.createElement('nav');
                         element.innerHTML = '<a>Home</a><a>About</a><a>Contact</a>';
                         element.style.display = 'flex';
-                        element.style.gap = '1rem';
+                        element.style.justifyContent = 'space-around';
+                        element.style.alignItems = 'center';
                         element.style.padding = '10px';
                         element.style.backgroundColor = '#ccc';
                         break;
@@ -612,6 +632,7 @@
                         element.classList.add('social-icons');
                         element.innerHTML = `<a href="#">Fb</a><a href="#">Tw</a><a href="#">Ig</a>`;
                         element.style.display = 'flex';
+                        element.style.justifyContent = 'center';
                         element.style.gap = '10px';
                         break;
                     case 'grid':
@@ -639,7 +660,7 @@
                 element.style.left = '10%';
                 return element;
             }
-
+            
             // Property definitions
             const propertyMap = {
                 'common': {
@@ -651,13 +672,15 @@
                     'Margin': { type: 'text', prop: 'style.margin' },
                     'Background Color': { type: 'color', prop: 'style.backgroundColor' },
                     'Border': { type: 'text', prop: 'style.border' },
-                    'Border Radius': { type: 'text', prop: 'style.borderRadius' }
+                    'Border Radius': { type: 'text', prop: 'style.borderRadius' },
+                    'Opacity': { type: 'number', prop: 'style.opacity', min: 0, max: 1, step: 0.1 }
                 },
                 'text': {
                     'Text Content': { type: 'textarea', prop: 'textContent' },
                     'Font Size': { type: 'text', prop: 'style.fontSize' },
                     'Color': { type: 'color', prop: 'style.color' },
-                    'Text Align': { type: 'select', prop: 'style.textAlign', options: ['left', 'center', 'right'] }
+                    'Text Align': { type: 'select', prop: 'style.textAlign', options: ['left', 'center', 'right'] },
+                    'Font Weight': { type: 'select', prop: 'style.fontWeight', options: ['normal', 'bold', 'bolder', 'lighter'] }
                 },
                 'button': {
                     'Text Content': { type: 'text', prop: 'textContent' },
@@ -669,7 +692,8 @@
                     'Source URL': { type: 'text', prop: 'src' },
                     'Alt Text': { type: 'text', prop: 'alt' },
                     'Width': { type: 'text', prop: 'style.width' },
-                    'Height': { type: 'text', prop: 'style.height' }
+                    'Height': { type: 'text', prop: 'style.height' },
+                    'Object Fit': { type: 'select', prop: 'style.objectFit', options: ['fill', 'contain', 'cover', 'none', 'scale-down'] }
                 }
             };
 
@@ -687,7 +711,7 @@
                 if (propertyMap[elementType]) {
                     Object.assign(propsToShow, propertyMap[elementType]);
                 }
-                if (element.textContent && !propsToShow['Text Content']) {
+                if (element.textContent && !propsToShow['Text Content'] && elementType !== 'img') {
                     Object.assign(propsToShow, propertyMap.text);
                 }
 
@@ -720,11 +744,15 @@
                         input.type = prop.type;
                         if (prop.type === 'text' || prop.type === 'number') {
                             const styleProp = prop.prop.split('.').pop();
-                            if (element.style[styleProp].includes('%')) {
-                                input.value = parseFloat(element.style[styleProp]);
+                            const value = element.style[styleProp];
+                            if (value && value.includes('%')) {
+                                input.value = parseFloat(value);
                             } else {
-                                input.value = element.style[styleProp];
+                                input.value = value;
                             }
+                            if (prop.min !== undefined) input.min = prop.min;
+                            if (prop.max !== undefined) input.max = prop.max;
+                            if (prop.step !== undefined) input.step = prop.step;
                         } else if (prop.type === 'color') {
                             input.value = rgbToHex(element.style.color || '#000000');
                         }
@@ -762,7 +790,7 @@
                     deviceToggles.querySelectorAll('button').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     pageDiv.style.width = btn.dataset.size;
-                    pageRect = pageDiv.getBoundingClientRect(); // Update page rect on resize
+                    pageRect = pageDiv.getBoundingClientRect();
                 });
             });
 
