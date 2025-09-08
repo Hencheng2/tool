@@ -150,51 +150,58 @@
             background-color: #353940;
         }
 
-        /* Main Content */
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        /* Element Panel */
-        .element-panel {
-            width: 280px;
+        /* Elements Panel at Top */
+        .elements-top-panel {
             background-color: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 20px;
-            overflow-y: auto;
-            transition: all 0.3s ease;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+            overflow-x: auto;
+            display: flex;
+            gap: 15px;
         }
 
         .element-category {
-            margin-bottom: 20px;
+            position: relative;
         }
 
-        .category-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
+        .category-btn {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
         }
 
-        .category-title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .element-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .element-item {
+        .category-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
             background-color: var(--bg-tertiary);
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 12px;
+            padding: 10px;
+            z-index: 100;
+            min-width: 200px;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .element-category:hover .category-dropdown {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .element-item {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
             text-align: center;
             cursor: grab;
             transition: all 0.2s ease;
@@ -206,14 +213,21 @@
         }
 
         .element-icon {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
             color: var(--accent);
         }
 
         .element-name {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
         }
 
         /* Workspace */
@@ -225,15 +239,34 @@
             padding: 20px;
             overflow: auto;
             background-color: var(--bg-primary);
+            position: relative;
+        }
+
+        .canvas-container {
+            margin-bottom: 20px;
+            position: relative;
         }
 
         .page-canvas {
             background-color: white;
             border: 1px solid var(--border);
             box-shadow: 0 4px 20px var(--shadow);
-            margin-bottom: 20px;
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .canvas-size-label {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--accent);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .desktop-size {
@@ -261,13 +294,89 @@
             font-size: 1.2rem;
         }
 
-        /* Properties Panel */
+        /* Canvas Elements */
+        .canvas-element {
+            position: absolute;
+            border: 2px dashed transparent;
+            padding: 5px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .canvas-element.selected {
+            border-color: var(--accent);
+            z-index: 10;
+        }
+
+        .element-content {
+            pointer-events: none;
+        }
+
+        .element-controls {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            display: none;
+            gap: 5px;
+        }
+
+        .canvas-element.selected .element-controls {
+            display: flex;
+        }
+
+        .element-handle {
+            width: 12px;
+            height: 12px;
+            background-color: var(--accent);
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            cursor: nwse-resize;
+        }
+
+        .handle-tr {
+            top: -6px;
+            right: -6px;
+            cursor: nesw-resize;
+        }
+
+        .handle-bl {
+            bottom: -6px;
+            left: -6px;
+            cursor: nesw-resize;
+        }
+
+        .handle-br {
+            bottom: -6px;
+            right: -6px;
+            cursor: nwse-resize;
+        }
+
+        .element-delete {
+            background-color: var(--danger);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        /* Properties Panel - Initially Hidden */
         .properties-panel {
             width: 320px;
             background-color: var(--bg-secondary);
             border-left: 1px solid var(--border);
             padding: 20px;
             overflow-y: auto;
+            display: none;
+        }
+
+        .properties-panel.visible {
+            display: block;
         }
 
         .panel-header {
@@ -319,12 +428,12 @@
             margin-bottom: 12px;
         }
 
-        /* Code Output */
+        /* Code Output - Moved Further Down */
         .code-output {
             background-color: var(--bg-secondary);
             border-top: 1px solid var(--border);
             padding: 20px;
-            max-height: 300px;
+            max-height: 250px;
             overflow: auto;
         }
 
@@ -355,7 +464,7 @@
 
         .code-textarea {
             width: 100%;
-            height: 180px;
+            height: 120px;
             background-color: var(--bg-tertiary);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -363,6 +472,7 @@
             color: var(--text-primary);
             font-family: 'Courier New', monospace;
             resize: none;
+            font-size: 0.9rem;
         }
 
         .copy-btn {
@@ -377,7 +487,7 @@
         }
 
         /* View Mode */
-        .view-mode .element-panel,
+        .view-mode .elements-top-panel,
         .view-mode .properties-panel,
         .view-mode .code-output {
             display: none;
@@ -394,10 +504,6 @@
                 height: 800px;
             }
             
-            .element-panel {
-                width: 220px;
-            }
-            
             .properties-panel {
                 width: 260px;
             }
@@ -408,13 +514,6 @@
                 flex-direction: column;
             }
             
-            .element-panel {
-                width: 100%;
-                height: 200px;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-            }
-            
             .properties-panel {
                 width: 100%;
                 height: 300px;
@@ -422,12 +521,12 @@
                 border-top: 1px solid var(--border);
             }
             
-            .element-list {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
             .desktop-size {
                 height: 500px;
+            }
+            
+            .elements-top-panel {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -447,13 +546,13 @@
             
             <div class="screen-size-toggle">
                 <button class="size-btn active" data-size="desktop">
-                    <i class="fas fa-laptop"></i>
+                    <i class="fas fa-laptop"></i> Desktop
                 </button>
                 <button class="size-btn" data-size="tablet">
-                    <i class="fas fa-tablet-alt"></i>
+                    <i class="fas fa-tablet-alt"></i> Tablet
                 </button>
                 <button class="size-btn" data-size="phone">
-                    <i class="fas fa-mobile-alt"></i>
+                    <i class="fas fa-mobile-alt"></i> Phone
                 </button>
             </div>
             
@@ -470,99 +569,157 @@
             </div>
         </header>
         
-        <div class="main-content">
-            <aside class="element-panel">
-                <div class="element-category">
-                    <div class="category-header">
-                        <h3 class="category-title">Basic Elements</h3>
-                        <i class="fas fa-chevron-down"></i>
+        <!-- Elements Panel at Top -->
+        <div class="elements-top-panel">
+            <div class="element-category">
+                <button class="category-btn">
+                    <i class="fas fa-cube"></i> Basic
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown">
+                    <div class="element-item" data-type="heading">
+                        <i class="fas fa-heading element-icon"></i>
+                        <div class="element-name">Heading</div>
                     </div>
-                    <div class="element-list">
-                        <div class="element-item" data-type="heading">
-                            <i class="fas fa-heading element-icon"></i>
-                            <div class="element-name">Heading</div>
-                        </div>
-                        <div class="element-item" data-type="paragraph">
-                            <i class="fas fa-paragraph element-icon"></i>
-                            <div class="element-name">Paragraph</div>
-                        </div>
-                        <div class="element-item" data-type="button">
-                            <i class="fas fa-square element-icon"></i>
-                            <div class="element-name">Button</div>
-                        </div>
-                        <div class="element-item" data-type="image">
-                            <i class="fas fa-image element-icon"></i>
-                            <div class="element-name">Image</div>
-                        </div>
-                        <div class="element-item" data-type="input">
-                            <i class="fas fa-font element-icon"></i>
-                            <div class="element-name">Input</div>
-                        </div>
-                        <div class="element-item" data-type="divider">
-                            <i class="fas fa-grip-lines element-icon"></i>
-                            <div class="element-name">Divider</div>
-                        </div>
+                    <div class="element-item" data-type="paragraph">
+                        <i class="fas fa-paragraph element-icon"></i>
+                        <div class="element-name">Paragraph</div>
                     </div>
-                </div>
-                
-                <div class="element-category">
-                    <div class="category-header">
-                        <h3 class="category-title">Layout</h3>
-                        <i class="fas fa-chevron-down"></i>
+                    <div class="element-item" data-type="button">
+                        <i class="fas fa-square element-icon"></i>
+                        <div class="element-name">Button</div>
                     </div>
-                    <div class="element-list">
-                        <div class="element-item" data-type="container">
-                            <i class="fas fa-border-all element-icon"></i>
-                            <div class="element-name">Container</div>
-                        </div>
-                        <div class="element-item" data-type="row">
-                            <i class="fas fa-columns element-icon"></i>
-                            <div class="element-name">Row</div>
-                        </div>
-                        <div class="element-item" data-type="column">
-                            <i class="fas fa-columns element-icon"></i>
-                            <div class="element-name">Column</div>
-                        </div>
-                        <div class="element-item" data-type="card">
-                            <i class="far fa-square element-icon"></i>
-                            <div class="element-name">Card</div>
-                        </div>
+                    <div class="element-item" data-type="image">
+                        <i class="fas fa-image element-icon"></i>
+                        <div class="element-name">Image</div>
+                    </div>
+                    <div class="element-item" data-type="input">
+                        <i class="fas fa-font element-icon"></i>
+                        <div class="element-name">Input</div>
+                    </div>
+                    <div class="element-item" data-type="divider">
+                        <i class="fas fa-grip-lines element-icon"></i>
+                        <div class="element-name">Divider</div>
                     </div>
                 </div>
-                
-                <div class="element-category">
-                    <div class="category-header">
-                        <h3 class="category-title">Navigation</h3>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="element-list">
-                        <div class="element-item" data-type="navbar">
-                            <i class="fas fa-bars element-icon"></i>
-                            <div class="element-name">Navbar</div>
-                        </div>
-                        <div class="element-item" data-type="menu">
-                            <i class="fas fa-bars element-icon"></i>
-                            <div class="element-name">Menu</div>
-                        </div>
-                        <div class="element-item" data-type="tabs">
-                            <i class="fas fa-folder element-icon"></i>
-                            <div class="element-name">Tabs</div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+            </div>
             
+            <div class="element-category">
+                <button class="category-btn">
+                    <i class="fas fa-th-large"></i> Layout
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown">
+                    <div class="element-item" data-type="container">
+                        <i class="fas fa-border-all element-icon"></i>
+                        <div class="element-name">Container</div>
+                    </div>
+                    <div class="element-item" data-type="row">
+                        <i class="fas fa-columns element-icon"></i>
+                        <div class="element-name">Row</div>
+                    </div>
+                    <div class="element-item" data-type="column">
+                        <i class="fas fa-columns element-icon"></i>
+                        <div class="element-name">Column</div>
+                    </div>
+                    <div class="element-item" data-type="card">
+                        <i class="far fa-square element-icon"></i>
+                        <div class="element-name">Card</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="element-category">
+                <button class="category-btn">
+                    <i class="fas fa-bars"></i> Navigation
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown">
+                    <div class="element-item" data-type="navbar">
+                        <i class="fas fa-bars element-icon"></i>
+                        <div class="element-name">Navbar</div>
+                    </div>
+                    <div class="element-item" data-type="menu">
+                        <i class="fas fa-bars element-icon"></i>
+                        <div class="element-name">Menu</div>
+                    </div>
+                    <div class="element-item" data-type="tabs">
+                        <i class="fas fa-folder element-icon"></i>
+                        <div class="element-name">Tabs</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="element-category">
+                <button class="category-btn">
+                    <i class="fas fa-sliders-h"></i> Forms
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown">
+                    <div class="element-item" data-type="form">
+                        <i class="fas fa-window-restore element-icon"></i>
+                        <div class="element-name">Form</div>
+                    </div>
+                    <div class="element-item" data-type="textarea">
+                        <i class="fas fa-align-left element-icon"></i>
+                        <div class="element-name">Textarea</div>
+                    </div>
+                    <div class="element-item" data-type="checkbox">
+                        <i class="fas fa-check-square element-icon"></i>
+                        <div class="element-name">Checkbox</div>
+                    </div>
+                    <div class="element-item" data-type="radio">
+                        <i class="far fa-dot-circle element-icon"></i>
+                        <div class="element-name">Radio</div>
+                    </div>
+                    <div class="element-item" data-type="select">
+                        <i class="fas fa-caret-down element-icon"></i>
+                        <div class="element-name">Select</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="element-category">
+                <button class="category-btn">
+                    <i class="fas fa-star"></i> Advanced
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="category-dropdown">
+                    <div class="element-item" data-type="modal">
+                        <i class="fas fa-window-maximize element-icon"></i>
+                        <div class="element-name">Modal</div>
+                    </div>
+                    <div class="element-item" data-type="carousel">
+                        <i class="fas fa-images element-icon"></i>
+                        <div class="element-name">Carousel</div>
+                    </div>
+                    <div class="element-item" data-type="accordion">
+                        <i class="fas fa-bars element-icon"></i>
+                        <div class="element-name">Accordion</div>
+                    </div>
+                    <div class="element-item" data-type="progress">
+                        <i class="fas fa-spinner element-icon"></i>
+                        <div class="element-name">Progress Bar</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
             <main class="workspace">
-                <div class="page-canvas desktop-size" id="page-canvas">
-                    <div class="canvas-placeholder">
-                        <i class="fas fa-mouse-pointer"></i>
-                        <p>Drag elements here or click to add new elements</p>
+                <div class="canvas-container">
+                    <div class="canvas-size-label">1200×800px</div>
+                    <div class="page-canvas desktop-size" id="page-canvas">
+                        <div class="canvas-placeholder">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <p>Drag elements here or click to add new elements</p>
+                        </div>
                     </div>
                 </div>
             </main>
             
-            <aside class="properties-panel">
-                <h3 class="panel-header">Properties</h3>
+            <aside class="properties-panel" id="properties-panel">
+                <h3 class="panel-header">Element Properties</h3>
                 
                 <div class="property-group">
                     <label class="property-label">Element Type</label>
@@ -713,6 +870,7 @@ menuToggle.addEventListener('click', function() {
             // Screen Size Toggle
             const sizeButtons = document.querySelectorAll('.size-btn');
             const pageCanvas = document.getElementById('page-canvas');
+            const canvasSizeLabel = document.querySelector('.canvas-size-label');
             
             sizeButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -723,6 +881,15 @@ menuToggle.addEventListener('click', function() {
                     
                     // Add the selected size class
                     pageCanvas.classList.add(size + '-size');
+                    
+                    // Update size label
+                    if (size === 'desktop') {
+                        canvasSizeLabel.textContent = '1200×800px';
+                    } else if (size === 'tablet') {
+                        canvasSizeLabel.textContent = '768×1024px';
+                    } else if (size === 'phone') {
+                        canvasSizeLabel.textContent = '375×667px';
+                    }
                     
                     // Update active button
                     sizeButtons.forEach(btn => btn.classList.remove('active'));
@@ -771,9 +938,11 @@ menuToggle.addEventListener('click', function() {
                 });
             });
             
-            // Element Dragging (simplified)
+            // Element Dragging and Selection
             const elementItems = document.querySelectorAll('.element-item');
             const canvasPlaceholder = document.querySelector('.canvas-placeholder');
+            const propertiesPanel = document.getElementById('properties-panel');
+            let selectedElement = null;
             
             elementItems.forEach(item => {
                 item.addEventListener('click', function() {
@@ -793,32 +962,138 @@ menuToggle.addEventListener('click', function() {
                         ${getElementContentByType(type)}
                     </div>
                     <div class="element-controls">
-                        <i class="fas fa-grip-horizontal"></i>
-                        <i class="fas fa-times"></i>
+                        <div class="element-handle handle-tr"></div>
+                        <div class="element-handle handle-bl"></div>
+                        <div class="element-handle handle-br"></div>
+                        <div class="element-delete">
+                            <i class="fas fa-times"></i>
+                        </div>
                     </div>
                 `;
                 
-                // Add some basic styling
-                element.style.position = 'absolute';
+                // Set initial position and size
                 element.style.top = '50px';
                 element.style.left = '50px';
-                element.style.padding = '10px';
-                element.style.border = '2px dashed #6366f1';
-                element.style.borderRadius = '6px';
-                element.style.cursor = 'move';
+                element.style.width = type === 'image' ? '150px' : 'auto';
                 
                 pageCanvas.appendChild(element);
                 
+                // Make element draggable and selectable
+                makeElementDraggable(element);
+                makeElementResizable(element);
+                
+                // Add selection functionality
+                element.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    selectElement(element);
+                });
+                
                 // Add delete functionality
-                const deleteBtn = element.querySelector('.fa-times');
+                const deleteBtn = element.querySelector('.element-delete');
                 deleteBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     element.remove();
                     
+                    // Hide properties panel if no element is selected
+                    propertiesPanel.classList.remove('visible');
+                    selectedElement = null;
+                    
                     // Show placeholder if no elements left
-                    if (pageCanvas.children.length === 1) {
+                    if (pageCanvas.querySelectorAll('.canvas-element').length === 0) {
                         canvasPlaceholder.style.display = 'block';
                     }
+                });
+            }
+            
+            function selectElement(element) {
+                // Deselect previously selected element
+                if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                }
+                
+                // Select new element
+                element.classList.add('selected');
+                selectedElement = element;
+                
+                // Show properties panel
+                propertiesPanel.classList.add('visible');
+            }
+            
+            function makeElementDraggable(element) {
+                let isDragging = false;
+                let startX, startY, initialLeft, initialTop;
+                
+                element.addEventListener('mousedown', function(e) {
+                    if (e.target.classList.contains('element-handle')) return;
+                    
+                    isDragging = true;
+                    selectElement(element);
+                    
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    initialLeft = parseInt(window.getComputedStyle(element).left);
+                    initialTop = parseInt(window.getComputedStyle(element).top);
+                    
+                    element.style.cursor = 'grabbing';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging) return;
+                    
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    
+                    element.style.left = `${initialLeft + dx}px`;
+                    element.style.top = `${initialTop + dy}px`;
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    isDragging = false;
+                    element.style.cursor = 'grab';
+                });
+            }
+            
+            function makeElementResizable(element) {
+                const handles = element.querySelectorAll('.element-handle');
+                
+                handles.forEach(handle => {
+                    handle.addEventListener('mousedown', function(e) {
+                        e.stopPropagation();
+                        selectElement(element);
+                        
+                        const startX = e.clientX;
+                        const startY = e.clientY;
+                        const startWidth = parseInt(window.getComputedStyle(element).width);
+                        const startHeight = parseInt(window.getComputedStyle(element).height);
+                        const startLeft = parseInt(window.getComputedStyle(element).left);
+                        const startTop = parseInt(window.getComputedStyle(element).top);
+                        
+                        function resize(e) {
+                            if (handle.classList.contains('handle-br')) {
+                                element.style.width = `${startWidth + (e.clientX - startX)}px`;
+                                element.style.height = `${startHeight + (e.clientY - startY)}px`;
+                            } else if (handle.classList.contains('handle-tr')) {
+                                element.style.width = `${startWidth + (e.clientX - startX)}px`;
+                                element.style.height = `${startHeight - (e.clientY - startY)}px`;
+                                element.style.top = `${startTop + (e.clientY - startY)}px`;
+                            } else if (handle.classList.contains('handle-bl')) {
+                                element.style.width = `${startWidth - (e.clientX - startX)}px`;
+                                element.style.height = `${startHeight + (e.clientY - startY)}px`;
+                                element.style.left = `${startLeft + (e.clientX - startX)}px`;
+                            }
+                        }
+                        
+                        function stopResize() {
+                            document.removeEventListener('mousemove', resize);
+                            document.removeEventListener('mouseup', stopResize);
+                        }
+                        
+                        document.addEventListener('mousemove', resize);
+                        document.addEventListener('mouseup', stopResize);
+                        
+                        e.preventDefault();
+                    });
                 });
             }
             
@@ -831,17 +1106,36 @@ menuToggle.addEventListener('click', function() {
                     case 'button':
                         return '<button style="padding: 10px 20px; background: #6366f1; color: white; border: none; border-radius: 6px;">Button</button>';
                     case 'image':
-                        return '<img src="https://via.placeholder.com/150" alt="Placeholder Image">';
+                        return '<img src="https://via.placeholder.com/150" alt="Placeholder Image" style="max-width: 100%;">';
                     case 'input':
-                        return '<input type="text" placeholder="Enter text here" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">';
+                        return '<input type="text" placeholder="Enter text here" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%;">';
                     case 'navbar':
                         return `
-                            <div style="display: flex; justify-content: space-between; padding: 15px; background: #2c3036; color: white;">
+                            <div style="display: flex; justify-content: space-between; padding: 15px; background: #2c3036; color: white; width: 100%;">
                                 <div>Logo</div>
                                 <div>
-                                    <a href="#" style="color: white; margin: 0 10px;">Home</a>
-                                    <a href="#" style="color: white; margin: 0 10px;">About</a>
-                                    <a href="#" style="color: white; margin: 0 10px;">Contact</a>
+                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">Home</a>
+                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">About</a>
+                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">Contact</a>
+                                </div>
+                            </div>
+                        `;
+                    case 'card':
+                        return `
+                            <div style="border: 1px solid #ddd; border-radius: 8px; padding: 16px; width: 100%;">
+                                <h3 style="margin-top: 0;">Card Title</h3>
+                                <p>This is a sample card with some content inside.</p>
+                                <button style="padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px;">Action</button>
+                            </div>
+                        `;
+                    case 'modal':
+                        return `
+                            <div style="background: white; border-radius: 8px; padding: 20px; width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                                <h3 style="margin-top: 0;">Modal Title</h3>
+                                <p>This is a sample modal dialog.</p>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                                    <button style="padding: 8px 16px; background: #e5e7eb; color: #333; border: none; border-radius: 4px;">Cancel</button>
+                                    <button style="padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 4px;">Confirm</button>
                                 </div>
                             </div>
                         `;
@@ -849,6 +1143,17 @@ menuToggle.addEventListener('click', function() {
                         return '<div>New Element</div>';
                 }
             }
+            
+            // Deselect when clicking on canvas
+            pageCanvas.addEventListener('click', function(e) {
+                if (e.target === pageCanvas) {
+                    if (selectedElement) {
+                        selectedElement.classList.remove('selected');
+                        selectedElement = null;
+                    }
+                    propertiesPanel.classList.remove('visible');
+                }
+            });
         });
     </script>
 </body>
