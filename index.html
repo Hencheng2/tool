@@ -180,6 +180,7 @@
             background-color: #fff;
             color: #000;
             border-radius: 0.5rem;
+            overflow: hidden; /* Ensure elements don't go outside */
         }
         
         #page-div > * {
@@ -603,6 +604,7 @@
                     case 'button':
                         element = document.createElement('button');
                         element.textContent = 'Button';
+                        element.dataset.url = '#'; // Default URL for editing
                         break;
                     case 'div':
                         element = document.createElement('div');
@@ -755,7 +757,7 @@
                     'Background Color': { type: 'color', prop: 'style.backgroundColor' },
                     'Color': { type: 'color', prop: 'style.color' },
                     'Border Radius': { type: 'text', prop: 'style.borderRadius' },
-                    'Cursor': { type: 'select', prop: 'style.cursor', options: ['auto', 'pointer', 'text', 'move', 'crosshair'] }
+                    'URL/Page Reference': { type: 'text', prop: 'dataset.url' }
                 },
                 'img': {
                     'Source URL': { type: 'text', prop: 'src' },
@@ -827,24 +829,23 @@
                     } else {
                         input = document.createElement('input');
                         input.type = prop.type;
-                        if (prop.type === 'text' || prop.type === 'number') {
-                            if (prop.prop.startsWith('style.')) {
-                                const styleProp = prop.prop.split('.').pop();
-                                const value = element.style[styleProp];
-                                if (value && value.includes('%')) {
-                                    input.value = parseFloat(value);
-                                } else {
-                                    input.value = value;
-                                }
+                        if (prop.prop.startsWith('style.')) {
+                            const styleProp = prop.prop.split('.').pop();
+                            const value = element.style[styleProp];
+                            if (value && value.includes('%')) {
+                                input.value = parseFloat(value);
                             } else {
-                                input.value = element[prop.prop];
+                                input.value = value;
                             }
-                            if (prop.min !== undefined) input.min = prop.min;
-                            if (prop.max !== undefined) input.max = prop.max;
-                            if (prop.step !== undefined) input.step = prop.step;
-                        } else if (prop.type === 'color') {
-                            input.value = rgbToHex(element.style[prop.prop.split('.').pop()] || '#000000');
+                        } else if (prop.prop.startsWith('dataset.')) {
+                            const dataProp = prop.prop.split('.').pop();
+                            input.value = element.dataset[dataProp] || '';
+                        } else {
+                             input.value = element[prop.prop];
                         }
+                        if (prop.min !== undefined) input.min = prop.min;
+                        if (prop.max !== undefined) input.max = prop.max;
+                        if (prop.step !== undefined) input.step = prop.step;
                     }
                     input.id = inputId;
 
@@ -856,6 +857,9 @@
                                 value += prop.unit;
                             }
                             element.style[styleProp] = value;
+                        } else if (prop.prop.startsWith('dataset.')) {
+                            const dataProp = prop.prop.split('.').pop();
+                            element.dataset[dataProp] = e.target.value;
                         } else {
                             element[prop.prop] = e.target.value;
                         }
@@ -902,14 +906,31 @@
                         styleMap.set(classId, styleBlock);
                     }
                     
-                    // Remove inline styles for clean HTML output
-                    el.removeAttribute('style');
-                    generatedHTML += el.outerHTML + '\n';
-                    if (originalStyle) {
-                        el.setAttribute('style', originalStyle);
+                    // Handle specific element attributes and JS
+                    if (el.tagName.toLowerCase() === 'button' && el.dataset.url) {
+                        el.setAttribute('id', `button-${index}`);
+                        jsSnippets += `
+document.getElementById('button-${index}').addEventListener('click', () => {
+    window.location.href = '${el.dataset.url}';
+});\n`;
+                    }
+                    if (el.tagName.toLowerCase() === 'a' && el.href) {
+                        el.setAttribute('href', el.href);
                     }
                     
-                    // Check for JS-dependent elements
+                    // Remove inline styles and data attributes for clean HTML output
+                    const cleanedEl = el.cloneNode(true);
+                    cleanedEl.removeAttribute('style');
+                    if (cleanedEl.dataset.url) {
+                        cleanedEl.removeAttribute('data-url');
+                    }
+                    
+                    generatedHTML += cleanedEl.outerHTML + '\n';
+                    
+                    // Re-add original styles and data attributes
+                    el.setAttribute('style', originalStyle);
+                    
+                    // Check for other JS-dependent elements
                     if (el.classList.contains('modal')) {
                         jsSnippets += `
 document.querySelectorAll('.modal').forEach(modal => {
@@ -917,15 +938,13 @@ document.querySelectorAll('.modal').forEach(modal => {
     const closeBtn = modal.querySelector('.close-btn');
     closeBtn.onclick = () => { modal.style.display = 'none'; }
     window.onclick = (event) => { if (event.target === modal) { modal.style.display = 'none'; } }
-});
-`;
+});\n`;
                     }
                     if (el.classList.contains('toggle')) {
                         jsSnippets += `
 document.querySelectorAll('.toggle').forEach(toggle => {
     toggle.onclick = () => { toggle.classList.toggle('active'); }
-});
-`;
+});\n`;
                     }
                 });
 
