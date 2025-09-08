@@ -1,761 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visual Web Builder</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --dark-bg: #1a1a1a;
-            --darker-bg: #121212;
-            --panel-bg: #242424;
-            --accent: #646cff;
-            --accent-hover: #747bff;
-            --text: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border: #444;
-            --success: #4CAF50;
-        }
+  <meta charset="UTF-8">
+  <title>Visual Page Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <style>
+    /* ===== Global Dark Theme ===== */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1e1e1e;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: #2a2a2a;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
 
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
+    /* ===== Sidebars ===== */
+    .sidebar {
+      width: 200px;
+      background: #2a2a2a;
+      border-right: 1px solid #444;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-size: 14px;
+      margin: 10px 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+    .element {
+      padding: 8px;
+      margin: 6px 0;
+      background: #3a3a3a;
+      border: 1px solid #555;
+      border-radius: 6px;
+      cursor: grab;
+      text-align: center;
+      user-select: none;
+    }
+    .element:hover {
+      background: #555;
+    }
 
-        header {
-            background-color: var(--darker-bg);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
+    /* ===== Canvas ===== */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #252525;
+    }
+    .toolbar {
+      background: #2a2a2a;
+      border-bottom: 1px solid #444;
+      padding: 5px;
+      display: flex;
+      gap: 10px;
+    }
+    .toolbar button {
+      padding: 5px 10px;
+      background: #3a3a3a;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
+    .toolbar button:hover {
+      background: #555;
+    }
+    #canvas {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background: #1a1a1a;
+      border: 2px dashed #444;
+      transform-origin: top left;
+    }
+    #canvas .draggable {
+      position: relative;
+      padding: 10px;
+      margin: 5px;
+      border: 1px solid #666;
+      background: #333;
+      border-radius: 6px;
+      cursor: move;
+    }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+    /* ===== Inspector ===== */
+    .inspector {
+      width: 250px;
+      background: #2a2a2a;
+      border-left: 1px solid #444;
+      padding: 10px;
+      overflow-y: auto;
+    }
+    .inspector h2 {
+      font-size: 14px;
+      margin: 10px 0;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+    }
+    .inspector label {
+      font-size: 12px;
+      display: block;
+      margin: 5px 0 2px;
+    }
+    .inspector input,
+    .inspector select {
+      width: 100%;
+      padding: 5px;
+      border: none;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
 
-        .main-container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .components-panel {
-            width: 250px;
-            background-color: var(--panel-bg);
-            padding: 15px;
-            overflow-y: auto;
-            border-right: 1px solid var(--border);
-        }
-
-        .components-panel h2 {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            color: var(--text-secondary);
-        }
-
-        .component-category {
-            margin-bottom: 20px;
-        }
-
-        .component-category h3 {
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .component-item {
-            background-color: var(--darker-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
-            cursor: grab;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .component-item:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-
-        .workspace {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .toolbar {
-            background-color: var(--panel-bg);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .device-selector {
-            display: flex;
-            gap: 5px;
-        }
-
-        .device-btn {
-            background-color: var(--darker-bg);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .device-btn.active {
-            background-color: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .device-btn:hover:not(.active) {
-            border-color: var(--accent-hover);
-            color: var(--text);
-        }
-
-        .mode-selector {
-            display: flex;
-            gap: 5px;
-        }
-
-        .mode-btn {
-            background-color: var(--darker-bg);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .mode-btn.active {
-            background-color: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .mode-btn:hover:not(.active) {
-            border-color: var(--accent-hover);
-            color: var(--text);
-        }
-
-        .preview-area {
-            flex: 1;
-            padding: 20px;
-            overflow: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            background-color: #2d2d2d;
-        }
-
-        .preview-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        /* Device sizes */
-        .desktop-size {
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .tablet-size {
-            width: 768px;
-        }
-
-        .mobile-size {
-            width: 375px;
-        }
-
-        .preview-content {
-            min-height: 500px;
-            padding: 20px;
-            position: relative;
-        }
-
-        .drop-zone {
-            min-height: 100%;
-            width: 100%;
-        }
-
-        .element-placeholder {
-            border: 2px dashed #ccc;
-            border-radius: 6px;
-            padding: 20px;
-            text-align: center;
-            color: #999;
-            margin: 10px 0;
-        }
-
-        .element {
-            border: 1px solid #eee;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 6px;
-            position: relative;
-        }
-
-        .element.selected {
-            border: 2px solid var(--accent);
-        }
-
-        .element-actions {
-            position: absolute;
-            top: -15px;
-            right: 5px;
-            background-color: var(--accent);
-            border-radius: 4px;
-            padding: 2px 5px;
-            display: none;
-        }
-
-        .element:hover .element-actions {
-            display: flex;
-        }
-
-        .element-action {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 0 3px;
-        }
-
-        /* Sample components */
-        .navbar {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .footer {
-            background-color: #333;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .code-panel {
-            height: 250px;
-            background-color: var(--darker-bg);
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .code-tabs {
-            display: flex;
-            background-color: var(--panel-bg);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border-right: 1px solid var(--border);
-        }
-
-        .code-tab.active {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        .code-content {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .code-area {
-            flex: 1;
-            padding: 15px;
-            background-color: #2d2d2d;
-            color: #f8f8f2;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            border: none;
-            resize: none;
-            overflow: auto;
-        }
-
-        .code-container {
-            flex: 1;
-            position: relative;
-            display: none;
-        }
-
-        .code-container.active {
-            display: block;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .copy-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .copy-notification {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: var(--success);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .main-container {
-                flex-direction: column;
-            }
-            
-            .components-panel {
-                width: 100%;
-                height: 200px;
-                border-right: none;
-                border-bottom: 1px solid var(--border);
-            }
-        }
-    </style>
+    /* ===== Code Output ===== */
+    .code-section {
+      height: 200px;
+      display: flex;
+      border-top: 1px solid #444;
+    }
+    .code-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #444;
+    }
+    .code-box:last-child {
+      border-right: none;
+    }
+    .code-box header {
+      background: #2a2a2a;
+      padding: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #444;
+    }
+    .code-box header span {
+      font-size: 12px;
+    }
+    .code-box textarea {
+      flex: 1;
+      background: #111;
+      color: #0f0;
+      border: none;
+      resize: none;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .copy-btn {
+      padding: 2px 6px;
+      font-size: 12px;
+      border: none;
+      background: #444;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .copy-btn:hover {
+      background: #666;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <i class="fas fa-code"></i>
-            <span>Visual Web Builder</span>
-        </div>
-    </header>
+  <header>
+    <h1>Visual Page Builder</h1>
+    <div>
+      <button onclick="toggleViewMode()">Toggle View Mode</button>
+      <button onclick="setDevice('desktop')">Desktop</button>
+      <button onclick="setDevice('tablet')">Tablet</button>
+      <button onclick="setDevice('phone')">Phone</button>
+    </div>
+  </header>
 
-    <div class="main-container">
-        <div class="components-panel">
-            <h2>Components</h2>
-            
-            <div class="component-category">
-                <h3>Structure</h3>
-                <div class="component-item" draggable="true" data-type="container">
-                    <i class="fas fa-square"></i>
-                    <span>Container</span>
-                </div>
-                <div class="component-item" draggable="true" data-type="div">
-                    <i class="fas fa-border-all"></i>
-                    <span>Div</span>
-                </div>
-            </div>
-            
-            <div class="component-category">
-                <h3>Navigation</h3>
-                <div class="component-item" draggable="true" data-type="navbar">
-                    <i class="fas fa-bars"></i>
-                    <span>Navbar</span>
-                </div>
-                <div class="component-item" draggable="true" data-type="menu">
-                    <i class="fas fa-list"></i>
-                    <span>Menu</span>
-                </div>
-            </div>
-            
-            <div class="component-category">
-                <h3>Content</h3>
-                <div class="component-item" draggable="true" data-type="heading">
-                    <i class="fas fa-heading"></i>
-                    <span>Heading</span>
-                </div>
-                <div class="component-item" draggable="true" data-type="paragraph">
-                    <i class="fas fa-paragraph"></i>
-                    <span>Paragraph</span>
-                </div>
-                <div class="component-item" draggable="true" data-type="button">
-                    <i class="fas fa-hand-pointer"></i>
-                    <span>Button</span>
-                </div>
-            </div>
-            
-            <div class="component-category">
-                <h3>Media</h3>
-                <div class="component-item" draggable="true" data-type="image">
-                    <i class="fas fa-image"></i>
-                    <span>Image</span>
-                </div>
-                <div class="component-item" draggable="true" data-type="icon">
-                    <i class="fas fa-icons"></i>
-                    <span>Icon</span>
-                </div>
-            </div>
-            
-            <div class="component-category">
-                <h3>Footer</h3>
-                <div class="component-item" draggable="true" data-type="footer">
-                    <i class="fas fa-window-maximize"></i>
-                    <span>Footer</span>
-                </div>
-            </div>
-        </div>
+  <div id="main">
+    <!-- Palette -->
+    <aside class="sidebar">
+      <h2>Elements</h2>
+      <div class="element" draggable="true" data-type="navbar">Navbar</div>
+      <div class="element" draggable="true" data-type="footer">Footer</div>
+      <div class="element" draggable="true" data-type="text">Text</div>
+      <div class="element" draggable="true" data-type="button">Button</div>
+      <div class="element" draggable="true" data-type="image">Image</div>
+      <div class="element" draggable="true" data-type="icon">Icon</div>
+      <div class="element" draggable="true" data-type="card">Card</div>
+      <div class="element" draggable="true" data-type="form">Form</div>
+      <div class="element" draggable="true" data-type="grid">Grid</div>
+    </aside>
 
-        <div class="workspace">
-            <div class="toolbar">
-                <div class="device-selector">
-                    <button class="device-btn active" data-device="desktop">
-                        <i class="fas fa-desktop"></i> Desktop
-                    </button>
-                    <button class="device-btn" data-device="tablet">
-                        <i class="fas fa-tablet-alt"></i> Tablet
-                    </button>
-                    <button class="device-btn" data-device="mobile">
-                        <i class="fas fa-mobile-alt"></i> Mobile
-                    </button>
-                </div>
-                
-                <div class="mode-selector">
-                    <button class="mode-btn active" data-mode="edit">
-                        <i class="fas fa-edit"></i> Edit Mode
-                    </button>
-                    <button class="mode-btn" data-mode="view">
-                        <i class="fas fa-eye"></i> View Mode
-                    </button>
-                </div>
-            </div>
-
-            <div class="preview-area">
-                <div class="preview-container desktop-size">
-                    <div class="preview-content">
-                        <div class="drop-zone">
-                            <div class="element-placeholder">
-                                Drag components here to start building
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Canvas -->
+    <div class="canvas-container">
+      <div class="toolbar">
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+        <button onclick="zoomIn()">Zoom +</button>
+        <button onclick="zoomOut()">Zoom -</button>
+      </div>
+      <div id="canvas" ondragover="allowDrop(event)" ondrop="drop(event)">
+        <!-- Dropped elements appear here -->
+      </div>
     </div>
 
-    <div class="code-panel">
-        <div class="code-tabs">
-            <div class="code-tab active" data-tab="html">HTML</div>
-            <div class="code-tab" data-tab="css">CSS</div>
-            <div class="code-tab" data-tab="js">JavaScript</div>
-        </div>
-        
-        <div class="code-content">
-            <div class="code-container active" id="html-container">
-                <textarea class="code-area" readonly><!-- Generated HTML will appear here --></textarea>
-                <button class="copy-btn" data-copy="html">Copy HTML</button>
-            </div>
-            
-            <div class="code-container" id="css-container">
-                <textarea class="code-area" readonly>/* Generated CSS will appear here */</textarea>
-                <button class="copy-btn" data-copy="css">Copy CSS</button>
-            </div>
-            
-            <div class="code-container" id="js-container">
-                <textarea class="code-area" readonly>// Generated JavaScript will appear here</textarea>
-                <button class="copy-btn" data-copy="js">Copy JS</button>
-            </div>
-        </div>
-    </div>
+    <!-- Inspector -->
+    <aside class="inspector">
+      <h2>Inspector</h2>
+      <div id="inspector-content">Select an element to edit</div>
+    </aside>
+  </div>
 
-    <div class="copy-notification" id="copyNotification">
-        Code copied to clipboard!
+  <!-- Code Output -->
+  <div class="code-section">
+    <div class="code-box">
+      <header>
+        <span>HTML</span>
+        <button class="copy-btn" onclick="copyCode('htmlCode')">Copy</button>
+      </header>
+      <textarea id="htmlCode" readonly></textarea>
     </div>
+    <div class="code-box">
+      <header>
+        <span>CSS</span>
+        <button class="copy-btn" onclick="copyCode('cssCode')">Copy</button>
+      </header>
+      <textarea id="cssCode" readonly></textarea>
+    </div>
+    <div class="code-box">
+      <header>
+        <span>JS</span>
+        <button class="copy-btn" onclick="copyCode('jsCode')">Copy</button>
+      </header>
+      <textarea id="jsCode" readonly></textarea>
+    </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elements
-            const deviceButtons = document.querySelectorAll('.device-btn');
-            const modeButtons = document.querySelectorAll('.mode-btn');
-            const codeTabs = document.querySelectorAll('.code-tab');
-            const codeContainers = document.querySelectorAll('.code-container');
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            const previewContainer = document.querySelector('.preview-container');
-            const dropZone = document.querySelector('.drop-zone');
-            const componentItems = document.querySelectorAll('.component-item');
-            const copyNotification = document.getElementById('copyNotification');
-            
-            // Current state
-            let currentDevice = 'desktop';
-            let currentMode = 'edit';
-            let currentElement = null;
-            
-            // Device sizing
-            deviceButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const device = button.getAttribute('data-device');
-                    
-                    // Update active button
-                    deviceButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    // Update preview container size
-                    previewContainer.classList.remove('desktop-size', 'tablet-size', 'mobile-size');
-                    previewContainer.classList.add(device + '-size');
-                    
-                    currentDevice = device;
-                });
-            });
-            
-            // Mode switching
-            modeButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const mode = button.getAttribute('data-mode');
-                    
-                    // Update active button
-                    modeButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    currentMode = mode;
-                    updateEditMode();
-                });
-            });
-            
-            // Code tabs
-            codeTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    const tabName = tab.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    codeTabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    
-                    // Show corresponding code container
-                    codeContainers.forEach(container => {
-                        container.classList.remove('active');
-                        if (container.id === tabName + '-container') {
-                            container.classList.add('active');
-                        }
-                    });
-                });
-            });
-            
-            // Copy buttons
-            copyButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const type = button.getAttribute('data-copy');
-                    const codeArea = document.querySelector(`#${type}-container .code-area`);
-                    
-                    // Copy to clipboard
-                    codeArea.select();
-                    document.execCommand('copy');
-                    
-                    // Show notification
-                    copyNotification.style.display = 'block';
-                    setTimeout(() => {
-                        copyNotification.style.display = 'none';
-                    }, 2000);
-                });
-            });
-            
-            // Drag and drop functionality
-            componentItems.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    if (currentMode === 'edit') {
-                        e.dataTransfer.setData('text/plain', item.getAttribute('data-type'));
-                    }
-                });
-            });
-            
-            dropZone.addEventListener('dragover', (e) => {
-                if (currentMode === 'edit') {
-                    e.preventDefault();
-                    dropZone.style.backgroundColor = '#f0f0f0';
-                }
-            });
-            
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.style.backgroundColor = '';
-            });
-            
-            dropZone.addEventListener('drop', (e) => {
-                if (currentMode === 'edit') {
-                    e.preventDefault();
-                    dropZone.style.backgroundColor = '';
-                    
-                    const componentType = e.dataTransfer.getData('text/plain');
-                    addComponent(componentType, e.clientX, e.clientY);
-                }
-            });
-            
-            // Add component to the drop zone
-            function addComponent(type, x, y) {
-                const element = document.createElement('div');
-                element.classList.add('element');
-                
-                // Create element based on type
-                switch(type) {
-                    case 'navbar':
-                        element.innerHTML = `
-                            <div class="navbar">
-                                <div class="logo">Your Logo</div>
-                                <div class="nav-links">
-                                    <a href="#">Home</a>
-                                    <a href="#">About</a>
-                                    <a href="#">Contact</a>
-                                </div>
-                            </div>
-                            <div class="element-actions">
-                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
-                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        break;
-                    case 'footer':
-                        element.innerHTML = `
-                            <div class="footer">
-                                <p>&copy; 2023 Your Company. All rights reserved.</p>
-                            </div>
-                            <div class="element-actions">
-                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
-                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        break;
-                    case 'button':
-                        element.innerHTML = `
-                            <button class="button">Click Me</button>
-                            <div class="element-actions">
-                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
-                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        break;
-                    case 'heading':
-                        element.innerHTML = `
-                            <h2>This is a heading</h2>
-                            <div class="element-actions">
-                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
-                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                        break;
-                    default:
-                        element.innerHTML = `
-                            <div>New ${type} component</div>
-                            <div class="element-actions">
-                                <button class="element-action edit-btn"><i class="fas fa-edit"></i></button>
-                                <button class="element-action delete-btn"><i class="fas fa-trash"></i></button>
-                            </div>
-                        `;
-                }
-                
-                // Add event listeners for actions
-                const deleteBtn = element.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', () => {
-                    element.remove();
-                    updateCode();
-                });
-                
-                // Add to drop zone
-                dropZone.appendChild(element);
-                
-                // Remove placeholder if it exists
-                const placeholder = document.querySelector('.element-placeholder');
-                if (placeholder) {
-                    placeholder.remove();
-                }
-                
-                updateCode();
-            }
-            
-            // Update edit/view mode
-            function updateEditMode() {
-                const elements = document.querySelectorAll('.element');
-                elements.forEach(el => {
-                    const actions = el.querySelector('.element-actions');
-                    if (currentMode === 'edit') {
-                        actions.style.display = 'flex';
-                        el.style.cursor = 'move';
-                    } else {
-                        actions.style.display = 'none';
-                        el.style.cursor = 'default';
-                    }
-                });
-                
-                // Show/hide placeholder in edit mode
-                if (currentMode === 'edit' && dropZone.children.length === 0) {
-                    const placeholder = document.createElement('div');
-                    placeholder.classList.add('element-placeholder');
-                    placeholder.textContent = 'Drag components here to start building';
-                    dropZone.appendChild(placeholder);
-                }
-            }
-            
-            // Update code areas (simplified for demo)
-            function updateCode() {
-                // In a real implementation, this would generate actual code
-                const htmlCode = `<!-- Generated HTML code based on your design -->\n<div class="container">\n  <header>Your content here</header>\n</div>`;
-                const cssCode = `/* Generated CSS code based on your design */\nbody {\n  margin: 0;\n  padding: 0;\n}`;
-                const jsCode = `// Generated JavaScript code based on your design\ndocument.addEventListener('DOMContentLoaded', function() {\n  // Your code here\n});`;
-                
-                document.querySelector('#html-container .code-area').value = htmlCode;
-                document.querySelector('#css-container .code-area').value = cssCode;
-                document.querySelector('#js-container .code-area').value = jsCode;
-            }
-            
-            // Initial code update
-            updateCode();
-        });
-    </script>
+  <script>
+    let canvas = document.getElementById("canvas");
+    let inspector = document.getElementById("inspector-content");
+    let selectedElement = null;
+    let history = [];
+    let historyIndex = -1;
+    let zoomLevel = 1;
+    let viewMode = false;
+
+    // === Drag & Drop ===
+    function allowDrop(ev) { ev.preventDefault(); }
+    document.querySelectorAll(".element").forEach(el => {
+      el.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("type", e.target.dataset.type);
+      });
+    });
+    function drop(ev) {
+      ev.preventDefault();
+      let type = ev.dataTransfer.getData("type");
+      let newEl = createElement(type);
+      canvas.appendChild(newEl);
+      saveHistory();
+      updateCode();
+    }
+
+    function createElement(type) {
+      let el = document.createElement("div");
+      el.classList.add("draggable");
+      el.onclick = () => selectElement(el);
+
+      switch(type) {
+        case "navbar": el.innerHTML = "<nav>Navbar</nav>"; break;
+        case "footer": el.innerHTML = "<footer>Footer</footer>"; break;
+        case "text": el.innerHTML = "<p>Editable text</p>"; break;
+        case "button": el.innerHTML = "<button>Click Me</button>"; break;
+        case "image": el.innerHTML = '<img src="https://via.placeholder.com/150" alt="Image">'; break;
+        case "icon": el.innerHTML = "★"; break;
+        case "card":
+          el.innerHTML = `
+            <div style="padding:10px; border:1px solid #666; border-radius:6px; background:#444;">
+              <img src="https://via.placeholder.com/150" style="max-width:100%; border-radius:6px;">
+              <h3>Card Title</h3>
+              <p>Card description text.</p>
+              <button>Read More</button>
+            </div>`;
+          break;
+        case "form":
+          el.innerHTML = `
+            <form>
+              <input type="text" placeholder="Your name" style="width:100%; margin-bottom:5px;">
+              <textarea placeholder="Your message" style="width:100%; margin-bottom:5px;"></textarea>
+              <button type="submit">Submit</button>
+            </form>`;
+          break;
+        case "grid":
+          el.innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div style="background:#444; padding:10px;">Grid Item 1</div>
+              <div style="background:#555; padding:10px;">Grid Item 2</div>
+            </div>`;
+          break;
+      }
+      return el;
+    }
+
+    // === Inspector ===
+    function selectElement(el) {
+      selectedElement = el;
+      inspector.innerHTML = `
+        <label>Content</label>
+        <input type="text" value="${el.innerText}" onchange="updateContent(this.value)">
+        <label>Background</label>
+        <input type="color" onchange="updateBackground(this.value)">
+        <label>Text Color</label>
+        <input type="color" onchange="updateTextColor(this.value)">
+        <label>Font Size (px)</label>
+        <input type="number" value="14" onchange="updateFontSize(this.value)">
+        <label>Padding (px)</label>
+        <input type="number" value="10" onchange="updatePadding(this.value)">
+        <label>Border Width (px)</label>
+        <input type="number" value="1" onchange="updateBorderWidth(this.value)">
+        <label>Border Style</label>
+        <select onchange="updateBorderStyle(this.value)">
+          <option value="solid">Solid</option>
+          <option value="dashed">Dashed</option>
+          <option value="dotted">Dotted</option>
+          <option value="none">None</option>
+        </select>
+        <label>Border Color</label>
+        <input type="color" onchange="updateBorderColor(this.value)">
+        <label>Border Radius (px)</label>
+        <input type="number" value="6" onchange="updateBorderRadius(this.value)">
+      `;
+    }
+
+    function updateContent(val) { if (selectedElement) { selectedElement.innerText = val; saveHistory(); updateCode(); } }
+    function updateBackground(val) { if (selectedElement) { selectedElement.style.background = val; saveHistory(); updateCode(); } }
+    function updateTextColor(val) { if (selectedElement) { selectedElement.style.color = val; saveHistory(); updateCode(); } }
+    function updateFontSize(val) { if (selectedElement) { selectedElement.style.fontSize = val + "px"; saveHistory(); updateCode(); } }
+    function updatePadding(val) { if (selectedElement) { selectedElement.style.padding = val + "px"; saveHistory(); updateCode(); } }
+    function updateBorderWidth(val) { if (selectedElement) { selectedElement.style.borderWidth = val + "px"; saveHistory(); updateCode(); } }
+    function updateBorderStyle(val) { if (selectedElement) { selectedElement.style.borderStyle = val; saveHistory(); updateCode(); } }
+    function updateBorderColor(val) { if (selectedElement) { selectedElement.style.borderColor = val; saveHistory(); updateCode(); } }
+    function updateBorderRadius(val) { if (selectedElement) { selectedElement.style.borderRadius = val + "px"; saveHistory(); updateCode(); } }
+
+    // === Undo/Redo ===
+    function saveHistory() {
+      history = history.slice(0, historyIndex + 1);
+      history.push(canvas.innerHTML);
+      historyIndex++;
+    }
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        canvas.innerHTML = history[historyIndex];
+        resetSelection();
+        updateCode();
+      }
+    }
+    function redo() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        canvas.innerHTML = history[historyIndex];
+        resetSelection();
+        updateCode();
+      }
+    }
+    function resetSelection() {
+      selectedElement = null;
+      inspector.innerHTML = "Select an element to edit";
+    }
+
+    // === Zoom ===
+    function zoomIn() { zoomLevel += 0.1; canvas.style.transform = `scale(${zoomLevel})`; }
+    function zoomOut() { zoomLevel = Math.max(0.5, zoomLevel - 0.1); canvas.style.transform = `scale(${zoomLevel})`; }
+
+    // === Device Preview ===
+    function setDevice(device) {
+      canvas.style.width = device === "desktop" ? "100%" : device === "tablet" ? "768px" : "375px";
+      canvas.style.margin = "0 auto";
+    }
+
+    // === View Mode ===
+    function toggleViewMode() {
+      viewMode = !viewMode;
+      canvas.querySelectorAll(".draggable").forEach(el => {
+        el.style.pointerEvents = viewMode ? "auto" : "all";
+      });
+      canvas.style.border = viewMode ? "none" : "2px dashed #444";
+    }
+
+    // === Code Generation ===
+    function updateCode() {
+      document.getElementById("htmlCode").value = canvas.innerHTML;
+      document.getElementById("cssCode").value = "/* Custom styles will appear here */";
+      document.getElementById("jsCode").value = "// Custom scripts will appear here";
+    }
+    function copyCode(id) {
+      let ta = document.getElementById(id);
+      ta.select();
+      document.execCommand("copy");
+    }
+
+    // init
+    saveHistory();
+  </script>
 </body>
 </html>
