@@ -1,378 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Webpage Designer — Edit / View</title>
-  <style>
-    :root{
-      --bg:#0b0f16; --panel:#0f1720; --muted:#98a0aa; --accent:#7c5cff; --glass:rgba(255,255,255,0.04);
-      --success:#29d28f; --danger:#ff6b6b; --radius:10px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Segoe UI Mono";
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#e6eef6;background:linear-gradient(180deg,#061018 0%, #071829 100%);}
-
-    /* top toolbar */
-    .toolbar{height:64px;display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,255,255,0.03)}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-    .brand .logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#4fb1ff);display:flex;align-items:center;justify-content:center;color:#071329;font-weight:800}
-    .toolbar .controls{margin-left:auto;display:flex;align-items:center;gap:8px}
-    button,select,input{font:inherit}
-    .seg{display:inline-flex;background:var(--panel);border-radius:8px;padding:6px;border:1px solid rgba(255,255,255,0.03)}
-    .seg button{background:transparent;border:0;color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer}
-    .seg button.active{background:linear-gradient(90deg,rgba(124,92,255,0.18),rgba(79,177,255,0.08));color:white}
-
-    /* layout */
-    .app{display:grid;grid-template-columns:260px 1fr 320px;gap:14px;padding:16px;height:calc(100% - 64px)}
-    .panel{background:var(--panel);border-radius:var(--radius);padding:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(2,6,23,0.6)}
-
-    /* left palette */
-    .palette h3{margin:6px 0 12px;color:var(--muted);font-size:13px}
-    .palette .items{display:flex;flex-direction:column;gap:8px}
-    .draggable{background:var(--glass);padding:10px;border-radius:8px;cursor:pointer;border:1px dashed rgba(255,255,255,0.02)}
-
-    /* center workspace */
-    .workspace{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:flex-start}
-    .viewport-controls{display:flex;gap:8px;align-items:center}
-    .canvas-wrap{width:100%;display:flex;align-items:center;justify-content:center}
-    .device{background:#fff;border-radius:12px;overflow:auto;border:4px solid rgba(0,0,0,0.05);box-shadow:0 8px 20px rgba(2,6,23,0.6);transition:width 200ms, height 200ms;}
-    .device .page{min-height:400px;padding:24px;background:white;color:#071329}
-
-    /* small devices */
-    .device.phone{width:380px;height:760px}
-    .device.tablet{width:820px;height:980px}
-    .device.laptop{width:1100px;height:760px}
-
-    /* editing outline */
-    .page [data-selected]{outline:3px solid rgba(124,92,255,0.24);outline-offset:4px}
-
-    /* properties panel */
-    .props h3{margin:6px 0;color:var(--muted);font-size:13px}
-    .prop-row{display:flex;gap:8px;align-items:center;margin:8px 0}
-    .prop-row label{width:90px;color:var(--muted);font-size:13px}
-    .prop-row input,.prop-row select,.prop-row textarea{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#dbe9ff}
-
-    /* code areas */
-    .code-boxes{display:flex;gap:8px;margin-top:10px}
-    .code-box{flex:1;display:flex;flex-direction:column}
-    .code-box textarea{min-height:160px;background:#071026;color:#dbe9ff;border-radius:8px;padding:10px;border:1px solid rgba(255,255,255,0.03);resize:vertical;font-family:var(--mono);font-size:12px}
-    .code-actions{display:flex;gap:6px;align-items:center;margin-top:6px}
-    .copy-btn{background:linear-gradient(90deg,var(--accent),#4fb1ff);border:0;padding:8px 10px;border-radius:8px;color:white;cursor:pointer}
-
-    /* utility */
-    .muted{color:var(--muted);font-size:13px}
-    .small{font-size:12px;color:var(--muted)}
-
-    /* view mode */
-    .view-mode .app{grid-template-columns:0 1fr 0}
-    .hidden{display:none}
-
-    /* responsive for small screens */
-    @media (max-width:980px){.app{grid-template-columns:1fr;grid-auto-rows:auto}} 
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Design Tool</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <div class="toolbar">
-    <div class="brand"><div class="logo">WD</div><div style="line-height:1"><div style="font-size:14px">Webpage Designer</div><div class="small">Edit & View — Dark</div></div></div>
-    <div class="controls">
-      <div class="seg" role="tablist">
-        <button id="modeEdit" class="active">Edit</button>
-        <button id="modeView">View</button>
-      </div>
-      <div class="seg" style="margin-left:8px">
-        <button data-device="phone">📱</button>
-        <button data-device="tablet">� tablet</button>
-        <button data-device="laptop" class="active">💻</button>
-      </div>
-      <button id="previewBtn" style="margin-left:8px" class="seg">Live Preview</button>
-    </div>
-  </div>
 
-  <div class="app" id="appRoot">
-    <aside class="panel palette">
-      <h3>Elements</h3>
-      <div class="items">
-        <div class="draggable" data-type="nav">Navbar</div>
-        <div class="draggable" data-type="hero">Hero (heading + CTA)</div>
-        <div class="draggable" data-type="section">Section</div>
-        <div class="draggable" data-type="card">Card</div>
-        <div class="draggable" data-type="button">Button</div>
-        <div class="draggable" data-type="form">Form</div>
-        <div class="draggable" data-type="modal">Modal</div>
-        <div class="draggable" data-type="footer">Footer</div>
-        <div class="draggable" data-type="image">Image</div>
-        <div class="draggable" data-type="list">List</div>
-        <div class="draggable" data-type="toggle">Toggle</div>
-      </div>
-      <hr style="margin:12px 0;border:0;border-top:1px solid rgba(255,255,255,0.02)">
-      <div class="small muted">Tip: click an element inside the page to select it and edit properties.</div>
-    </aside>
-
-    <main class="workspace">
-      <div class="viewport-controls">
-        <div class="muted">Device:</div>
-        <div class="seg" id="deviceSeg">
-          <button data-device="phone">Phone</button>
-          <button data-device="tablet">Tablet</button>
-          <button data-device="laptop" class="active">Laptop</button>
+    <header>
+        <h1>Web Design Tool</h1>
+        <div class="mode-toggles">
+            <button id="editModeBtn" class="active">Edit Mode</button>
+            <button id="viewModeBtn">View Mode</button>
         </div>
-        <div style="width:8px"></div>
-        <button id="clearBtn" class="seg">Clear Page</button>
-      </div>
+    </header>
 
-      <div class="canvas-wrap">
-        <div id="device" class="device laptop panel">
-          <div id="page" class="page" contenteditable="false" spellcheck="false" style="background:linear-gradient(180deg,#ffffff,#fbfdff);">
-            <!-- default page structure -->
-            <header style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;margin-bottom:18px">
-              <div style="font-weight:700">Brand</div>
-              <nav style="display:flex;gap:12px"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a></nav>
-            </header>
-            <main>
-              <section style="padding:24px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f7fbff);box-shadow:0 6px 18px rgba(12,20,30,0.04)">
-                <h1>Welcome — Edit me!</h1>
-                <p class="muted">Use the left panel to add elements. Select an element to edit properties on the right.</p>
-                <button data-generated="true">Call to action</button>
-              </section>
-            </main>
-          </div>
-        </div>
-      </div>
+    <main id="main-container">
+        <aside id="elements-panel" class="panel">
+            <h2>Elements</h2>
+            <div id="elements-list">
+                <div class="draggable-element" data-type="button">
+                    <span class="material-icons">smart_button</span>
+                    <p>Button</p>
+                </div>
+                <div class="draggable-element" data-type="nav">
+                    <span class="material-icons">navigation</span>
+                    <p>Navbar</p>
+                </div>
+                <div class="draggable-element" data-type="toggle">
+                    <span class="material-icons">toggle_on</span>
+                    <p>Toggle</p>
+                </div>
+                <div class="draggable-element" data-type="modal">
+                    <span class="material-icons">picture_in_picture_alt</span>
+                    <p>Modal</p>
+                </div>
+                <div class="draggable-element" data-type="card">
+                    <span class="material-icons">credit_card</span>
+                    <p>Card</p>
+                </div>
+                <div class="draggable-element" data-type="form">
+                    <span class="material-icons">description</span>
+                    <p>Form</p>
+                </div>
+                <div class="draggable-element" data-type="image-container">
+                    <span class="material-icons">image</span>
+                    <p>Image Container</p>
+                </div>
+                <div class="draggable-element" data-type="carousel">
+                    <span class="material-icons">view_carousel</span>
+                    <p>Carousel</p>
+                </div>
+                <div class="draggable-element" data-type="footer">
+                    <span class="material-icons">vertical_align_bottom</span>
+                    <p>Footer</p>
+                </div>
+                <div class="draggable-element" data-type="accordion">
+                    <span class="material-icons">list_alt</span>
+                    <p>Accordion</p>
+                </div>
+                <div class="draggable-element" data-type="social-icons">
+                    <span class="material-icons">share</span>
+                    <p>Social Icons</p>
+                </div>
+                <div class="draggable-element" data-type="grid">
+                    <span class="material-icons">grid_on</span>
+                    <p>Grid Container</p>
+                </div>
+                <div class="draggable-element" data-type="flex">
+                    <span class="material-icons">layers</span>
+                    <p>Flex Container</p>
+                </div>
+            </div>
+        </aside>
 
-      <div style="width:100%">
-        <div class="code-boxes">
-          <div class="code-box panel">
-            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">HTML</div><div class="code-actions"><button id="copyHtml" class="copy-btn">Copy</button></div></div>
-            <textarea id="htmlCode" readonly></textarea>
-          </div>
-          <div class="code-box panel">
-            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">CSS</div><div class="code-actions"><button id="copyCss" class="copy-btn">Copy</button></div></div>
-            <textarea id="cssCode" readonly></textarea>
-          </div>
-          <div class="code-box panel">
-            <div style="display:flex;justify-content:space-between;align-items:center"><div class="small muted">JS</div><div class="code-actions"><button id="copyJs" class="copy-btn">Copy</button></div></div>
-            <textarea id="jsCode" readonly></textarea>
-          </div>
-        </div>
-      </div>
+        <section id="work-space-container">
+            <div id="device-toggles">
+                <button id="phone-btn" class="active" data-size="375px">
+                    <span class="material-icons">phone_android</span>
+                </button>
+                <button id="tablet-btn" data-size="768px">
+                    <span class="material-icons">tablet_mac</span>
+                </button>
+                <button id="laptop-btn" data-size="1280px">
+                    <span class="material-icons">laptop_mac</span>
+                </button>
+            </div>
+            <div id="work-space">
+                <div id="page-div">
+                    </div>
+            </div>
+        </section>
+
+        <aside id="edit-panel" class="panel">
+            <h2>Edit Properties</h2>
+            <div id="edit-properties-content">
+                <p class="placeholder-text">Select an element to edit its properties.</p>
+            </div>
+        </aside>
     </main>
 
-    <aside class="panel props">
-      <h3>Properties</h3>
-      <div id="noSelection" class="small muted">No element selected — click inside the page to select an element.</div>
-      <div id="propEditor" class="hidden">
-        <div class="prop-row"><label>Tag</label><input id="propTag" readonly></div>
-        <div class="prop-row"><label>Text</label><input id="propText"></div>
-        <div class="prop-row"><label>Href</label><input id="propHref" placeholder="/path or https://" /></div>
-        <div class="prop-row"><label>Font size</label><input id="propFontSize" type="number" min="8" max="96"></div>
-        <div class="prop-row"><label>BG color</label><input id="propBg" type="color"></div>
-        <div class="prop-row"><label>Text color</label><input id="propColor" type="color"></div>
-        <div class="prop-row"><label>Classes</label><input id="propClass" placeholder="space-separated" /></div>
-        <div class="prop-row"><label>Custom CSS</label><textarea id="propCss" placeholder="e.g. padding:12px;"></textarea></div>
-        <div style="display:flex;gap:8px;margin-top:10px"><button id="applyProps" class="copy-btn">Apply</button><button id="deleteElem" class="copy-btn" style="background:var(--danger)">Delete</button></div>
-      </div>
+    <section id="code-container">
+        <h2>Generated Code</h2>
+        <div class="code-block">
+            <h3>HTML</h3>
+            <textarea id="html-code" readonly></textarea>
+            <button class="copy-btn" data-target="html-code">Copy</button>
+        </div>
+        <div class="code-block">
+            <h3>CSS</h3>
+            <textarea id="css-code" readonly></textarea>
+            <button class="copy-btn" data-target="css-code">Copy</button>
+        </div>
+        <div class="code-block">
+            <h3>JavaScript</h3>
+            <textarea id="js-code" readonly></textarea>
+            <button class="copy-btn" data-target="js-code">Copy</button>
+        </div>
+    </section>
 
-      <hr style="margin:12px 0;border:0;border-top:1px solid rgba(255,255,255,0.02)">
-      <div class="small muted">Preview controls</div>
-      <div style="margin-top:6px"><label class="small muted">Background</label><input id="pageBg" type="color" value="#ffffff" style="width:100%;margin-top:6px"></div>
-    </aside>
-  </div>
+    <div id="view-mode-container">
+        <div id="view-mode-content">
+            </div>
+    </div>
 
-  <script>
-    // --- Core state ---
-    const appRoot = document.getElementById('appRoot');
-    const deviceEl = document.getElementById('device');
-    const page = document.getElementById('page');
-    const modeEdit = document.getElementById('modeEdit');
-    const modeView = document.getElementById('modeView');
-    const deviceSeg = document.getElementById('deviceSeg');
-    const propEditor = document.getElementById('propEditor');
-    const noSel = document.getElementById('noSelection');
-    const pageBg = document.getElementById('pageBg');
-
-    let selected = null;
-
-    // helper: sanitize attribute set for exported HTML
-    function serializeHTML(){
-      // clone page and remove UI helpers
-      const clone = page.cloneNode(true);
-      // remove data-generated attributes etc
-      clone.querySelectorAll('[data-generated]').forEach(n=>n.removeAttribute('data-generated'));
-      // return inner html wrapped
-      return '<div id="page-root">'+clone.innerHTML+'</div>';
-    }
-
-    function generateCSS(){
-      // For simplicity return a small base CSS + any custom styles stored on elements via data-custom-css
-      let css = `body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;padding:0;color:#071329}#page-root{padding:24px;background:${pageBg.value}}\n`;
-      // collect custom css
-      page.querySelectorAll('[data-custom-css]').forEach((el,i)=>{
-        const uid = el.getAttribute('data-uid') || ('gen'+i);
-        css += `/* styles for ${el.tagName.toLowerCase()} (uid:${uid}) */\n`;
-        css += `#page-root [data-uid="${uid}"]{${el.getAttribute('data-custom-css')}}\n`;
-      });
-      return css;
-    }
-    function generateJS(){
-      // simple hooks: collect elements that have data-action attributes
-      let js = `// Simple interactivity hooks\ndocument.addEventListener('DOMContentLoaded',function(){\n`;
-      page.querySelectorAll('[data-action]').forEach((el)=>{
-        const action = el.getAttribute('data-action');
-        const uid = el.getAttribute('data-uid');
-        if(action==='openModal'){
-          const target = el.getAttribute('data-target');
-          js += `  document.querySelector('[data-uid="${uid}"]').addEventListener('click',function(){document.querySelector('${target}').style.display='block'});\n`;
-        }
-      });
-      js += '});\n';
-      return js;
-    }
-
-    function refreshCode(){
-      document.getElementById('htmlCode').value = serializeHTML();
-      document.getElementById('cssCode').value = generateCSS();
-      document.getElementById('jsCode').value = generateJS();
-    }
-
-    // set device width
-    deviceSeg.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
-      deviceSeg.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-      const d = b.getAttribute('data-device');
-      deviceEl.classList.remove('phone','tablet','laptop');
-      deviceEl.classList.add(d);
-    }));
-
-    // mode toggle
-    modeEdit.addEventListener('click',()=>{modeEdit.classList.add('active');modeView.classList.remove('active');appRoot.classList.remove('view-mode');});
-    modeView.addEventListener('click',()=>{modeView.classList.add('active');modeEdit.classList.remove('active');appRoot.classList.add('view-mode');});
-
-    // palette actions -> append element
-    document.querySelectorAll('.draggable').forEach(el=>el.addEventListener('click',()=>{
-      const type = el.getAttribute('data-type');
-      addElement(type);
-    }));
-
-    function uid(){return 'u'+Math.random().toString(36).slice(2,9)}
-
-    function addElement(type){
-      let el;
-      if(type==='nav'){
-        el = document.createElement('nav');
-        el.innerHTML = `<strong>Brand</strong><span style=\"margin-left:12px\"><a href=\"#\">Home</a> <a href=\"#\">About</a></span>`;
-      }else if(type==='hero'){
-        el = document.createElement('section');
-        el.innerHTML = `<h2>Hero title</h2><p class=\"muted\">Short description</p><button data-generated=\"true\">Get started</button>`;
-      }else if(type==='section'){
-        el = document.createElement('section'); el.innerHTML = `<h3>Section</h3><p>Some text here</p>`;
-      }else if(type==='card'){
-        el = document.createElement('div'); el.innerHTML = `<h4>Card</h4><p>Card body</p><button>Action</button>`; el.style.border='1px solid rgba(0,0,0,0.06)'; el.style.padding='12px'; el.style.borderRadius='8px';
-      }else if(type==='button'){
-        el = document.createElement('button'); el.textContent='Click me';
-      }else if(type==='form'){
-        el = document.createElement('form'); el.innerHTML=`<input placeholder=\"Name\"/><input placeholder=\"Email\"/><button>Submit</button>`; el.addEventListener('submit',(e)=>e.preventDefault());
-      }else if(type==='modal'){
-        el = document.createElement('div'); el.innerHTML=`<div class=\"modal-inner\"><h3>Modal Title</h3><p>Modal content</p><button data-action=\"closeModal\">Close</button></div>`; el.style.display='none'; el.style.position='fixed'; el.style.left='20%'; el.style.top='20%'; el.style.background='white'; el.style.padding='18px'; el.style.zIndex=999;
-      }else if(type==='footer'){
-        el = document.createElement('footer'); el.innerHTML=`<small>© ${new Date().getFullYear()} Brand</small>`;
-      }else if(type==='image'){
-        el = document.createElement('img'); el.src='https://via.placeholder.com/600x300?text=Image'; el.style.maxWidth='100%';
-      }else if(type==='list'){
-        el = document.createElement('ul'); el.innerHTML='<li>Item 1</li><li>Item 2</li>';
-      }else if(type==='toggle'){
-        el = document.createElement('label'); el.innerHTML=`<input type=\"checkbox\" /> Toggle`;
-      }else{
-        el = document.createElement('div'); el.textContent='Element';
-      }
-      const id = uid();
-      el.setAttribute('data-uid',id);
-      el.setAttribute('tabindex',0);
-      el.addEventListener('click',elSelect);
-      // mark as generated for cleanup
-      el.setAttribute('data-generated','true');
-      page.appendChild(el);
-      refreshCode();
-    }
-
-    // clear page
-    document.getElementById('clearBtn').addEventListener('click',()=>{
-      if(confirm('Clear the page content and reset to blank?')){ page.innerHTML=''; refreshCode(); }
-    })
-
-    // selection
-    function elSelect(e){
-      e.stopPropagation();
-      if(selected) selected.removeAttribute('data-selected');
-      selected = e.currentTarget;
-      selected.setAttribute('data-selected','true');
-      showProps(selected);
-    }
-    page.addEventListener('click',()=>{ if(selected){selected.removeAttribute('data-selected'); selected=null; hideProps()} });
-
-    function showProps(el){
-      noSel.classList.add('hidden'); propEditor.classList.remove('hidden');
-      document.getElementById('propTag').value = el.tagName.toLowerCase();
-      document.getElementById('propText').value = el.innerText || '';
-      document.getElementById('propHref').value = el.getAttribute('href')||'';
-      document.getElementById('propFontSize').value = parseInt(window.getComputedStyle(el).fontSize) || '';
-      document.getElementById('propBg').value = rgbToHex(window.getComputedStyle(el).backgroundColor) || '#ffffff';
-      document.getElementById('propColor').value = rgbToHex(window.getComputedStyle(el).color) || '#000000';
-      document.getElementById('propClass').value = el.className || '';
-      document.getElementById('propCss').value = el.getAttribute('data-custom-css') || '';
-    }
-    function hideProps(){ noSel.classList.remove('hidden'); propEditor.classList.add('hidden'); }
-
-    // apply properties
-    document.getElementById('applyProps').addEventListener('click',()=>{
-      if(!selected) return;
-      const txt = document.getElementById('propText').value;
-      const href = document.getElementById('propHref').value;
-      const fs = document.getElementById('propFontSize').value;
-      const bg = document.getElementById('propBg').value;
-      const color = document.getElementById('propColor').value;
-      const classes = document.getElementById('propClass').value;
-      const custom = document.getElementById('propCss').value;
-      // apply
-      if('href' in selected) selected.setAttribute('href',href);
-      selected.innerText = txt;
-      if(fs) selected.style.fontSize = fs+'px';
-      selected.style.background = bg;
-      selected.style.color = color;
-      selected.className = classes;
-      if(custom){ selected.setAttribute('data-custom-css',custom); } else { selected.removeAttribute('data-custom-css') }
-      refreshCode();
-    });
-
-    // delete
-    document.getElementById('deleteElem').addEventListener('click',()=>{
-      if(!selected) return; selected.remove(); selected=null; hideProps(); refreshCode();
-    });
-
-    // page background
-    pageBg.addEventListener('input',()=>{ page.style.background=pageBg.value; refreshCode(); });
-
-    // copy actions
-    function copyText(id){ const t=document.getElementById(id); t.select(); document.execCommand('copy'); }
-    document.getElementById('copyHtml').addEventListener('click',()=>copyText('htmlCode'));
-    document.getElementById('copyCss').addEventListener('click',()=>copyText('cssCode'));
-    document.getElementById('copyJs').addEventListener('click',()=>copyText('jsCode'));
-
-    // utilities
-    function componentToHex(c) { const hex = c.toString(16); return hex.length==1 ? '0'+hex : hex; }
-    function rgbToHex(rgb){ if(!rgb) return '#ffffff'; const m = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); if(!m) return '#ffffff'; return '#'+componentToHex(parseInt(m[1]))+componentToHex(parseInt(m[2]))+componentToHex(parseInt(m[3])); }
-
-    // initial refresh
-    refreshCode();
-
-    // prevent selection blur when editing inputs
-    document.querySelectorAll('input,textarea,button').forEach(i=>i.addEventListener('click',(e)=>e.stopPropagation()));
-
-    // live preview button toggles view mode
-    document.getElementById('previewBtn').addEventListener('click',()=>{ modeView.click(); });
-
-    // when JS changes: keep code updated
-    const obs = new MutationObserver((m)=>refreshCode());
-    obs.observe(page,{childList:true,subtree:true,attributes:true,characterData:true});
-  </script>
+    <script src="script.js"></script>
 </body>
 </html>
