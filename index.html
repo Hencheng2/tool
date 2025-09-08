@@ -75,17 +75,14 @@
             transform: translateY(-2px);
         }
 
-        #elements-list {
+        #elements-list-container {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 12px;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 0.5rem;
-            -webkit-overflow-scrolling: touch;
+            gap: 10px;
         }
 
-        .selectable-element {
+        .category-btn {
             background-color: #374151;
             border: 1px solid #4b5563;
             padding: 8px 12px;
@@ -98,16 +95,58 @@
             gap: 0.5rem;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: var(--secondary-text-color);
+            font-size: 0.875rem;
         }
         
-        .selectable-element p {
-            font-size: 0.875rem;
-            color: var(--secondary-text-color);
-        }
-
-        .selectable-element:hover {
+        .category-btn:hover {
             background-color: #4b5563;
             transform: translateY(-2px);
+        }
+
+        .category-btn.active {
+            background-color: var(--accent-color);
+            color: #fff;
+            border-color: var(--accent-color);
+        }
+        
+        #element-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            background-color: var(--dark-panel);
+            border: 1px solid var(--dark-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: none; /* Hidden by default */
+            transform: translateY(10px);
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            min-width: 200px;
+        }
+        
+        #element-dropdown.visible {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #element-dropdown .selectable-element {
+            display: block;
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            text-align: left;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+
+        #element-dropdown .selectable-element:hover {
+            background-color: #374151;
         }
 
         #main-container {
@@ -202,7 +241,7 @@
             padding: 1.5rem;
             overflow-y: auto;
             width: 250px;
-            display: none; /* Initially hidden */
+            display: none;
             flex-direction: column;
             gap: 1rem;
             border-radius: 0.5rem;
@@ -326,83 +365,28 @@
     <header>
         <h1>Web Design Tool</h1>
         <div class="header-section">
-            <div id="elements-list">
-                <div class="selectable-element" data-type="button">
+            <div id="elements-list-container">
+                <button class="category-btn" data-category="buttons">
                     <i class="ph-bold ph-hand-tap"></i>
-                    <p>Button</p>
-                </div>
-                <div class="selectable-element" data-type="div">
-                    <i class="ph-bold ph-square"></i>
-                    <p>Div</p>
-                </div>
-                <div class="selectable-element" data-type="h1">
-                    <i class="ph-bold ph-text-h-one"></i>
-                    <p>H1</p>
-                </div>
-                <div class="selectable-element" data-type="h2">
-                    <i class="ph-bold ph-text-h-two"></i>
-                    <p>H2</p>
-                </div>
-                <div class="selectable-element" data-type="p">
+                    <p>Buttons</p>
+                </button>
+                <button class="category-btn" data-category="typography">
                     <i class="ph-bold ph-text-align-left"></i>
-                    <p>Para</p>
-                </div>
-                <div class="selectable-element" data-type="a">
-                    <i class="ph-bold ph-link"></i>
-                    <p>Link</p>
-                </div>
-                <div class="selectable-element" data-type="input">
-                    <i class="ph-bold ph-text-input"></i>
-                    <p>Input</p>
-                </div>
-                <div class="selectable-element" data-type="nav">
-                    <i class="ph-bold ph-list-dashes"></i>
-                    <p>Navbar</p>
-                </div>
-                <div class="selectable-element" data-type="toggle">
-                    <i class="ph-bold ph-toggle-left"></i>
-                    <p>Toggle</p>
-                </div>
-                <div class="selectable-element" data-type="modal">
-                    <i class="ph-bold ph-picture-in-picture"></i>
-                    <p>Modal</p>
-                </div>
-                <div class="selectable-element" data-type="card">
-                    <i class="ph-bold ph-credit-card"></i>
-                    <p>Card</p>
-                </div>
-                <div class="selectable-element" data-type="form">
-                    <i class="ph-bold ph-notebook"></i>
-                    <p>Form</p>
-                </div>
-                <div class="selectable-element" data-type="image-container">
-                    <i class="ph-bold ph-image"></i>
-                    <p>Image</p>
-                </div>
-                <div class="selectable-element" data-type="carousel">
-                    <i class="ph-bold ph-git-pull-request"></i>
-                    <p>Carousel</p>
-                </div>
-                <div class="selectable-element" data-type="footer">
-                    <i class="ph-bold ph-text-align-bottom"></i>
-                    <p>Footer</p>
-                </div>
-                <div class="selectable-element" data-type="accordion">
-                    <i class="ph-bold ph-list-plus"></i>
-                    <p>Accordion</p>
-                </div>
-                <div class="selectable-element" data-type="social-icons">
-                    <i class="ph-bold ph-share-network"></i>
-                    <p>Social</p>
-                </div>
-                <div class="selectable-element" data-type="grid">
-                    <i class="ph-bold ph-squares-four"></i>
-                    <p>Grid</p>
-                </div>
-                <div class="selectable-element" data-type="flex">
+                    <p>Typography</p>
+                </button>
+                <button class="category-btn" data-category="layout">
                     <i class="ph-bold ph-layout"></i>
-                    <p>Flex</p>
-                </div>
+                    <p>Layout</p>
+                </button>
+                <button class="category-btn" data-category="media">
+                    <i class="ph-bold ph-image"></i>
+                    <p>Media</p>
+                </button>
+                <button class="category-btn" data-category="components">
+                    <i class="ph-bold ph-bounding-box"></i>
+                    <p>Components</p>
+                </button>
+                <div id="element-dropdown"></div>
             </div>
             <div class="mode-toggles">
                 <button id="editModeBtn" class="active">Edit Mode</button>
@@ -473,7 +457,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const pageDiv = document.getElementById('page-div');
-            const elementsList = document.getElementById('elements-list');
+            const elementsListContainer = document.getElementById('elements-list-container');
+            const elementDropdown = document.getElementById('element-dropdown');
             const editPanel = document.getElementById('edit-panel');
             const editPanelContent = document.getElementById('edit-properties-content');
             const deviceToggles = document.getElementById('device-toggles');
@@ -493,6 +478,41 @@
             let isDragging = false;
             let dragOffset = { x: 0, y: 0 };
             let pageRect = pageDiv.getBoundingClientRect();
+
+            const elementCatalog = {
+                buttons: [
+                    { name: 'Primary Button', type: 'button', subtype: 'primary' },
+                    { name: 'Outline Button', type: 'button', subtype: 'outline' },
+                    { name: 'Secondary Button', type: 'button', subtype: 'secondary' },
+                    { name: 'Ghost Button', type: 'button', subtype: 'ghost' },
+                ],
+                typography: [
+                    { name: 'Heading 1', type: 'h1', subtype: null },
+                    { name: 'Heading 2', type: 'h2', subtype: null },
+                    { name: 'Paragraph', type: 'p', subtype: null },
+                    { name: 'Link', type: 'a', subtype: null },
+                ],
+                layout: [
+                    { name: 'Div', type: 'div', subtype: null },
+                    { name: 'Navbar', type: 'nav', subtype: null },
+                    { name: 'Footer', type: 'footer', subtype: null },
+                    { name: 'Grid', type: 'grid', subtype: null },
+                    { name: 'Flex', type: 'flex', subtype: null },
+                ],
+                media: [
+                    { name: 'Image', type: 'image-container', subtype: null },
+                    { name: 'Carousel', type: 'carousel', subtype: null },
+                ],
+                components: [
+                    { name: 'Input', type: 'input', subtype: null },
+                    { name: 'Toggle', type: 'toggle', subtype: null },
+                    { name: 'Modal', type: 'modal', subtype: null },
+                    { name: 'Card', type: 'card', subtype: null },
+                    { name: 'Form', type: 'form', subtype: null },
+                    { name: 'Accordion', type: 'accordion', subtype: null },
+                    { name: 'Social Icons', type: 'social-icons', subtype: null },
+                ]
+            };
 
             // Mode Switching
             function switchToEditMode() {
@@ -523,14 +543,70 @@
             }
 
             // Element Selection and Adding
-            elementsList.querySelectorAll('.selectable-element').forEach(element => {
-                element.addEventListener('click', () => {
-                    const elementType = element.dataset.type;
-                    const newElement = createElement(elementType);
+            elementsListContainer.querySelectorAll('.category-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const category = e.currentTarget.dataset.category;
+                    toggleElementDropdown(category, e.currentTarget);
+                });
+            });
+
+            elementDropdown.addEventListener('click', (e) => {
+                const target = e.target.closest('.selectable-element');
+                if (target) {
+                    const elementType = target.dataset.type;
+                    const elementSubtype = target.dataset.subtype;
+                    const newElement = createElement(elementType, elementSubtype);
                     pageDiv.appendChild(newElement);
                     selectElement(newElement);
                     updateCode();
+                    hideElementDropdown();
+                }
+            });
+
+            function toggleElementDropdown(category, button) {
+                if (elementDropdown.classList.contains('visible') && elementDropdown.dataset.currentCategory === category) {
+                    hideElementDropdown();
+                } else {
+                    showElementDropdown(category, button);
+                }
+            }
+
+            function showElementDropdown(category, button) {
+                elementDropdown.innerHTML = '';
+                elementDropdown.dataset.currentCategory = category;
+
+                const elements = elementCatalog[category];
+                elements.forEach(el => {
+                    const elementItem = document.createElement('div');
+                    elementItem.classList.add('selectable-element');
+                    elementItem.dataset.type = el.type;
+                    if (el.subtype) {
+                        elementItem.dataset.subtype = el.subtype;
+                    }
+                    elementItem.textContent = el.name;
+                    elementDropdown.appendChild(elementItem);
                 });
+
+                const buttonRect = button.getBoundingClientRect();
+                const containerRect = elementsListContainer.getBoundingClientRect();
+                elementDropdown.style.top = `${buttonRect.bottom - containerRect.top + 10}px`;
+                elementDropdown.style.left = `${buttonRect.left - containerRect.left}px`;
+
+                elementDropdown.classList.add('visible');
+            }
+            
+            function hideElementDropdown() {
+                elementDropdown.classList.remove('visible');
+                elementDropdown.dataset.currentCategory = '';
+            }
+
+            document.addEventListener('click', (e) => {
+                const isClickInsideDropdown = elementDropdown.contains(e.target);
+                const isClickOnCategoryButton = e.target.closest('.category-btn');
+                
+                if (!isClickInsideDropdown && !isClickOnCategoryButton) {
+                    hideElementDropdown();
+                }
             });
 
             // Handle element selection and deslection on document clicks
@@ -542,8 +618,8 @@
                     pageRect = pageDiv.getBoundingClientRect();
                     dragOffset.x = e.clientX - clickedElement.getBoundingClientRect().left;
                     dragOffset.y = e.clientY - clickedElement.getBoundingClientRect().top;
-                    e.stopPropagation(); // Prevents document from deselecting
-                } else if (!e.target.closest('#edit-panel') && !e.target.closest('#elements-list') && !isDragging) {
+                    e.stopPropagation();
+                } else if (!e.target.closest('#edit-panel') && !isDragging) {
                     deselectElement();
                 }
             });
@@ -558,7 +634,6 @@
                     let newLeft = e.clientX - pageRect.left - dragOffset.x;
                     let newTop = e.clientY - pageRect.top - dragOffset.y;
 
-                    // Ensure element stays within bounds
                     newLeft = Math.max(0, Math.min(newLeft, parentWidth - elementWidth));
                     newTop = Math.max(0, Math.min(newTop, parentHeight - elementHeight));
 
@@ -608,13 +683,34 @@
             }
 
             // Element Creation
-            function createElement(type) {
+            function createElement(type, subtype) {
                 let element;
                 switch (type) {
                     case 'button':
                         element = document.createElement('button');
-                        element.textContent = 'Button';
+                        element.textContent = 'Click Me';
                         element.dataset.url = '#';
+                        element.style.padding = '0.75rem 1.5rem';
+                        element.style.borderRadius = '0.5rem';
+                        element.style.fontWeight = 'bold';
+                        element.style.transition = 'background-color 0.2s, color 0.2s, border-color 0.2s';
+                        element.style.cursor = 'pointer';
+                        element.style.border = 'none';
+
+                        if (subtype === 'primary') {
+                            element.style.backgroundColor = '#3b82f6';
+                            element.style.color = '#fff';
+                        } else if (subtype === 'outline') {
+                            element.style.backgroundColor = 'transparent';
+                            element.style.border = '2px solid #3b82f6';
+                            element.style.color = '#3b82f6';
+                        } else if (subtype === 'secondary') {
+                            element.style.backgroundColor = '#6b7280';
+                            element.style.color = '#fff';
+                        } else if (subtype === 'ghost') {
+                            element.style.backgroundColor = 'transparent';
+                            element.style.color = '#1f2937';
+                        }
                         break;
                     case 'div':
                         element = document.createElement('div');
@@ -638,11 +734,16 @@
                         element = document.createElement('a');
                         element.textContent = 'Link';
                         element.href = '#';
+                        element.style.color = '#3b82f6';
+                        element.style.textDecoration = 'none';
                         break;
                     case 'input':
                         element = document.createElement('input');
                         element.type = 'text';
                         element.placeholder = 'Enter text...';
+                        element.style.padding = '0.5rem';
+                        element.style.border = '1px solid #ccc';
+                        element.style.borderRadius = '0.25rem';
                         break;
                     case 'nav':
                         element = document.createElement('nav');
@@ -799,7 +900,6 @@
                 
                 const elementType = element.tagName.toLowerCase();
                 
-                // Determine properties to show based on element type
                 const propsToShow = { ...propertyMap.common };
                 if (propertyMap[elementType]) {
                     Object.assign(propsToShow, propertyMap[elementType]);
