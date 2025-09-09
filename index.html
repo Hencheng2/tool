@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Webpage Designer</title>
+    <title>Webpage Designer - Fixed Dropdowns</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -150,15 +150,16 @@
             background-color: #353940;
         }
 
-        /* Elements Panel at Top */
+        /* Elements Panel at Top - FIXED DROPDOWN ISSUE */
         .elements-top-panel {
             background-color: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
             padding: 15px 20px;
-            overflow-x: auto;
+            overflow: visible; /* Changed from auto to visible */
             display: flex;
             gap: 15px;
-            z-index: 90;
+            z-index: 1000; /* Increased z-index */
+            position: relative;
         }
 
         .element-category {
@@ -188,7 +189,7 @@
             padding: 10px;
             min-width: 200px;
             display: none;
-            z-index: 100;
+            z-index: 2000; /* Very high z-index to ensure it appears above everything */
             box-shadow: 0 5px 15px var(--shadow);
         }
 
@@ -233,7 +234,7 @@
             position: relative;
         }
 
-        /* Workspace */
+        /* Workspace - FIXED to not block dropdowns */
         .workspace {
             flex: 1;
             display: flex;
@@ -243,6 +244,7 @@
             overflow: auto;
             background-color: var(--bg-primary);
             position: relative;
+            z-index: 1; /* Lower z-index than dropdown */
         }
 
         .canvas-container {
@@ -595,7 +597,7 @@
             </div>
         </header>
         
-        <!-- Elements Panel at Top -->
+        <!-- Elements Panel at Top - FIXED DROPDOWN VISIBILITY -->
         <div class="elements-top-panel">
             <div class="element-category">
                 <button class="category-btn">
