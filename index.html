@@ -1,292 +1,294 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Webpage Designer</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Webpage Designer — Dark</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .draggable { cursor: grab; }
-    .workspace { min-height: 400px; }
-    textarea { font-family: monospace; }
-    .selected { outline: 2px dashed #6366f1; }
+    :root{--accent:#7c3aed}
+    body{background:#0b1220;color:#e6eef8}
+    .draggable{cursor:grab}
+    .workspace{min-height:420px}
+    .selected{outline:2px dashed var(--accent);position:relative}
+    .drag-over{outline:2px dashed #22c55e}
+    .resize-handle{width:12px;height:12px;position:absolute;right:-6px;bottom:-6px;background:var(--accent);border-radius:2px;cursor:se-resize;z-index:50}
+    textarea{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Roboto Mono,monospace}
+    .panel-scroll{max-height:62vh;overflow:auto}
+    .btn{transition:all .12s}
   </style>
 </head>
-<body class="bg-gray-900 text-gray-200 h-screen flex flex-col">
+<body class="h-screen flex flex-col">
 
-  <!-- Header -->
-  <header id="appHeader" class="p-4 bg-gray-800 shadow flex justify-between items-center">
-    <h1 class="text-xl font-bold">⚡ Webpage Designer</h1>
-    <button id="togglePreview" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg">Switch to View Preview</button>
+  <header class="flex items-center justify-between p-4 bg-[#071026] border-b border-[#111827]">
+    <div class="flex items-center gap-3">
+      <h1 class="text-lg font-semibold">Webpage Designer</h1>
+      <span class="text-sm text-gray-400">dark workspace • drag → edit → export</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="togglePreview" class="px-3 py-1.5 rounded bg-violet-600 btn">Switch to View</button>
+      <button id="undoBtn" class="px-3 py-1.5 rounded bg-gray-800 btn">Undo</button>
+      <button id="redoBtn" class="px-3 py-1.5 rounded bg-gray-800 btn">Redo</button>
+      <button id="clearBtn" class="px-3 py-1.5 rounded bg-red-600 btn">Clear</button>
+    </div>
   </header>
 
-  <main id="appMain" class="flex flex-1 overflow-hidden">
+  <main class="flex flex-1 overflow-hidden">
 
-    <!-- Elements Library -->
-    <aside id="elementsPanel" class="w-1/5 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700">
-      <h2 class="font-semibold mb-2">Elements</h2>
-      <div id="elements" class="space-y-2">
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="button">Button</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="navbar">Navbar</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="input">Input</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="card">Card</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="image">Image</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="section">Section</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="footer">Footer</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="heading">Heading</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="paragraph">Paragraph</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="list">List</div>
-        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="video">Video</div>
+    <!-- Elements -->
+    <aside id="elementsPanel" class="w-1/5 bg-[#071026] p-4 border-r border-[#111827] panel-scroll">
+      <h3 class="font-semibold mb-3">Elements</h3>
+      <div id="elements" class="space-y-2 text-sm">
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="navbar">Navbar</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="header">Header</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="hero">Hero</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="section">Section</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="card">Card</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="image">Image</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="video">Video</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="form">Form</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="input">Input</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="list">List</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="table">Table</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="divider">Divider</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="footer">Footer</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="button">Button</div>
       </div>
     </aside>
 
-    <!-- Workspace & Properties -->
+    <!-- Workspace + Properties + Code -->
     <section class="flex-1 flex flex-col">
-      <!-- Edit Preview -->
+
       <div id="editPreview" class="flex-1 flex overflow-hidden">
-        <!-- Workspace -->
-        <div id="workspace" class="workspace flex-1 bg-gray-950 m-4 rounded-lg p-4 border border-gray-700 overflow-auto">
-          <p class="text-gray-500">Drag elements here...</p>
+
+        <div id="workspace" class="workspace flex-1 bg-[#041024] m-4 rounded-lg p-4 border border-[#0f1724] overflow-auto">
+          <p id="dropHint" class="text-gray-400">Drag elements here. Click an element to edit. Resize with handle. Drag to reorder.</p>
         </div>
 
-        <!-- Properties -->
-        <div id="propertiesPanel" class="w-1/3 bg-gray-800 p-4 overflow-y-auto border-l border-gray-700">
-          <h2 class="font-semibold mb-2">Properties</h2>
-          <div id="properties" class="space-y-2 text-sm text-gray-300">
+        <div id="propertiesPanel" class="w-1/3 bg-[#041024] p-4 border-l border-[#0f1724] panel-scroll">
+          <h3 class="font-semibold mb-3">Properties</h3>
+          <div id="properties" class="text-sm text-gray-300">
             <p>Select an element to edit its properties.</p>
           </div>
         </div>
       </div>
 
-      <!-- Code Area at Bottom -->
-      <div id="codePanel" class="bg-gray-800 p-4 border-t border-gray-700 grid grid-cols-3 gap-4">
+      <!-- code area bottom -->
+      <div id="codePanel" class="bg-[#071026] p-4 border-t border-[#111827] grid grid-cols-3 gap-4">
         <div>
-          <label class="block text-sm mb-1">HTML</label>
-          <textarea id="htmlCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-          <div class="flex gap-2 mt-1">
-            <button onclick="copyCode('htmlCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
+          <label class="text-xs text-gray-400">HTML</label>
+          <textarea id="htmlCode" class="w-full h-36 bg-[#0b1220] p-2 rounded text-sm"></textarea>
+          <div class="flex gap-2 mt-2">
+            <button class="bg-violet-600 px-2 py-1 rounded" onclick="copyCode('htmlCode')">Copy</button>
+            <button class="bg-gray-800 px-2 py-1 rounded" onclick="downloadFile('page.html', buildFullHtml())">Download</button>
           </div>
         </div>
-
         <div>
-          <label class="block text-sm mb-1">CSS</label>
-          <textarea id="cssCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-          <div class="flex gap-2 mt-1">
-            <button onclick="copyCode('cssCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
-            <button onclick="generateCSS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
+          <label class="text-xs text-gray-400">CSS</label>
+          <textarea id="cssCode" class="w-full h-36 bg-[#0b1220] p-2 rounded text-sm"></textarea>
+          <div class="flex gap-2 mt-2">
+            <button class="bg-violet-600 px-2 py-1 rounded" onclick="copyCode('cssCode')">Copy</button>
+            <button class="bg-green-600 px-2 py-1 rounded" onclick="generateCSS(true)">Generate Modern</button>
           </div>
         </div>
-
         <div>
-          <label class="block text-sm mb-1">JS</label>
-          <textarea id="jsCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-          <div class="flex gap-2 mt-1">
-            <button onclick="copyCode('jsCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
-            <button onclick="generateJS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
+          <label class="text-xs text-gray-400">JS</label>
+          <textarea id="jsCode" class="w-full h-36 bg-[#0b1220] p-2 rounded text-sm"></textarea>
+          <div class="flex gap-2 mt-2">
+            <button class="bg-violet-600 px-2 py-1 rounded" onclick="copyCode('jsCode')">Copy</button>
+            <button class="bg-green-600 px-2 py-1 rounded" onclick="generateJS(true)">Generate Modern</button>
           </div>
         </div>
       </div>
 
-      <!-- View Preview -->
-      <div id="viewPreview" class="hidden flex-1 bg-gray-950 m-4 rounded-lg p-4 border border-gray-700 overflow-auto"></div>
+      <div id="viewPreview" class="hidden flex-1 bg-[#041024] m-4 rounded-lg p-2 border border-[#0f1724] overflow-auto">
+        <iframe id="previewFrame" class="w-full h-full" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+
     </section>
   </main>
 
   <script>
+    // refs
     const elements = document.querySelectorAll('.draggable');
     const workspace = document.getElementById('workspace');
+    const properties = document.getElementById('properties');
+    const propertiesPanel = document.getElementById('propertiesPanel');
     const htmlCode = document.getElementById('htmlCode');
     const cssCode = document.getElementById('cssCode');
     const jsCode = document.getElementById('jsCode');
+    const previewFrame = document.getElementById('previewFrame');
     const viewPreview = document.getElementById('viewPreview');
     const togglePreviewBtn = document.getElementById('togglePreview');
-    const propertiesPanel = document.getElementById('properties');
+    const dropHint = document.getElementById('dropHint');
+    const elementsPanel = document.getElementById('elementsPanel');
+    const codePanel = document.getElementById('codePanel');
 
-    let selectedElement = null;
+    let selectedEl = null;
+    let historyStack = [];
+    let historyIndex = -1;
 
-    // Drag and drop handling
-    elements.forEach(el => {
-      el.addEventListener('dragstart', e => {
-        e.dataTransfer.setData('type', e.target.dataset.type);
-      });
-    });
+    // library dragstart
+    elements.forEach(el=>el.addEventListener('dragstart', e=> e.dataTransfer.setData('type', el.dataset.type)));
 
-    workspace.addEventListener('dragover', e => e.preventDefault());
-    workspace.addEventListener('drop', e => {
-      e.preventDefault();
+    // workspace dragover/drop
+    workspace.addEventListener('dragover', e=>{ e.preventDefault(); highlightClosest(e.target); });
+    workspace.addEventListener('dragleave', e=>{ clearHighlights(); });
+
+    workspace.addEventListener('drop', e=>{
+      e.preventDefault(); clearHighlights();
       const type = e.dataTransfer.getData('type');
-      let newEl;
-      switch (type) {
-        case 'button':
-          newEl = document.createElement('button');
-          newEl.textContent = 'Button';
-          newEl.className = 'bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded m-2';
-          break;
-        case 'navbar':
-          newEl = document.createElement('nav');
-          newEl.className = 'flex space-x-4 bg-gray-800 p-2 rounded';
-          newEl.innerHTML = '<a href="#" class="text-white">Home</a><a href="#" class="text-gray-400 hover:text-white">About</a>';
-          break;
-        case 'input':
-          newEl = document.createElement('input');
-          newEl.placeholder = 'Enter text';
-          newEl.className = 'bg-gray-700 text-white p-2 rounded m-2';
-          break;
-        case 'card':
-          newEl = document.createElement('div');
-          newEl.className = 'bg-gray-800 p-4 rounded-lg shadow m-2';
-          newEl.innerHTML = '<h3 class="text-lg font-semibold">Card Title</h3><p class="text-gray-400">Card content...</p>';
-          break;
-        case 'image':
-          newEl = document.createElement('img');
-          newEl.src = 'https://via.placeholder.com/150';
-          newEl.className = 'm-2 rounded';
-          break;
-        case 'section':
-          newEl = document.createElement('section');
-          newEl.className = 'bg-gray-800 p-6 rounded-lg m-2';
-          newEl.innerHTML = '<h2 class="text-xl font-bold">Section Title</h2><p class="text-gray-400">Section content...</p>';
-          break;
-        case 'footer':
-          newEl = document.createElement('footer');
-          newEl.className = 'bg-gray-800 p-4 text-center text-gray-400 m-2 rounded';
-          newEl.textContent = 'Footer content';
-          break;
-        case 'heading':
-          newEl = document.createElement('h1');
-          newEl.textContent = 'Heading';
-          newEl.className = 'text-2xl font-bold m-2';
-          break;
-        case 'paragraph':
-          newEl = document.createElement('p');
-          newEl.textContent = 'Lorem ipsum dolor sit amet...';
-          newEl.className = 'm-2 text-gray-300';
-          break;
-        case 'list':
-          newEl = document.createElement('ul');
-          newEl.className = 'list-disc list-inside m-2';
-          newEl.innerHTML = '<li>Item 1</li><li>Item 2</li>';
-          break;
-        case 'video':
-          newEl = document.createElement('video');
-          newEl.src = '';
-          newEl.controls = true;
-          newEl.className = 'm-2 w-64 rounded';
-          break;
-      }
-      if (newEl) {
-        makeSelectable(newEl);
-        workspace.appendChild(newEl);
-        updateCode();
-      }
+      const ref = findClosestChild(e.target);
+      const node = createElement(type);
+      if (!node) return;
+      setupNode(node);
+      if (ref && ref !== workspace) ref.insertAdjacentElement('beforebegin', node); else workspace.appendChild(node);
+      dropHint.style.display = workspace.children.length ? 'none' : 'block';
+      pushHistory(); updateCode();
     });
 
-    function makeSelectable(el) {
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        if (selectedElement) selectedElement.classList.remove('selected');
-        selectedElement = el;
-        el.classList.add('selected');
-        showProperties(el);
-      });
+    // create elements
+    function createElement(type){
+      const elMap = {
+        navbar: ()=>{ const n=document.createElement('nav'); n.className='nav bg-[#071430] p-3 rounded m-2'; n.innerHTML='<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#" class="text-gray-300">Contact</a>'; return n },
+        header: ()=>{ const h=document.createElement('header'); h.className='bg-[#0b1530] p-4 rounded m-2 text-xl font-semibold'; h.textContent='Header'; return h },
+        hero: ()=>{ const d=document.createElement('div'); d.className='p-8 rounded m-2 text-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white'; d.innerHTML='<h1 class="text-2xl font-bold">Hero title</h1><p class="mt-2 text-sm">Hero subtitle</p>'; return d },
+        section: ()=>{ const s=document.createElement('section'); s.className='bg-[#07192b] p-6 rounded m-2'; s.innerHTML='<h2 class="text-lg font-semibold">Section</h2><p class="mt-2 text-sm text-gray-300">Content...</p>'; return s },
+        card: ()=>{ const c=document.createElement('div'); c.className='card m-2 max-w-sm'; c.innerHTML='<h3 class="font-semibold">Card title</h3><p class="text-sm text-gray-300">Card content</p>'; return c },
+        image: ()=>{ const i=document.createElement('img'); i.src='https://via.placeholder.com/480x240'; i.alt='image'; i.className='m-2 rounded max-w-full h-auto'; return i },
+        video: ()=>{ const v=document.createElement('video'); v.controls=true; v.className='m-2 rounded max-w-full'; return v },
+        form: ()=>{ const f=document.createElement('form'); f.className='m-2 space-y-2'; f.innerHTML='<input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Name"><input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Email"><button class="bg-violet-600 px-3 py-1 rounded text-white">Submit</button>'; return f },
+        input: ()=>{ const ip=document.createElement('input'); ip.className='bg-[#0b1530] p-2 rounded m-2 max-w-xs block'; ip.placeholder='Input'; return ip },
+        list: ()=>{ const ul=document.createElement('ul'); ul.className='list-disc list-inside m-2'; ul.innerHTML='<li>Item 1</li><li>Item 2</li>'; return ul },
+        table: ()=>{ const t=document.createElement('table'); t.className='table-auto border-collapse border border-[#203047] m-2'; t.innerHTML='<tr><th class="border p-2">H1</th><th class="border p-2">H2</th></tr><tr><td class="border p-2">A</td><td class="border p-2">B</td></tr>'; return t },
+        divider: ()=>{ const hr=document.createElement('hr'); hr.className='border-[#203047] my-2'; return hr },
+        footer: ()=>{ const f=document.createElement('footer'); f.className='bg-[#071430] p-3 rounded m-2 text-center text-gray-300'; f.textContent='Footer'; return f },
+        button: ()=>{ const b=document.createElement('button'); b.className='bg-violet-600 px-3 py-1 rounded text-white m-2 inline-block'; b.textContent='Button'; return b }
+      };
+      return (elMap[type] || (()=>null))();
     }
 
-    workspace.addEventListener('click', () => {
-      if (selectedElement) selectedElement.classList.remove('selected');
-      selectedElement = null;
-      propertiesPanel.innerHTML = '<p>Select an element to edit its properties.</p>';
+    // setup: selectable, resizable, reorderable
+    function setupNode(node){
+      node.addEventListener('click', e=>{ e.stopPropagation(); selectNode(node); });
+      enableReorder(node); enableResize(node);
+    }
+
+    function selectNode(node){
+      if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); }
+      selectedEl = node; node.classList.add('selected'); showProperties(node); addResizeHandle(node);
+    }
+
+    // properties UI
+    function showProperties(node){
+      properties.innerHTML='';
+      // content edit
+      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)){
+        properties.appendChild(rowInput('Text', node.textContent, v=>{ node.textContent=v; updateCode(); }));
+      }
+      if (node.tagName==='INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder||'', v=>{ node.placeholder=v; updateCode(); }));
+      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src||'', v=>{ node.src=v; updateCode(); }));
+
+      // style controls
+      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v=>{ node.style.color=v; updateCode(); }));
+      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v=>{ node.style.backgroundColor=v; updateCode(); }));
+      properties.appendChild(rowInput('Font size (px)', parseInt(getComputedStyle(node).fontSize)||16, v=>{ node.style.fontSize=v? v+'px':''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Padding (px)', parseInt(getComputedStyle(node).padding)||0, v=>{ node.style.padding=v? v+'px':''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Margin (px)', parseInt(getComputedStyle(node).margin)||0, v=>{ node.style.margin=v? v+'px':''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Border radius (px)', parseInt(getComputedStyle(node).borderRadius)||0, v=>{ node.style.borderRadius=v? v+'px':''; updateCode(); }, 'number'));
+      properties.appendChild(selectRow('Align', ['left','center','right'], getComputedStyle(node).textAlign||'left', v=>{ node.style.textAlign=v; updateCode(); }));
+
+      // size quick fields
+      properties.appendChild(rowInput('Width (px or %)', parseFloat(getComputedStyle(node).width)||'', v=>{ node.style.width=v; updateCode(); }));
+      properties.appendChild(rowInput('Height (px)', parseFloat(getComputedStyle(node).height)||'', v=>{ node.style.height=v? v+'px':''; updateCode(); }, 'number'));
+
+      const del = document.createElement('button'); del.className='mt-3 bg-red-600 px-3 py-1 rounded'; del.textContent='Remove'; del.addEventListener('click', ()=>{ node.remove(); properties.innerHTML='<p>Select an element to edit its properties.</p>'; selectedEl=null; updateCode(); pushHistory(); });
+      properties.appendChild(del);
+    }
+
+    function rowInput(label, value, oninput, type='text'){
+      const wrap = document.createElement('div'); wrap.className='mb-2';
+      const lab = document.createElement('label'); lab.className='block text-xs text-gray-400'; lab.textContent=label;
+      const inp = document.createElement('input'); inp.className='w-full bg-[#071430] p-1 rounded text-sm'; inp.type=type; inp.value=value; inp.addEventListener('input', e=> oninput(e.target.value));
+      wrap.appendChild(lab); wrap.appendChild(inp); return wrap;
+    }
+    function rowColor(label, value, oninput){ const wrap=rowInput(label,value,v=>oninput(v)); const input=wrap.querySelector('input'); input.type='color'; input.value=value; input.className='h-8 w-14 p-0'; return wrap; }
+    function selectRow(label, options, cur, onChange){ const wrap=document.createElement('div'); wrap.className='mb-2'; const lab=document.createElement('label'); lab.className='block text-xs text-gray-400'; lab.textContent=label; const sel=document.createElement('select'); sel.className='w-full bg-[#071430] p-1 rounded text-sm'; options.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o; if(o===cur) opt.selected=true; sel.appendChild(opt); }); sel.addEventListener('change', e=> onChange(e.target.value)); wrap.appendChild(lab); wrap.appendChild(sel); return wrap; }
+
+    function rgbToHex(rgb){ if(!rgb) return '#000000'; const m=rgb.match(/\d+/g); if(!m) return '#000000'; return '#'+m.slice(0,3).map(n=>('0'+parseInt(n).toString(16)).slice(-2)).join(''); }
+
+    // highlight nearest child for insertion
+    function highlightClosest(eTarget){ const child = findClosestChild(eTarget); document.querySelectorAll('.workspace > *').forEach(n=>n.classList.remove('drag-over')); if(child && child!==workspace) child.classList.add('drag-over'); }
+    function clearHighlights(){ document.querySelectorAll('.workspace > *').forEach(n=>n.classList.remove('drag-over')); }
+    function findClosestChild(target){ if(!target) return null; return target.closest('.workspace > *'); }
+
+    // reorder: make node draggable
+    function enableReorder(node){ node.setAttribute('draggable', true);
+      node.addEventListener('dragstart', e=>{ e.dataTransfer.setData('reorder','1'); e.dataTransfer.setData('html', node.outerHTML); node.classList.add('opacity-50'); });
+      node.addEventListener('dragend', ()=> node.classList.remove('opacity-50'));
+      node.addEventListener('dragover', e=>{ e.preventDefault(); node.classList.add('drag-over'); }); node.addEventListener('dragleave', ()=>node.classList.remove('drag-over'));
+      node.addEventListener('drop', e=>{ e.preventDefault(); node.classList.remove('drag-over'); if(e.dataTransfer.getData('reorder')){ const html = e.dataTransfer.getData('html'); node.insertAdjacentHTML('beforebegin', html); const prev = node.previousElementSibling; if(prev) { prev.remove(); setupNode(prev); pushHistory(); updateCode(); } } }); }
+
+    // resizing
+    function enableResize(node){ // add handle only for specific tags
+      const tag = node.tagName.toLowerCase(); const resizable = ['img','video','div','section','article','table','form','header','footer']; if(!resizable.includes(tag)) return; addResizeHandle(node); }
+    function addResizeHandle(node){ removeResizeHandle(node); node.style.position = node.style.position || (getComputedStyle(node).position==='static'?'relative':getComputedStyle(node).position);
+      const handle = document.createElement('div'); handle.className='resize-handle'; node.appendChild(handle);
+      let dragging=false, sx, sy, sw, sh;
+      handle.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); dragging=true; sx=e.clientX; sy=e.clientY; sw=node.getBoundingClientRect().width; sh=node.getBoundingClientRect().height; handle.setPointerCapture(e.pointerId); });
+      handle.addEventListener('pointermove', e=>{ if(!dragging) return; const dx = e.clientX - sx; const dy = e.clientY - sy; node.style.width = Math.max(24, sw+dx)+'px'; node.style.height = Math.max(24, sh+dy)+'px'; updateCodeDebounced(); });
+      handle.addEventListener('pointerup', e=>{ dragging=false; handle.releasePointerCapture(e.pointerId); updateCode(); pushHistory(); });
+    }
+    function removeResizeHandle(node){ const h=node.querySelector('.resize-handle'); if(h) h.remove(); }
+
+    // attach handlers to any new element
+    function setupNode(node){ setupListeners(node); enableReorder(node); enableResize(node); }
+    function setupListeners(node){ node.addEventListener('click', e=>{ e.stopPropagation(); selectNode(node); }); }
+
+    // when workspace children added via innerHTML, attach handlers
+    const obs = new MutationObserver(ms=>{ ms.forEach(m=>{ m.addedNodes.forEach(n=>{ if(n.nodeType===1) { setupNode(n); } }); }); updateCode(); });
+    obs.observe(workspace,{childList:true});
+
+    // update code
+    function updateCode(){ htmlCode.value = workspace.innerHTML.trim(); }
+    let updateTimeout=null; function updateCodeDebounced(){ clearTimeout(updateTimeout); updateTimeout=setTimeout(updateCode,120); }
+
+    // copy & download
+    function copyCode(id){ const el=document.getElementById(id); el.select(); document.execCommand('copy'); el.setSelectionRange(0,0); }
+    function downloadFile(name, content){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type:'text/html'})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+
+    function buildFullHtml(){ const body = htmlCode.value || workspace.innerHTML; const css = cssCode.value||''; const js = jsCode.value||''; return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>${body}<script>${js}</script></body></html>` }
+
+    // generate modern
+    function generateCSS(overwrite=false){ const modern = `body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Segoe UI; background:#081024;color:#e6eef8} .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:12px}`; cssCode.value = overwrite ? modern : cssCode.value + '\n' + modern; }
+    function generateJS(overwrite=false){ const mod = `document.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ b.classList.add('clicked'); setTimeout(()=>b.classList.remove('clicked'),120)}));`; jsCode.value = overwrite ? mod : jsCode.value + '\n' + mod; }
+
+    // view mode toggle
+    togglePreviewBtn.addEventListener('click', ()=>{
+      const editing = !viewPreview.classList.contains('hidden');
+      if (editing) { // currently view? switch to edit
+        viewPreview.classList.add('hidden'); document.getElementById('editPreview').classList.remove('hidden'); elementsPanel.classList.remove('hidden'); propertiesPanel.classList.remove('hidden'); codePanel.classList.remove('hidden'); togglePreviewBtn.textContent='Switch to View';
+      } else { // switch to view
+        viewPreview.classList.remove('hidden'); document.getElementById('editPreview').classList.add('hidden'); elementsPanel.classList.add('hidden'); propertiesPanel.classList.add('hidden'); codePanel.classList.add('hidden'); togglePreviewBtn.textContent='Switch to Edit'; previewFrame.srcdoc = buildFullHtml(); }
     });
 
-    function showProperties(el) {
-      propertiesPanel.innerHTML = '';
-      if (el.tagName === 'BUTTON' || el.tagName === 'A' || el.tagName === 'H1' || el.tagName === 'P' || el.tagName === 'LI') {
-        propertiesPanel.innerHTML += `
-          <label class='block'>Text: <input type='text' value='${el.textContent}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementText(this.value)'></label>`;
-      }
-      if (el.tagName === 'INPUT') {
-        propertiesPanel.innerHTML += `
-          <label class='block'>Placeholder: <input type='text' value='${el.placeholder}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementPlaceholder(this.value)'></label>`;
-      }
-      if (el.tagName === 'IMG' || el.tagName === 'VIDEO') {
-        propertiesPanel.innerHTML += `
-          <label class='block'>Source URL: <input type='text' value='${el.src}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementSrc(this.value)'></label>`;
-      }
-      // Common style editing
-      propertiesPanel.innerHTML += `
-        <label class='block mt-2'>Font Size: <input type='number' value='${parseInt(window.getComputedStyle(el).fontSize) || 16}' class='w-full bg-gray-700 p-1 rounded' oninput='updateFontSize(this.value)'></label>
-        <label class='block mt-2'>Color: <input type='color' value='${rgbToHex(window.getComputedStyle(el).color)}' class='w-full bg-gray-700 p-1 rounded' oninput='updateColor(this.value)'></label>
-        <label class='block mt-2'>Background: <input type='color' value='${rgbToHex(window.getComputedStyle(el).backgroundColor)}' class='w-full bg-gray-700 p-1 rounded' oninput='updateBackground(this.value)'></label>
-        <label class='block mt-2'>Padding: <input type='number' value='${parseInt(window.getComputedStyle(el).padding) || 0}' class='w-full bg-gray-700 p-1 rounded' oninput='updatePadding(this.value)'></label>
-      `;
-    }
+    // helpful: click workspace to deselect
+    workspace.addEventListener('click', ()=>{ if(selectedEl){ selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); selectedEl=null; properties.innerHTML='<p>Select an element to edit its properties.</p>'; } });
 
-    function updateElementText(val) {
-      if (selectedElement) { selectedElement.textContent = val; updateCode(); }
-    }
-    function updateElementPlaceholder(val) {
-      if (selectedElement) { selectedElement.placeholder = val; updateCode(); }
-    }
-    function updateElementSrc(val) {
-      if (selectedElement) { selectedElement.src = val; updateCode(); }
-    }
-    function updateFontSize(val) {
-      if (selectedElement) { selectedElement.style.fontSize = val + 'px'; updateCode(); }
-    }
-    function updateColor(val) {
-      if (selectedElement) { selectedElement.style.color = val; updateCode(); }
-    }
-    function updateBackground(val) {
-      if (selectedElement) { selectedElement.style.backgroundColor = val; updateCode(); }
-    }
-    function updatePadding(val) {
-      if (selectedElement) { selectedElement.style.padding = val + 'px'; updateCode(); }
-    }
+    // clear
+    document.getElementById('clearBtn').addEventListener('click', ()=>{ workspace.innerHTML = '<p id="dropHint" class="text-gray-400">Drag elements here. Click an element to edit. Resize with handle. Drag to reorder.</p>'; htmlCode.value=''; cssCode.value=''; jsCode.value=''; pushHistory(); updateCode(); });
 
-    function rgbToHex(rgb) {
-      if (!rgb) return '#000000';
-      const result = rgb.match(/\d+/g);
-      return result ? "#" + result.slice(0,3).map(x=>("0"+parseInt(x).toString(16)).slice(-2)).join("") : '#000000';
-    }
+    // history (simple snapshot)
+    function pushHistory(){ historyStack = historyStack.slice(0, historyIndex+1); historyStack.push(workspace.innerHTML); historyIndex = historyStack.length-1; }
+    document.getElementById('undoBtn').addEventListener('click', ()=>{ if(historyIndex>0){ historyIndex--; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    document.getElementById('redoBtn').addEventListener('click', ()=>{ if(historyIndex < historyStack.length-1){ historyIndex++; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
 
-    function updateCode() {
-      htmlCode.value = workspace.innerHTML.trim();
-    }
+    function rebindAll(){ // re-attach handlers after history restore
+      Array.from(workspace.children).forEach(ch=>{ if(ch.id==='dropHint') return; setupNode(ch); }); }
 
-    function copyCode(id) {
-      const el = document.getElementById(id);
-      el.select();
-      document.execCommand('copy');
-    }
+    // initial
+    setTimeout(()=>{ pushHistory(); updateCode(); }, 70);
 
-    function generateCSS() {
-      cssCode.value = `/* Modern dark theme styles */\nbody { background: #111; color: #eee; font-family: sans-serif; }\nbutton { transition: all 0.3s ease; }\nbutton:hover { transform: scale(1.05); }`;
-    }
-
-    function generateJS() {
-      jsCode.value = `// Example modern JS interactivity\nconst buttons = document.querySelectorAll('button');\nbuttons.forEach(btn => btn.addEventListener('click', () => alert('Button clicked!')));`;
-    }
-
-    togglePreviewBtn.addEventListener('click', () => {
-      if (viewPreview.classList.contains('hidden')) {
-        // Switch to View Mode
-        viewPreview.classList.remove('hidden');
-        document.getElementById('editPreview').classList.add('hidden');
-        document.getElementById('elementsPanel').classList.add('hidden');
-        document.getElementById('propertiesPanel').classList.add('hidden');
-        document.getElementById('codePanel').classList.add('hidden');
-        viewPreview.innerHTML = htmlCode.value;
-        togglePreviewBtn.textContent = 'Switch to Edit Preview';
-      } else {
-        // Switch to Edit Mode
-        viewPreview.classList.add('hidden');
-        document.getElementById('editPreview').classList.remove('hidden');
-        document.getElementById('elementsPanel').classList.remove('hidden');
-        document.getElementById('propertiesPanel').classList.remove('hidden');
-        document.getElementById('codePanel').classList.remove('hidden');
-        togglePreviewBtn.textContent = 'Switch to View Preview';
-      }
-    });
   </script>
-
 </body>
 </html>
