@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Webpage Designer</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     .draggable { cursor: grab; }
     .workspace { min-height: 400px; }
     textarea { font-family: monospace; }
+    .selected { outline: 2px dashed #6366f1; }
   </style>
 </head>
 <body class="bg-gray-900 text-gray-200 h-screen flex flex-col">
@@ -30,48 +30,56 @@
         <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="navbar">Navbar</div>
         <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="input">Input</div>
         <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="card">Card</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="image">Image</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="section">Section</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="footer">Footer</div>
       </div>
     </aside>
 
-    <!-- Workspace & Code Preview -->
+    <!-- Workspace & Properties -->
     <section class="flex-1 flex flex-col">
       <!-- Edit Preview -->
-      <div id="editPreview" class="flex-1 flex">
+      <div id="editPreview" class="flex-1 flex overflow-hidden">
         <!-- Workspace -->
         <div id="workspace" class="workspace flex-1 bg-gray-950 m-4 rounded-lg p-4 border border-gray-700 overflow-auto">
           <p class="text-gray-500">Drag elements here...</p>
         </div>
 
-        <!-- Code Area -->
+        <!-- Properties -->
         <div class="w-1/3 bg-gray-800 p-4 overflow-y-auto border-l border-gray-700">
-          <h2 class="font-semibold mb-2">Generated Code</h2>
-
-          <div class="mb-4">
-            <label class="block text-sm mb-1">HTML</label>
-            <textarea id="htmlCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-            <div class="flex gap-2 mt-1">
-              <button onclick="copyCode('htmlCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
-            </div>
+          <h2 class="font-semibold mb-2">Properties</h2>
+          <div id="properties" class="space-y-2 text-sm text-gray-300">
+            <p>Select an element to edit its properties.</p>
           </div>
+        </div>
+      </div>
 
-          <div class="mb-4">
-            <label class="block text-sm mb-1">CSS</label>
-            <textarea id="cssCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-            <div class="flex gap-2 mt-1">
-              <button onclick="copyCode('cssCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
-              <button onclick="generateCSS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
-            </div>
+      <!-- Code Area at Bottom -->
+      <div class="bg-gray-800 p-4 border-t border-gray-700 grid grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm mb-1">HTML</label>
+          <textarea id="htmlCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+          <div class="flex gap-2 mt-1">
+            <button onclick="copyCode('htmlCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
           </div>
+        </div>
 
-          <div class="mb-4">
-            <label class="block text-sm mb-1">JS</label>
-            <textarea id="jsCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
-            <div class="flex gap-2 mt-1">
-              <button onclick="copyCode('jsCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
-              <button onclick="generateJS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
-            </div>
+        <div>
+          <label class="block text-sm mb-1">CSS</label>
+          <textarea id="cssCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+          <div class="flex gap-2 mt-1">
+            <button onclick="copyCode('cssCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
+            <button onclick="generateCSS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
           </div>
+        </div>
 
+        <div>
+          <label class="block text-sm mb-1">JS</label>
+          <textarea id="jsCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+          <div class="flex gap-2 mt-1">
+            <button onclick="copyCode('jsCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
+            <button onclick="generateJS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
+          </div>
         </div>
       </div>
 
@@ -88,6 +96,9 @@
     const jsCode = document.getElementById('jsCode');
     const viewPreview = document.getElementById('viewPreview');
     const togglePreviewBtn = document.getElementById('togglePreview');
+    const propertiesPanel = document.getElementById('properties');
+
+    let selectedElement = null;
 
     // Drag and drop handling
     elements.forEach(el => {
@@ -122,12 +133,84 @@
           newEl.className = 'bg-gray-800 p-4 rounded-lg shadow m-2';
           newEl.innerHTML = '<h3 class="text-lg font-semibold">Card Title</h3><p class="text-gray-400">Card content...</p>';
           break;
+        case 'image':
+          newEl = document.createElement('img');
+          newEl.src = 'https://via.placeholder.com/150';
+          newEl.className = 'm-2 rounded';
+          break;
+        case 'section':
+          newEl = document.createElement('section');
+          newEl.className = 'bg-gray-800 p-6 rounded-lg m-2';
+          newEl.innerHTML = '<h2 class="text-xl font-bold">Section Title</h2><p class="text-gray-400">Section content...</p>';
+          break;
+        case 'footer':
+          newEl = document.createElement('footer');
+          newEl.className = 'bg-gray-800 p-4 text-center text-gray-400 m-2 rounded';
+          newEl.textContent = 'Footer content';
+          break;
       }
       if (newEl) {
+        makeSelectable(newEl);
         workspace.appendChild(newEl);
         updateCode();
       }
     });
+
+    function makeSelectable(el) {
+      el.addEventListener('click', e => {
+        e.stopPropagation();
+        if (selectedElement) selectedElement.classList.remove('selected');
+        selectedElement = el;
+        el.classList.add('selected');
+        showProperties(el);
+      });
+    }
+
+    workspace.addEventListener('click', () => {
+      if (selectedElement) selectedElement.classList.remove('selected');
+      selectedElement = null;
+      propertiesPanel.innerHTML = '<p>Select an element to edit its properties.</p>';
+    });
+
+    function showProperties(el) {
+      propertiesPanel.innerHTML = '';
+      if (el.tagName === 'BUTTON' || el.tagName === 'A') {
+        propertiesPanel.innerHTML = `
+          <label class='block'>Text: <input type='text' value='${el.textContent}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementText(this.value)'></label>
+        `;
+      } else if (el.tagName === 'INPUT') {
+        propertiesPanel.innerHTML = `
+          <label class='block'>Placeholder: <input type='text' value='${el.placeholder}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementPlaceholder(this.value)'></label>
+        `;
+      } else if (el.tagName === 'IMG') {
+        propertiesPanel.innerHTML = `
+          <label class='block'>Image URL: <input type='text' value='${el.src}' class='w-full bg-gray-700 p-1 rounded' oninput='updateElementSrc(this.value)'></label>
+        `;
+      } else {
+        propertiesPanel.innerHTML = `<p>No editable properties for this element.</p>`;
+      }
+    }
+
+    function updateElementText(val) {
+      if (selectedElement) {
+        selectedElement.textContent = val;
+        updateCode();
+      }
+    }
+
+    function updateElementPlaceholder(val) {
+      if (selectedElement) {
+        selectedElement.placeholder = val;
+        updateCode();
+      }
+    }
+
+    function updateElementSrc(val) {
+      if (selectedElement) {
+        selectedElement.src = val;
+        updateCode();
+      }
+    }
 
     function updateCode() {
       htmlCode.value = workspace.innerHTML.trim();
