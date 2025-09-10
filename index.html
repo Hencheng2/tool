@@ -1,540 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webpage Designer</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-
-        .code-area {
-            background-color: #1a202c; /* Darker than the main body */
-            color: #d1d5db; /* Light gray text */
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.875rem;
-            line-height: 1.5;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid #4a5568;
-            height: 200px;
-            resize: vertical;
-        }
-
-        .draggable-element {
-            cursor: grab;
-        }
-
-        .draggable-element:active {
-            cursor: grabbing;
-        }
-
-        .preview-canvas, .view-preview-iframe {
-            min-height: 500px;
-            background-color: #1a202c;
-            border: 2px dashed #4a5568;
-            border-radius: 0.5rem;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .view-preview-iframe {
-            border: none;
-        }
-
-        .edit-mode-active {
-            outline: 2px solid #6366f1;
-            outline-offset: -2px;
-            cursor: pointer;
-        }
-
-        .edit-panel {
-            min-width: 300px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webpage Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    .draggable { cursor: grab; }
+    .workspace { min-height: 400px; }
+    textarea { font-family: monospace; }
+  </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex flex-col items-center">
+<body class="bg-gray-900 text-gray-200 h-screen flex flex-col">
 
-    <div class="container mx-auto max-w-7xl">
-        <h1 class="text-4xl font-bold text-center mb-6 text-purple-400">Webpage Designer</h1>
-        <p class="text-center text-sm mb-8 text-gray-400">Drag and drop elements to design your page. Edit them by double-clicking. The code will generate automatically below.</p>
+  <!-- Header -->
+  <header class="p-4 bg-gray-800 shadow flex justify-between items-center">
+    <h1 class="text-xl font-bold">⚡ Webpage Designer</h1>
+    <button id="togglePreview" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg">Switch to View Preview</button>
+  </header>
 
-        <!-- Main Workspace -->
-        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 flex flex-col lg:flex-row gap-6">
+  <main class="flex flex-1 overflow-hidden">
 
-            <!-- Elements Library -->
-            <div class="w-full lg:w-1/4 bg-gray-700 p-4 rounded-lg flex flex-col gap-4 sticky top-4 self-start">
-                <h2 class="text-lg font-semibold mb-2 text-purple-300">Elements Library</h2>
-                <div class="flex flex-col gap-2">
-                    <button class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200" draggable="true" data-type="button">Button</button>
-                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="heading" data-text="Heading">Heading</div>
-                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="paragraph" data-text="Paragraph">Paragraph</div>
-                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="navbar">Navbar</div>
-                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="link" data-text="Link">Link</div>
-                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="image" data-src="https://placehold.co/400x300/1f2937/d1d5db?text=Image">Image</div>
-                </div>
-            </div>
+    <!-- Elements Library -->
+    <aside class="w-1/5 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700">
+      <h2 class="font-semibold mb-2">Elements</h2>
+      <div id="elements" class="space-y-2">
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="button">Button</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="navbar">Navbar</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="input">Input</div>
+        <div class="draggable bg-gray-700 p-2 rounded" draggable="true" data-type="card">Card</div>
+      </div>
+    </aside>
 
-            <!-- Page Designer & Preview -->
-            <div class="w-full lg:w-3/4 flex flex-col gap-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-purple-300">Edit Preview</h2>
-                    <div class="flex gap-2">
-                        <button id="toggleView" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">View Preview</button>
-                    </div>
-                </div>
-
-                <div id="previewContainer" class="relative">
-                    <div id="editPreview" class="preview-canvas p-6 hidden">
-                        <!-- Dropped elements will go here -->
-                    </div>
-                    <iframe id="viewPreview" class="view-preview-iframe p-6 w-full hidden"></iframe>
-                </div>
-
-                <!-- Element Editing Panel (Hidden by default) -->
-                <div id="editPanel" class="bg-gray-700 p-4 rounded-lg shadow-lg hidden">
-                    <h3 class="text-lg font-semibold mb-2 text-purple-300">Edit Element</h3>
-                    <div class="flex flex-col gap-2">
-                        <label for="elementText" class="text-sm text-gray-300">Text Content:</label>
-                        <input type="text" id="elementText" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <label for="elementHref" class="text-sm text-gray-300">Link/Page Reference:</label>
-                        <input type="text" id="elementHref" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <label for="elementSrc" class="text-sm text-gray-300">Image URL:</label>
-                        <input type="text" id="elementSrc" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                        <button id="saveEdit" class="mt-2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Save</button>
-                    </div>
-                </div>
-            </div>
+    <!-- Workspace & Code Preview -->
+    <section class="flex-1 flex flex-col">
+      <!-- Edit Preview -->
+      <div id="editPreview" class="flex-1 flex">
+        <!-- Workspace -->
+        <div id="workspace" class="workspace flex-1 bg-gray-950 m-4 rounded-lg p-4 border border-gray-700 overflow-auto">
+          <p class="text-gray-500">Drag elements here...</p>
         </div>
 
-        <!-- Code Areas -->
-        <div class="mt-8 flex flex-col lg:flex-row gap-6">
-            <!-- HTML Area -->
-            <div class="w-full lg:w-1/3 flex flex-col gap-2">
-                <h2 class="text-lg font-semibold text-purple-300">HTML</h2>
-                <textarea id="htmlCode" class="code-area"></textarea>
-                <div class="flex gap-2">
-                    <button onclick="copyCode('htmlCode')" class="w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy HTML</button>
-                </div>
-            </div>
+        <!-- Code Area -->
+        <div class="w-1/3 bg-gray-800 p-4 overflow-y-auto border-l border-gray-700">
+          <h2 class="font-semibold mb-2">Generated Code</h2>
 
-            <!-- CSS Area -->
-            <div class="w-full lg:w-1/3 flex flex-col gap-2">
-                <h2 class="text-lg font-semibold text-purple-300">CSS</h2>
-                <textarea id="cssCode" class="code-area"></textarea>
-                <div class="flex gap-2">
-                    <button onclick="copyCode('cssCode')" class="w-1/2 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy CSS</button>
-                    <button onclick="generateModernCSS()" class="w-1/2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Generate Modern</button>
-                </div>
+          <div class="mb-4">
+            <label class="block text-sm mb-1">HTML</label>
+            <textarea id="htmlCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+            <div class="flex gap-2 mt-1">
+              <button onclick="copyCode('htmlCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
             </div>
+          </div>
 
-            <!-- JS Area -->
-            <div class="w-full lg:w-1/3 flex flex-col gap-2">
-                <h2 class="text-lg font-semibold text-purple-300">JavaScript</h2>
-                <textarea id="jsCode" class="code-area"></textarea>
-                <div class="flex gap-2">
-                    <button onclick="copyCode('jsCode')" class="w-1/2 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy JS</button>
-                    <button onclick="generateModernJS()" class="w-1/2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Generate Modern</button>
-                </div>
+          <div class="mb-4">
+            <label class="block text-sm mb-1">CSS</label>
+            <textarea id="cssCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+            <div class="flex gap-2 mt-1">
+              <button onclick="copyCode('cssCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
+              <button onclick="generateCSS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
             </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm mb-1">JS</label>
+            <textarea id="jsCode" class="w-full h-32 bg-gray-900 text-gray-100 p-2 rounded"></textarea>
+            <div class="flex gap-2 mt-1">
+              <button onclick="copyCode('jsCode')" class="bg-indigo-600 px-2 py-1 rounded">Copy</button>
+              <button onclick="generateJS()" class="bg-green-600 px-2 py-1 rounded">Generate Modern</button>
+            </div>
+          </div>
+
         </div>
-    </div>
+      </div>
 
-<script>
-    const editPreview = document.getElementById('editPreview');
-    const viewPreview = document.getElementById('viewPreview');
-    const toggleViewButton = document.getElementById('toggleView');
-    const elementsLibrary = document.querySelector('.elements-library');
+      <!-- View Preview -->
+      <div id="viewPreview" class="hidden flex-1 bg-gray-950 m-4 rounded-lg p-4 border border-gray-700 overflow-auto"></div>
+    </section>
+  </main>
+
+  <script>
+    const elements = document.querySelectorAll('.draggable');
+    const workspace = document.getElementById('workspace');
     const htmlCode = document.getElementById('htmlCode');
     const cssCode = document.getElementById('cssCode');
     const jsCode = document.getElementById('jsCode');
-    const editPanel = document.getElementById('editPanel');
-    const elementText = document.getElementById('elementText');
-    const elementHref = document.getElementById('elementHref');
-    const elementSrc = document.getElementById('elementSrc');
-    const saveEditButton = document.getElementById('saveEdit');
+    const viewPreview = document.getElementById('viewPreview');
+    const togglePreviewBtn = document.getElementById('togglePreview');
 
-    let isEditMode = true;
-    let selectedElement = null;
-
-    // Show initial edit view
-    editPreview.style.display = 'block';
-
-    // Drag and Drop Logic
-    document.querySelectorAll('.draggable-element').forEach(element => {
-        element.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.dataset.type);
-            e.dataTransfer.effectAllowed = 'copy';
-        });
+    // Drag and drop handling
+    elements.forEach(el => {
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('type', e.target.dataset.type);
+      });
     });
 
-    editPreview.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
+    workspace.addEventListener('dragover', e => e.preventDefault());
+    workspace.addEventListener('drop', e => {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('type');
+      let newEl;
+      switch (type) {
+        case 'button':
+          newEl = document.createElement('button');
+          newEl.textContent = 'Button';
+          newEl.className = 'bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded m-2';
+          break;
+        case 'navbar':
+          newEl = document.createElement('nav');
+          newEl.className = 'flex space-x-4 bg-gray-800 p-2 rounded';
+          newEl.innerHTML = '<a href="#" class="text-white">Home</a><a href="#" class="text-gray-400 hover:text-white">About</a>';
+          break;
+        case 'input':
+          newEl = document.createElement('input');
+          newEl.placeholder = 'Enter text';
+          newEl.className = 'bg-gray-700 text-white p-2 rounded m-2';
+          break;
+        case 'card':
+          newEl = document.createElement('div');
+          newEl.className = 'bg-gray-800 p-4 rounded-lg shadow m-2';
+          newEl.innerHTML = '<h3 class="text-lg font-semibold">Card Title</h3><p class="text-gray-400">Card content...</p>';
+          break;
+      }
+      if (newEl) {
+        workspace.appendChild(newEl);
+        updateCode();
+      }
     });
-
-    editPreview.addEventListener('drop', (e) => {
-        e.preventDefault();
-        const dataType = e.dataTransfer.getData('text/plain');
-        const newElement = createEditorElement(dataType);
-        if (newElement) {
-            newElement.style.position = 'absolute';
-            // Simple positioning logic
-            const rect = editPreview.getBoundingClientRect();
-            newElement.style.top = `${e.clientY - rect.top}px`;
-            newElement.style.left = `${e.clientX - rect.left}px`;
-            editPreview.appendChild(newElement);
-        }
-    });
-
-    function createEditorElement(type) {
-        let element;
-        switch(type) {
-            case 'button':
-                element = document.createElement('button');
-                element.className = 'py-2 px-4 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition duration-200';
-                element.textContent = 'Button';
-                element.dataset.type = 'button';
-                break;
-            case 'heading':
-                element = document.createElement('h1');
-                element.className = 'text-3xl font-bold text-gray-200';
-                element.textContent = 'Heading';
-                element.dataset.type = 'heading';
-                break;
-            case 'paragraph':
-                element = document.createElement('p');
-                element.className = 'text-base text-gray-400';
-                element.textContent = 'Paragraph';
-                element.dataset.type = 'paragraph';
-                break;
-            case 'navbar':
-                element = document.createElement('nav');
-                element.className = 'w-full py-4 px-6 bg-gray-700 rounded-lg shadow flex justify-between items-center';
-                element.innerHTML = `
-                    <div class="text-xl font-bold text-purple-300">Logo</div>
-                    <div class="flex gap-4">
-                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">Home</a>
-                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">About</a>
-                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">Contact</a>
-                    </div>
-                `;
-                element.dataset.type = 'navbar';
-                break;
-            case 'link':
-                element = document.createElement('a');
-                element.className = 'text-blue-400 hover:underline';
-                element.href = '#';
-                element.textContent = 'Link';
-                element.dataset.type = 'link';
-                break;
-            case 'image':
-                element = document.createElement('img');
-                element.className = 'w-64 h-48 rounded-lg object-cover';
-                element.src = 'https://placehold.co/400x300/1f2937/d1d5db?text=Image';
-                element.alt = 'Placeholder Image';
-                element.dataset.type = 'image';
-                break;
-            default:
-                return null;
-        }
-        element.dataset.originalClass = element.className; // Store original classes for later use
-        element.classList.add('edit-mode-active');
-        setupElementEditing(element);
-        return element;
-    }
-
-    function setupElementEditing(element) {
-        element.addEventListener('dblclick', (e) => {
-            e.stopPropagation(); // Prevent dblclick on parent container
-            selectedElement = element;
-            showEditPanel(element);
-        });
-
-        element.addEventListener('mousedown', (e) => {
-            if (e.target.dataset.type) {
-                selectedElement = e.target;
-                document.querySelectorAll('.edit-mode-active').forEach(el => el.style.outline = '');
-                selectedElement.style.outline = '2px solid #6366f1';
-                // Simple drag-to-move logic
-                let shiftX = e.clientX - selectedElement.getBoundingClientRect().left;
-                let shiftY = e.clientY - selectedElement.getBoundingClientRect().top;
-                
-                function moveAt(pageX, pageY) {
-                    selectedElement.style.left = pageX - shiftX - editPreview.getBoundingClientRect().left + 'px';
-                    selectedElement.style.top = pageY - shiftY - editPreview.getBoundingClientRect().top + 'px';
-                }
-
-                function onMouseMove(event) {
-                    moveAt(event.pageX, event.pageY);
-                    updateCode();
-                }
-
-                document.addEventListener('mousemove', onMouseMove);
-
-                selectedElement.onmouseup = function() {
-                    document.removeEventListener('mousemove', onMouseMove);
-                    selectedElement.onmouseup = null;
-                };
-            }
-        });
-    }
-
-    function showEditPanel(element) {
-        editPanel.style.display = 'block';
-        elementText.value = element.textContent;
-        elementHref.value = element.href || '';
-        elementSrc.value = element.src || '';
-
-        // Show/hide fields based on element type
-        document.getElementById('elementText').parentElement.style.display = 'block';
-        document.getElementById('elementHref').parentElement.style.display = 'block';
-        document.getElementById('elementSrc').parentElement.style.display = 'block';
-
-        if (element.dataset.type === 'image') {
-            document.getElementById('elementText').parentElement.style.display = 'none';
-            document.getElementById('elementHref').parentElement.style.display = 'none';
-        } else if (element.dataset.type !== 'link' && element.dataset.type !== 'button' && element.dataset.type !== 'navbar') {
-            document.getElementById('elementHref').parentElement.style.display = 'none';
-            document.getElementById('elementSrc').parentElement.style.display = 'none';
-        } else {
-            document.getElementById('elementSrc').parentElement.style.display = 'none';
-        }
-    }
-
-    saveEditButton.addEventListener('click', () => {
-        if (selectedElement) {
-            if (selectedElement.dataset.type === 'image') {
-                selectedElement.src = elementSrc.value;
-            } else {
-                selectedElement.textContent = elementText.value;
-                if (selectedElement.href) {
-                    selectedElement.href = elementHref.value;
-                }
-            }
-            editPanel.style.display = 'none';
-            updateCode();
-        }
-    });
-
-    // Code Generation Logic
-    const observer = new MutationObserver(updateCode);
-    observer.observe(editPreview, { childList: true, subtree: true, attributes: true });
 
     function updateCode() {
-        const elements = editPreview.children;
-        let htmlContent = '';
-        let cssClasses = new Set();
-        let jsContent = '';
-
-        Array.from(elements).forEach(el => {
-            const tempDiv = document.createElement('div');
-            tempDiv.appendChild(el.cloneNode(true));
-            // Remove editor-specific classes before generating HTML
-            const clonedEl = tempDiv.firstElementChild;
-            clonedEl.classList.remove('edit-mode-active');
-            clonedEl.style.position = '';
-            clonedEl.style.top = '';
-            clonedEl.style.left = '';
-            htmlContent += `    ${clonedEl.outerHTML}\n`;
-
-            // Extract classes for CSS generation
-            clonedEl.classList.forEach(cls => {
-                if (cls.match(/^(bg|text|py|px|rounded|shadow|hover|transition|duration|flex|justify|items|w|h|font|object|p|gap|mx|container|max-w|lg|sm|md)-/)) {
-                    cssClasses.add(cls);
-                }
-            });
-        });
-
-        htmlCode.value = `<div class="p-4 bg-gray-900 min-h-screen">\n${htmlContent.trim()}\n</div>`;
-        cssCode.value = ''; // Let's keep this empty and rely on Tailwind or the generate button
-        jsCode.value = ''; // Let's keep this empty for now
-
-        if (isEditMode) {
-            editPreview.style.display = 'block';
-            viewPreview.style.display = 'none';
-        } else {
-            generateFinalPreview();
-        }
+      htmlCode.value = workspace.innerHTML.trim();
     }
 
-    function generateFinalPreview() {
-        const finalHtml = htmlCode.value;
-        const finalCss = cssCode.value;
-        const finalJs = jsCode.value;
-        const fullHtml = `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Preview</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <style>
-                    body {
-                        font-family: 'Inter', sans-serif;
-                    }
-                    ${finalCss}
-                </style>
-            </head>
-            <body>
-                ${finalHtml}
-                <script>${finalJs}</script>
-            </body>
-            </html>
-        `;
-        viewPreview.srcdoc = fullHtml;
-    }
-
-    // Toggle View
-    toggleViewButton.addEventListener('click', () => {
-        isEditMode = !isEditMode;
-        if (isEditMode) {
-            editPreview.style.display = 'block';
-            viewPreview.style.display = 'none';
-            toggleViewButton.textContent = 'View Preview';
-        } else {
-            editPreview.style.display = 'none';
-            viewPreview.style.display = 'block';
-            toggleViewButton.textContent = 'Edit Preview';
-            generateFinalPreview();
-        }
-    });
-
-    // Copy to Clipboard
     function copyCode(id) {
-        const textarea = document.getElementById(id);
-        textarea.select();
-        document.execCommand('copy');
-        alert('Code copied to clipboard!');
+      const el = document.getElementById(id);
+      el.select();
+      document.execCommand('copy');
     }
 
-    // Modern CSS Generation
-    function generateModernCSS() {
-        const elements = editPreview.children;
-        let modernCss = `body { background-color: #111827; color: #f9fafb; font-family: 'Inter', sans-serif; }\n\n`;
-        Array.from(elements).forEach(el => {
-            const originalClasses = el.dataset.originalClass;
-            const newClasses = getModernClasses(el.dataset.type);
-            el.className = newClasses;
-            modernCss += `/* ${el.dataset.type} styles */\n.${el.tagName.toLowerCase()} {\n    ${getModernCssProps(el.dataset.type)}\n}\n\n`;
-        });
-        cssCode.value = modernCss;
-        updateCode();
+    function generateCSS() {
+      cssCode.value = `/* Modern dark theme styles */\nbody { background: #111; color: #eee; font-family: sans-serif; }\nbutton { transition: all 0.3s ease; }\nbutton:hover { transform: scale(1.05); }`;
     }
 
-    function getModernClasses(type) {
-        switch(type) {
-            case 'button':
-                return 'py-3 px-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105';
-            case 'heading':
-                return 'text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600';
-            case 'paragraph':
-                return 'text-lg text-gray-300 leading-relaxed';
-            case 'navbar':
-                return 'w-full py-5 px-8 bg-gray-800 rounded-lg shadow-xl flex justify-between items-center';
-            case 'link':
-                return 'text-blue-400 hover:text-blue-300 underline font-medium transition duration-300';
-            case 'image':
-                return 'w-full h-auto rounded-xl shadow-2xl';
-            default:
-                return '';
-        }
+    function generateJS() {
+      jsCode.value = `// Example modern JS interactivity\nconst buttons = document.querySelectorAll('button');\nbuttons.forEach(btn => btn.addEventListener('click', () => alert('Button clicked!')));`;
     }
 
-    function getModernCssProps(type) {
-        switch(type) {
-            case 'button':
-                return `
-    padding: 0.75rem 1.5rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease-in-out;
-    background-image: linear-gradient(to right, #8b5cf6, #4f46e5);
-    color: white;
-    transform: scale(1.0);
-    cursor: pointer;
-`;
-            case 'heading':
-                return `
-    font-size: 3rem;
-    font-weight: 800;
-    background-image: linear-gradient(to right, #c084fc, #db2777);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-`;
-            case 'paragraph':
-                return `
-    font-size: 1.125rem;
-    color: #d1d5db;
-    line-height: 1.625;
-`;
-            case 'navbar':
-                return `
-    width: 100%;
-    padding: 1.25rem 2rem;
-    background-color: #1f2937;
-    border-radius: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-`;
-            case 'link':
-                return `
-    color: #60a5fa;
-    text-decoration: underline;
-    font-weight: 500;
-    transition: all 0.3s ease-in-out;
-`;
-            case 'image':
-                return `
-    width: 100%;
-    height: auto;
-    border-radius: 0.75rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-`;
-            default:
-                return '';
-        }
-    }
-
-    // Modern JS Generation
-    function generateModernJS() {
-        const elements = editPreview.children;
-        let modernJs = '';
-        Array.from(elements).forEach((el, index) => {
-            if (el.dataset.type === 'button' || el.dataset.type === 'link') {
-                const varName = `${el.dataset.type}${index}`;
-                modernJs += `\nconst ${varName} = document.querySelector('.edit-mode-active[data-type="${el.dataset.type}"]:nth-of-type(${index + 1})');\n`;
-                modernJs += `${varName}?.addEventListener('click', () => {\n`;
-                modernJs += `    // A modern effect for a click. Let's make it alert the user of what they clicked.\n`;
-                modernJs += `    console.log('You clicked the ${el.dataset.type}!');\n`;
-                modernJs += `    const messageBox = document.createElement('div');\n`;
-                modernJs += `    messageBox.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';\n`;
-                modernJs += `    messageBox.innerHTML = \`<div class="bg-gray-800 p-6 rounded-lg shadow-xl text-center max-w-sm"><h3 class="text-xl font-bold text-purple-400 mb-2">Element Clicked!</h3><p class="text-gray-300 mb-4">You clicked on the <strong>${el.dataset.type}</strong> element.</p><button onclick="this.parentElement.parentElement.remove()" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg text-white">OK</button></div>\`;\n`;
-                modernJs += `    document.body.appendChild(messageBox);\n`;
-                modernJs += `});\n`;
-            }
-        });
-        jsCode.value = modernJs;
-        updateCode();
-    }
-</script>
+    togglePreviewBtn.addEventListener('click', () => {
+      if (viewPreview.classList.contains('hidden')) {
+        viewPreview.classList.remove('hidden');
+        document.getElementById('editPreview').classList.add('hidden');
+        viewPreview.innerHTML = htmlCode.value;
+        togglePreviewBtn.textContent = 'Switch to Edit Preview';
+      } else {
+        viewPreview.classList.add('hidden');
+        document.getElementById('editPreview').classList.remove('hidden');
+        togglePreviewBtn.textContent = 'Switch to View Preview';
+      }
+    });
+  </script>
 
 </body>
 </html>
