@@ -3,1253 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webpage Designer - Fixed Dropdowns</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Webpage Designer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-primary: #1a1d21;
-            --bg-secondary: #24272b;
-            --bg-tertiary: #2c3036;
-            --text-primary: #f0f2f5;
-            --text-secondary: #c2c6cc;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --border: #3e4248;
-            --shadow: rgba(0, 0, 0, 0.25);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* Header Styles */
-        .header {
-            background-color: var(--bg-secondary);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            box-shadow: 0 2px 10px var(--shadow);
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .logo-icon {
-            color: var(--accent);
-        }
-
-        .mode-toggle {
-            background-color: var(--bg-tertiary);
-            border-radius: 6px;
-            padding: 6px;
-            display: flex;
-            gap: 5px;
-        }
-
-        .mode-btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .mode-btn.active {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        .screen-size-toggle {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .size-btn {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .size-btn.active {
-            background-color: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-primary {
-            background-color: var(--accent);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-        }
-
-        .btn-secondary:hover {
-            background-color: #353940;
-        }
-
-        /* Elements Panel at Top - FIXED DROPDOWN ISSUE */
-        .elements-top-panel {
-            background-color: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 15px 20px;
-            overflow: visible; /* Changed from auto to visible */
-            display: flex;
-            gap: 15px;
-            z-index: 1000; /* Increased z-index */
-            position: relative;
-        }
-
-        .element-category {
-            position: relative;
-        }
-
-        .category-btn {
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .category-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            min-width: 200px;
-            display: none;
-            z-index: 2000; /* Very high z-index to ensure it appears above everything */
-            box-shadow: 0 5px 15px var(--shadow);
-        }
-
-        .element-category:hover .category-dropdown {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .element-item {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            text-align: center;
-            cursor: grab;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .element-item:hover {
-            background-color: #353940;
-            transform: translateY(-2px);
-        }
-
-        .element-icon {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-            color: var(--accent);
-        }
-
-        .element-name {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* Main Content */
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Workspace - FIXED to not block dropdowns */
-        .workspace {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px;
-            overflow: auto;
-            background-color: var(--bg-primary);
-            position: relative;
-            z-index: 1; /* Lower z-index than dropdown */
-        }
-
-        .canvas-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .size-indicator {
-            position: absolute;
-            top: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: var(--bg-tertiary);
-            color: var(--text-secondary);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .page-canvas {
-            background-color: white;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 20px var(--shadow);
-            position: relative;
-            overflow: auto;
-        }
-
-        .desktop-size {
-            width: 1200px;
-            height: 800px;
-        }
-
-        .tablet-size {
-            width: 768px;
-            height: 1024px;
-        }
-
-        .phone-size {
-            width: 375px;
-            height: 667px;
-        }
-
-        .canvas-placeholder {
-            color: #9ca3af;
-            text-align: center;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 1.2rem;
-        }
-
-        /* Canvas Elements */
-        .canvas-element {
-            position: absolute;
-            border: 2px dashed transparent;
-            padding: 5px;
-            cursor: move;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
         }
 
-        .canvas-element.selected {
-            border-color: var(--accent);
-            z-index: 10;
-        }
-
-        .element-content {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .element-controls {
-            position: absolute;
-            top: -30px;
-            right: 0;
-            background-color: var(--accent);
-            border-radius: 4px;
-            padding: 4px;
-            display: none;
-            gap: 5px;
-        }
-
-        .canvas-element.selected .element-controls {
-            display: flex;
-        }
-
-        .control-btn {
-            width: 24px;
-            height: 24px;
-            border-radius: 3px;
-            background-color: white;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .resize-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent);
-            border: 1px solid white;
-            border-radius: 50%;
-            z-index: 11;
-        }
-
-        .resize-n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
-        .resize-s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
-        .resize-e { top: 50%; right: -5px; transform: translateY(-50%); cursor: e-resize; }
-        .resize-w { top: 50%; left: -5px; transform: translateY(-50%); cursor: w-resize; }
-        .resize-ne { top: -5px; right: -5px; cursor: ne-resize; }
-        .resize-nw { top: -5px; left: -5px; cursor: nw-resize; }
-        .resize-se { bottom: -5px; right: -5px; cursor: se-resize; }
-        .resize-sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-
-        /* Properties Panel */
-        .properties-panel {
-            position: absolute;
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            width: 320px;
-            z-index: 200;
-            box-shadow: 0 5px 25px var(--shadow);
-            display: none;
-        }
-
-        .panel-header {
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .close-panel {
-            cursor: pointer;
-            color: var(--text-secondary);
-        }
-
-        .property-group {
-            margin-bottom: 20px;
-        }
-
-        .property-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .property-input {
-            width: 100%;
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-        }
-
-        .color-input {
-            height: 40px;
-        }
-
-        .property-select {
-            width: 100%;
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 10px;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-        }
-
-        .property-range {
-            width: 100%;
-            margin-bottom: 12px;
-        }
-
-        .range-value {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            text-align: right;
-        }
-
-        /* Code Output at Bottom */
-        .code-output {
-            background-color: var(--bg-secondary);
-            border-top: 1px solid var(--border);
-            padding: 15px;
+        .code-area {
+            background-color: #1a202c; /* Darker than the main body */
+            color: #d1d5db; /* Light gray text */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #4a5568;
             height: 200px;
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
+            resize: vertical;
         }
 
-        .code-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 15px;
+        .draggable-element {
+            cursor: grab;
         }
 
-        .code-tab {
-            padding: 8px 16px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
+        .draggable-element:active {
+            cursor: grabbing;
         }
 
-        .code-tab.active {
-            border-bottom: 2px solid var(--accent);
-            color: var(--accent);
+        .preview-canvas, .view-preview-iframe {
+            min-height: 500px;
+            background-color: #1a202c;
+            border: 2px dashed #4a5568;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease-in-out;
         }
 
-        .code-content {
-            display: none;
-            flex: 1;
-        }
-
-        .code-content.active {
-            display: block;
-        }
-
-        .code-textarea {
-            width: 100%;
-            height: 120px;
-            background-color: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 15px;
-            color: var(--text-primary);
-            font-family: 'Courier New', monospace;
-            resize: none;
-        }
-
-        .copy-btn {
-            background-color: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-            float: right;
-        }
-
-        /* View Mode */
-        .view-mode .elements-top-panel,
-        .view-mode .properties-panel,
-        .view-mode .code-output,
-        .view-mode .element-controls,
-        .view-mode .size-indicator {
-            display: none;
-        }
-
-        .view-mode .workspace {
-            width: 100%;
-            padding: 0;
-        }
-
-        .view-mode .page-canvas {
+        .view-preview-iframe {
             border: none;
-            box-shadow: none;
-            width: 100%;
-            height: 100%;
         }
 
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .desktop-size {
-                width: 100%;
-                height: 700px;
-            }
-            
-            .size-indicator {
-                font-size: 0.8rem;
-            }
+        .edit-mode-active {
+            outline: 2px solid #6366f1;
+            outline-offset: -2px;
+            cursor: pointer;
         }
 
-        @media (max-width: 768px) {
-            .header {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .desktop-size {
-                height: 500px;
-            }
-            
-            .elements-top-panel {
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-            
-            .category-btn {
-                padding: 6px 12px;
-                font-size: 0.9rem;
-            }
-            
-            .category-dropdown {
-                grid-template-columns: 1fr;
-            }
+        .edit-panel {
+            min-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">
-                <i class="fas fa-paint-brush logo-icon"></i>
-                <span>Webpage Designer</span>
-            </div>
-            
-            <div class="mode-toggle">
-                <button class="mode-btn active" id="edit-mode-btn">Edit Mode</button>
-                <button class="mode-btn" id="view-mode-btn">View Mode</button>
-            </div>
-            
-            <div class="screen-size-toggle">
-                <button class="size-btn active" data-size="desktop">
-                    <i class="fas fa-laptop"></i> Desktop
-                </button>
-                <button class="size-btn" data-size="tablet">
-                    <i class="fas fa-tablet-alt"></i> Tablet
-                </button>
-                <button class="size-btn" data-size="phone">
-                    <i class="fas fa-mobile-alt"></i> Mobile
-                </button>
-            </div>
-            
-            <div class="header-actions">
-                <button class="btn btn-secondary">
-                    <i class="fas fa-save"></i> Save
-                </button>
-                <button class="btn btn-secondary" id="undo-btn">
-                    <i class="fas fa-undo"></i> Undo
-                </button>
-                <button class="btn btn-primary">
-                    <i class="fas fa-download"></i> Export
-                </button>
-            </div>
-        </header>
-        
-        <!-- Elements Panel at Top - FIXED DROPDOWN VISIBILITY -->
-        <div class="elements-top-panel">
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-text-height"></i> Text
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="heading1">
-                        <i class="fas fa-heading element-icon"></i>
-                        <div class="element-name">Heading 1</div>
-                    </div>
-                    <div class="element-item" data-type="heading2">
-                        <i class="fas fa-heading element-icon"></i>
-                        <div class="element-name">Heading 2</div>
-                    </div>
-                    <div class="element-item" data-type="paragraph">
-                        <i class="fas fa-paragraph element-icon"></i>
-                        <div class="element-name">Paragraph</div>
-                    </div>
-                    <div class="element-item" data-type="list">
-                        <i class="fas fa-list element-icon"></i>
-                        <div class="element-name">List</div>
-                    </div>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex flex-col items-center">
+
+    <div class="container mx-auto max-w-7xl">
+        <h1 class="text-4xl font-bold text-center mb-6 text-purple-400">Webpage Designer</h1>
+        <p class="text-center text-sm mb-8 text-gray-400">Drag and drop elements to design your page. Edit them by double-clicking. The code will generate automatically below.</p>
+
+        <!-- Main Workspace -->
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg border border-gray-700 flex flex-col lg:flex-row gap-6">
+
+            <!-- Elements Library -->
+            <div class="w-full lg:w-1/4 bg-gray-700 p-4 rounded-lg flex flex-col gap-4 sticky top-4 self-start">
+                <h2 class="text-lg font-semibold mb-2 text-purple-300">Elements Library</h2>
+                <div class="flex flex-col gap-2">
+                    <button class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200" draggable="true" data-type="button">Button</button>
+                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="heading" data-text="Heading">Heading</div>
+                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="paragraph" data-text="Paragraph">Paragraph</div>
+                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="navbar">Navbar</div>
+                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="link" data-text="Link">Link</div>
+                    <div class="draggable-element w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200 text-center" draggable="true" data-type="image" data-src="https://placehold.co/400x300/1f2937/d1d5db?text=Image">Image</div>
                 </div>
             </div>
-            
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-object-group"></i> Layout
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="container">
-                        <i class="fas fa-border-all element-icon"></i>
-                        <div class="element-name">Container</div>
-                    </div>
-                    <div class="element-item" data-type="divider">
-                        <i class="fas fa-grip-lines element-icon"></i>
-                        <div class="element-name">Divider</div>
-                    </div>
-                    <div class="element-item" data-type="card">
-                        <i class="far fa-square element-icon"></i>
-                        <div class="element-name">Card</div>
-                    </div>
-                    <div class="element-item" data-type="grid">
-                        <i class="fas fa-th element-icon"></i>
-                        <div class="element-name">Grid</div>
+
+            <!-- Page Designer & Preview -->
+            <div class="w-full lg:w-3/4 flex flex-col gap-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-semibold text-purple-300">Edit Preview</h2>
+                    <div class="flex gap-2">
+                        <button id="toggleView" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">View Preview</button>
                     </div>
                 </div>
-            </div>
-            
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-toggle-on"></i> Form
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="button">
-                        <i class="fas fa-square element-icon"></i>
-                        <div class="element-name">Button</div>
+
+                <div id="previewContainer" class="relative">
+                    <div id="editPreview" class="preview-canvas p-6 hidden">
+                        <!-- Dropped elements will go here -->
                     </div>
-                    <div class="element-item" data-type="input">
-                        <i class="fas fa-font element-icon"></i>
-                        <div class="element-name">Input</div>
-                    </div>
-                    <div class="element-item" data-type="textarea">
-                        <i class="fas fa-align-left element-icon"></i>
-                        <div class="element-name">Textarea</div>
-                    </div>
-                    <div class="element-item" data-type="checkbox">
-                        <i class="fas fa-check-square element-icon"></i>
-                        <div class="element-name">Checkbox</div>
-                    </div>
+                    <iframe id="viewPreview" class="view-preview-iframe p-6 w-full hidden"></iframe>
                 </div>
-            </div>
-            
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-images"></i> Media
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="image">
-                        <i class="fas fa-image element-icon"></i>
-                        <div class="element-name">Image</div>
-                    </div>
-                    <div class="element-item" data-type="video">
-                        <i class="fas fa-video element-icon"></i>
-                        <div class="element-name">Video</div>
-                    </div>
-                    <div class="element-item" data-type="carousel">
-                        <i class="fas fa-images element-icon"></i>
-                        <div class="element-name">Carousel</div>
-                    </div>
-                    <div class="element-item" data-type="icon">
-                        <i class="fas fa-icons element-icon"></i>
-                        <div class="element-name">Icon</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-bars"></i> Navigation
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="navbar">
-                        <i class="fas fa-bars element-icon"></i>
-                        <div class="element-name">Navbar</div>
-                    </div>
-                    <div class="element-item" data-type="menu">
-                        <i class="fas fa-bars element-icon"></i>
-                        <div class="element-name">Menu</div>
-                    </div>
-                    <div class="element-item" data-type="tabs">
-                        <i class="fas fa-folder element-icon"></i>
-                        <div class="element-name">Tabs</div>
-                    </div>
-                    <div class="element-item" data-type="breadcrumb">
-                        <i class="fas fa-arrow-right element-icon"></i>
-                        <div class="element-name">Breadcrumb</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="element-category">
-                <button class="category-btn">
-                    <i class="fas fa-box-open"></i> Components
-                    <i class="fas fa-chevron-down"></i>
-                </button>
-                <div class="category-dropdown">
-                    <div class="element-item" data-type="modal">
-                        <i class="fas fa-window-restore element-icon"></i>
-                        <div class="element-name">Modal</div>
-                    </div>
-                    <div class="element-item" data-type="accordion">
-                        <i class="fas fa-bars element-icon"></i>
-                        <div class="element-name">Accordion</div>
-                    </div>
-                    <div class="element-item" data-type="tooltip">
-                        <i class="fas fa-comment element-icon"></i>
-                        <div class="element-name">Tooltip</div>
-                    </div>
-                    <div class="element-item" data-type="progress">
-                        <i class="fas fa-spinner element-icon"></i>
-                        <div class="element-name">Progress Bar</div>
+
+                <!-- Element Editing Panel (Hidden by default) -->
+                <div id="editPanel" class="bg-gray-700 p-4 rounded-lg shadow-lg hidden">
+                    <h3 class="text-lg font-semibold mb-2 text-purple-300">Edit Element</h3>
+                    <div class="flex flex-col gap-2">
+                        <label for="elementText" class="text-sm text-gray-300">Text Content:</label>
+                        <input type="text" id="elementText" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <label for="elementHref" class="text-sm text-gray-300">Link/Page Reference:</label>
+                        <input type="text" id="elementHref" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <label for="elementSrc" class="text-sm text-gray-300">Image URL:</label>
+                        <input type="text" id="elementSrc" class="w-full py-2 px-3 bg-gray-800 rounded-lg text-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <button id="saveEdit" class="mt-2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Save</button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="main-content">
-            <main class="workspace">
-                <div class="canvas-container">
-                    <div class="size-indicator">Desktop: 1200×800px</div>
-                    <div class="page-canvas desktop-size" id="page-canvas">
-                        <div class="canvas-placeholder">
-                            <i class="fas fa-mouse-pointer"></i>
-                            <p>Select elements from the top panel or drag them here</p>
-                        </div>
-                    </div>
-                </div>
-            </main>
-            
-            <!-- Properties Panel (initially hidden) -->
-            <div class="properties-panel" id="properties-panel">
-                <div class="panel-header">
-                    <span>Element Properties</span>
-                    <i class="fas fa-times close-panel"></i>
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Element Type</label>
-                    <input type="text" class="property-input" value="Button" disabled>
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Text Content</label>
-                    <input type="text" class="property-input" value="Click Me">
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Background Color</label>
-                    <input type="color" class="property-input color-input" value="#6366f1">
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Text Color</label>
-                    <input type="color" class="property-input color-input" value="#ffffff">
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Font Size</label>
-                    <input type="range" class="property-range" min="8" max="32" value="16">
-                    <div class="range-value">16px</div>
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Padding</label>
-                    <input type="range" class="property-range" min="0" max="30" value="10">
-                    <div class="range-value">10px</div>
-                </div>
-                
-                <div class="property-group">
-                    <label class="property-label">Border Radius</label>
-                    <input type="range" class="property-range" min="0" max="20" value="6">
-                    <div class="range-value">6px</div>
+
+        <!-- Code Areas -->
+        <div class="mt-8 flex flex-col lg:flex-row gap-6">
+            <!-- HTML Area -->
+            <div class="w-full lg:w-1/3 flex flex-col gap-2">
+                <h2 class="text-lg font-semibold text-purple-300">HTML</h2>
+                <textarea id="htmlCode" class="code-area"></textarea>
+                <div class="flex gap-2">
+                    <button onclick="copyCode('htmlCode')" class="w-full py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy HTML</button>
                 </div>
             </div>
-        </div>
-        
-        <div class="code-output">
-            <div class="code-tabs">
-                <div class="code-tab active" data-tab="html">HTML</div>
-                <div class="code-tab" data-tab="css">CSS</div>
-                <div class="code-tab" data-tab="js">JavaScript</div>
+
+            <!-- CSS Area -->
+            <div class="w-full lg:w-1/3 flex flex-col gap-2">
+                <h2 class="text-lg font-semibold text-purple-300">CSS</h2>
+                <textarea id="cssCode" class="code-area"></textarea>
+                <div class="flex gap-2">
+                    <button onclick="copyCode('cssCode')" class="w-1/2 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy CSS</button>
+                    <button onclick="generateModernCSS()" class="w-1/2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Generate Modern</button>
+                </div>
             </div>
-            
-            <div class="code-content active" id="html-code">
-                <textarea class="code-textarea">
-<!DOCTYPE html>
-<html>
-<head>
-    <title>My Page</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        
-        .button {
-            background-color: #6366f1;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-    </style>
-</head>
-<body>
-    <button class="button">Click Me</button>
-</body>
-</html>
-                </textarea>
-                <button class="copy-btn">Copy HTML</button>
-            </div>
-            
-            <div class="code-content" id="css-code">
-                <textarea class="code-textarea">
-.button {
-    background-color: #6366f1;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease;
-}
 
-.button:hover {
-    background-color: #4f46e5;
-}
-
-@media (max-width: 768px) {
-    .button {
-        width: 100%;
-        padding: 12px 20px;
-    }
-}
-                </textarea>
-                <button class="copy-btn">Copy CSS</button>
-            </div>
-            
-            <div class="code-content" id="js-code">
-                <textarea class="code-textarea">
-document.querySelector('.button').addEventListener('click', function() {
-    alert('Button clicked!');
-});
-
-// Mobile menu toggle functionality
-const menuToggle = document.querySelector('.menu-toggle');
-const navMenu = document.querySelector('.nav-menu');
-
-menuToggle.addEventListener('click', function() {
-    navMenu.classList.toggle('active');
-});
-                </textarea>
-                <button class="copy-btn">Copy JavaScript</button>
+            <!-- JS Area -->
+            <div class="w-full lg:w-1/3 flex flex-col gap-2">
+                <h2 class="text-lg font-semibold text-purple-300">JavaScript</h2>
+                <textarea id="jsCode" class="code-area"></textarea>
+                <div class="flex gap-2">
+                    <button onclick="copyCode('jsCode')" class="w-1/2 py-2 px-4 bg-gray-600 hover:bg-gray-500 rounded-lg shadow transition duration-200">Copy JS</button>
+                    <button onclick="generateModernJS()" class="w-1/2 py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg shadow transition duration-200">Generate Modern</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mode Toggle
-            const editModeBtn = document.getElementById('edit-mode-btn');
-            const viewModeBtn = document.getElementById('view-mode-btn');
-            const appContainer = document.querySelector('.app-container');
-            
-            editModeBtn.addEventListener('click', function() {
-                appContainer.classList.remove('view-mode');
-                editModeBtn.classList.add('active');
-                viewModeBtn.classList.remove('active');
-            });
-            
-            viewModeBtn.addEventListener('click', function() {
-                appContainer.classList.add('view-mode');
-                viewModeBtn.classList.add('active');
-                editModeBtn.classList.remove('active');
-            });
-            
-            // Screen Size Toggle
-            const sizeButtons = document.querySelectorAll('.size-btn');
-            const pageCanvas = document.getElementById('page-canvas');
-            const sizeIndicator = document.querySelector('.size-indicator');
-            
-            sizeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const size = this.getAttribute('data-size');
-                    
-                    // Remove all size classes
-                    pageCanvas.classList.remove('desktop-size', 'tablet-size', 'phone-size');
-                    
-                    // Add the selected size class
-                    pageCanvas.classList.add(size + '-size');
-                    
-                    // Update size indicator
-                    if (size === 'desktop') {
-                        sizeIndicator.textContent = 'Desktop: 1200×800px';
-                    } else if (size === 'tablet') {
-                        sizeIndicator.textContent = 'Tablet: 768×1024px';
-                    } else if (size === 'phone') {
-                        sizeIndicator.textContent = 'Mobile: 375×667px';
-                    }
-                    
-                    // Update active button
-                    sizeButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // Code Tabs
-            const codeTabs = document.querySelectorAll('.code-tab');
-            const codeContents = document.querySelectorAll('.code-content');
-            
-            codeTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // Update active tab
-                    codeTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Show corresponding content
-                    codeContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === tabName + '-code') {
-                            content.classList.add('active');
-                        }
-                    });
-                });
-            });
-            
-            // Copy Buttons
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            
-            copyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const codeTextarea = this.previousElementSibling;
-                    codeTextarea.select();
-                    document.execCommand('copy');
-                    
-                    // Provide visual feedback
-                    const originalText = this.textContent;
-                    this.textContent = 'Copied!';
-                    
-                    setTimeout(() => {
-                        this.textContent = originalText;
-                    }, 2000);
-                });
-            });
-            
-            // Element Dragging
-            const elementItems = document.querySelectorAll('.element-item');
-            const canvasPlaceholder = document.querySelector('.canvas-placeholder');
-            let selectedElement = null;
-            let offsetX, offsetY;
-            
-            elementItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    // Hide placeholder when first element is added
-                    canvasPlaceholder.style.display = 'none';
-                    
-                    const type = this.getAttribute('data-type');
-                    addElementToCanvas(type);
-                });
-            });
-            
-            function addElementToCanvas(type) {
-                const element = document.createElement('div');
-                element.className = 'canvas-element';
+<script>
+    const editPreview = document.getElementById('editPreview');
+    const viewPreview = document.getElementById('viewPreview');
+    const toggleViewButton = document.getElementById('toggleView');
+    const elementsLibrary = document.querySelector('.elements-library');
+    const htmlCode = document.getElementById('htmlCode');
+    const cssCode = document.getElementById('cssCode');
+    const jsCode = document.getElementById('jsCode');
+    const editPanel = document.getElementById('editPanel');
+    const elementText = document.getElementById('elementText');
+    const elementHref = document.getElementById('elementHref');
+    const elementSrc = document.getElementById('elementSrc');
+    const saveEditButton = document.getElementById('saveEdit');
+
+    let isEditMode = true;
+    let selectedElement = null;
+
+    // Show initial edit view
+    editPreview.style.display = 'block';
+
+    // Drag and Drop Logic
+    document.querySelectorAll('.draggable-element').forEach(element => {
+        element.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', e.target.dataset.type);
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+    });
+
+    editPreview.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    });
+
+    editPreview.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const dataType = e.dataTransfer.getData('text/plain');
+        const newElement = createEditorElement(dataType);
+        if (newElement) {
+            newElement.style.position = 'absolute';
+            // Simple positioning logic
+            const rect = editPreview.getBoundingClientRect();
+            newElement.style.top = `${e.clientY - rect.top}px`;
+            newElement.style.left = `${e.clientX - rect.left}px`;
+            editPreview.appendChild(newElement);
+        }
+    });
+
+    function createEditorElement(type) {
+        let element;
+        switch(type) {
+            case 'button':
+                element = document.createElement('button');
+                element.className = 'py-2 px-4 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700 transition duration-200';
+                element.textContent = 'Button';
+                element.dataset.type = 'button';
+                break;
+            case 'heading':
+                element = document.createElement('h1');
+                element.className = 'text-3xl font-bold text-gray-200';
+                element.textContent = 'Heading';
+                element.dataset.type = 'heading';
+                break;
+            case 'paragraph':
+                element = document.createElement('p');
+                element.className = 'text-base text-gray-400';
+                element.textContent = 'Paragraph';
+                element.dataset.type = 'paragraph';
+                break;
+            case 'navbar':
+                element = document.createElement('nav');
+                element.className = 'w-full py-4 px-6 bg-gray-700 rounded-lg shadow flex justify-between items-center';
                 element.innerHTML = `
-                    <div class="element-content">
-                        ${getElementContentByType(type)}
+                    <div class="text-xl font-bold text-purple-300">Logo</div>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">Home</a>
+                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">About</a>
+                        <a href="#" class="text-gray-300 hover:text-purple-400 transition duration-200">Contact</a>
                     </div>
-                    <div class="element-controls">
-                        <div class="control-btn"><i class="fas fa-trash"></i></div>
-                    </div>
-                    <div class="resize-handle resize-n"></div>
-                    <div class="resize-handle resize-s"></div>
-                    <div class="resize-handle resize-e"></div>
-                    <div class="resize-handle resize-w"></div>
-                    <div class="resize-handle resize-ne"></div>
-                    <div class="resize-handle resize-nw"></div>
-                    <div class="resize-handle resize-se"></div>
-                    <div class="resize-handle resize-sw"></div>
                 `;
+                element.dataset.type = 'navbar';
+                break;
+            case 'link':
+                element = document.createElement('a');
+                element.className = 'text-blue-400 hover:underline';
+                element.href = '#';
+                element.textContent = 'Link';
+                element.dataset.type = 'link';
+                break;
+            case 'image':
+                element = document.createElement('img');
+                element.className = 'w-64 h-48 rounded-lg object-cover';
+                element.src = 'https://placehold.co/400x300/1f2937/d1d5db?text=Image';
+                element.alt = 'Placeholder Image';
+                element.dataset.type = 'image';
+                break;
+            default:
+                return null;
+        }
+        element.dataset.originalClass = element.className; // Store original classes for later use
+        element.classList.add('edit-mode-active');
+        setupElementEditing(element);
+        return element;
+    }
+
+    function setupElementEditing(element) {
+        element.addEventListener('dblclick', (e) => {
+            e.stopPropagation(); // Prevent dblclick on parent container
+            selectedElement = element;
+            showEditPanel(element);
+        });
+
+        element.addEventListener('mousedown', (e) => {
+            if (e.target.dataset.type) {
+                selectedElement = e.target;
+                document.querySelectorAll('.edit-mode-active').forEach(el => el.style.outline = '');
+                selectedElement.style.outline = '2px solid #6366f1';
+                // Simple drag-to-move logic
+                let shiftX = e.clientX - selectedElement.getBoundingClientRect().left;
+                let shiftY = e.clientY - selectedElement.getBoundingClientRect().top;
                 
-                // Set initial position and size
-                element.style.top = '50px';
-                element.style.left = '50px';
-                element.style.width = type === 'button' ? '120px' : '200px';
-                element.style.height = type === 'button' ? '40px' : 'auto';
-                
-                pageCanvas.appendChild(element);
-                
-                // Add selection functionality
-                element.addEventListener('mousedown', function(e) {
-                    e.stopPropagation();
-                    selectElement(element, e);
-                });
-                
-                // Add delete functionality
-                const deleteBtn = element.querySelector('.fa-trash').closest('.control-btn');
-                deleteBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    element.remove();
-                    
-                    // Hide properties panel if deleting selected element
-                    if (selectedElement === element) {
-                        document.getElementById('properties-panel').style.display = 'none';
-                        selectedElement = null;
-                    }
-                    
-                    // Show placeholder if no elements left
-                    if (pageCanvas.querySelectorAll('.canvas-element').length === 0) {
-                        canvasPlaceholder.style.display = 'block';
-                    }
-                });
-                
-                // Make element draggable
-                makeDraggable(element);
-                
-                // Make element resizable
-                makeResizable(element);
-            }
-            
-            function selectElement(element, e) {
-                // Deselect previous element
-                if (selectedElement) {
-                    selectedElement.classList.remove('selected');
+                function moveAt(pageX, pageY) {
+                    selectedElement.style.left = pageX - shiftX - editPreview.getBoundingClientRect().left + 'px';
+                    selectedElement.style.top = pageY - shiftY - editPreview.getBoundingClientRect().top + 'px';
                 }
-                
-                // Select new element
-                element.classList.add('selected');
-                selectedElement = element;
-                
-                // Show properties panel near the element
-                const propsPanel = document.getElementById('properties-panel');
-                propsPanel.style.display = 'block';
-                
-                // Position the properties panel near the element but not off-screen
-                const rect = element.getBoundingClientRect();
-                let panelX = rect.right + 20;
-                let panelY = rect.top;
-                
-                // Adjust if panel would go off-screen
-                if (panelX + 320 > window.innerWidth) {
-                    panelX = rect.left - 340;
+
+                function onMouseMove(event) {
+                    moveAt(event.pageX, event.pageY);
+                    updateCode();
                 }
-                
-                if (panelY + propsPanel.offsetHeight > window.innerHeight) {
-                    panelY = window.innerHeight - propsPanel.offsetHeight - 20;
-                }
-                
-                propsPanel.style.left = panelX + 'px';
-                propsPanel.style.top = panelY + 'px';
-                
-                // Close panel when clicking X
-                document.querySelector('.close-panel').addEventListener('click', function() {
-                    propsPanel.style.display = 'none';
-                });
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                selectedElement.onmouseup = function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                    selectedElement.onmouseup = null;
+                };
             }
-            
-            function makeDraggable(element) {
-                let isDragging = false;
-                let startX, startY, initialX, initialY;
-                
-                element.addEventListener('mousedown', function(e) {
-                    if (e.target.closest('.resize-handle')) return; // Don't drag if resizing
-                    
-                    isDragging = true;
-                    document.body.style.cursor = 'grabbing';
-                    
-                    // Get initial mouse position
-                    startX = e.clientX;
-                    startY = e.clientY;
-                    
-                    // Get initial element position
-                    const style = window.getComputedStyle(element);
-                    initialX = parseInt(style.left, 10);
-                    initialY = parseInt(style.top, 10);
-                    
-                    e.preventDefault();
-                });
-                
-                document.addEventListener('mousemove', function(e) {
-                    if (!isDragging) return;
-                    
-                    // Calculate new position
-                    const newX = initialX + (e.clientX - startX);
-                    const newY = initialY + (e.clientY - startY);
-                    
-                    // Apply new position
-                    element.style.left = newX + 'px';
-                    element.style.top = newY + 'px';
-                });
-                
-                document.addEventListener('mouseup', function() {
-                    isDragging = false;
-                    document.body.style.cursor = 'default';
-                });
-            }
-            
-            function makeResizable(element) {
-                const handles = element.querySelectorAll('.resize-handle');
-                let currentHandle = null;
-                let startX, startY, startWidth, startHeight, startLeft, startTop;
-                
-                handles.forEach(handle => {
-                    handle.addEventListener('mousedown', function(e) {
-                        currentHandle = this;
-                        startX = e.clientX;
-                        startY = e.clientY;
-                        startWidth = parseInt(window.getComputedStyle(element).width, 10);
-                        startHeight = parseInt(window.getComputedStyle(element).height, 10);
-                        startLeft = parseInt(window.getComputedStyle(element).left, 10);
-                        startTop = parseInt(window.getComputedStyle(element).top, 10);
-                        
-                        e.preventDefault();
-                        e.stopPropagation();
-                    });
-                });
-                
-                document.addEventListener('mousemove', function(e) {
-                    if (!currentHandle) return;
-                    
-                    const dx = e.clientX - startX;
-                    const dy = e.clientY - startY;
-                    
-                    // Calculate new dimensions based on which handle is being dragged
-                    if (currentHandle.classList.contains('resize-e')) {
-                        element.style.width = startWidth + dx + 'px';
-                    } else if (currentHandle.classList.contains('resize-s')) {
-                        element.style.height = startHeight + dy + 'px';
-                    } else if (currentHandle.classList.contains('resize-se')) {
-                        element.style.width = startWidth + dx + 'px';
-                        element.style.height = startHeight + dy + 'px';
-                    } else if (currentHandle.classList.contains('resize-w')) {
-                        element.style.width = startWidth - dx + 'px';
-                        element.style.left = startLeft + dx + 'px';
-                    } else if (currentHandle.classList.contains('resize-n')) {
-                        element.style.height = startHeight - dy + 'px';
-                        element.style.top = startTop + dy + 'px';
-                    } else if (currentHandle.classList.contains('resize-ne')) {
-                        element.style.width = startWidth + dx + 'px';
-                        element.style.height = startHeight - dy + 'px';
-                        element.style.top = startTop + dy + 'px';
-                    } else if (currentHandle.classList.contains('resize-nw')) {
-                        element.style.width = startWidth - dx + 'px';
-                        element.style.height = startHeight - dy + 'px';
-                        element.style.left = startLeft + dx + 'px';
-                        element.style.top = startTop + dy + 'px';
-                    } else if (currentHandle.classList.contains('resize-sw')) {
-                        element.style.width = startWidth - dx + 'px';
-                        element.style.height = startHeight + dy + 'px';
-                        element.style.left = startLeft + dx + 'px';
-                    }
-                });
-                
-                document.addEventListener('mouseup', function() {
-                    currentHandle = null;
-                });
-            }
-            
-            function getElementContentByType(type) {
-                switch(type) {
-                    case 'heading1':
-                        return '<h1 style="margin: 0;">Heading 1</h1>';
-                    case 'heading2':
-                        return '<h2 style="margin: 0;">Heading 2</h2>';
-                    case 'paragraph':
-                        return '<p style="margin: 0;">This is a paragraph text. You can edit this content.</p>';
-                    case 'button':
-                        return '<button style="width: 100%; height: 100%; padding: 10px; background: #6366f1; color: white; border: none; border-radius: 6px;">Button</button>';
-                    case 'image':
-                        return '<img src="https://via.placeholder.com/200x100" alt="Placeholder Image" style="width: 100%; height: 100%; object-fit: cover;">';
-                    case 'input':
-                        return '<input type="text" placeholder="Enter text here" style="width: 100%; height: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">';
-                    case 'navbar':
-                        return `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #2c3036; color: white; width: 100%; height: 100%;">
-                                <div>Logo</div>
-                                <div>
-                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">Home</a>
-                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">About</a>
-                                    <a href="#" style="color: white; margin: 0 10px; text-decoration: none;">Contact</a>
-                                </div>
-                            </div>
-                        `;
-                    case 'card':
-                        return `
-                            <div style="padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); background: white; width: 100%; height: 100%;">
-                                <h3 style="margin: 0 0 10px 0;">Card Title</h3>
-                                <p style="margin: 0; color: #666;">This is a card component with some sample text.</p>
-                            </div>
-                        `;
-                    default:
-                        return '<div>New Element</div>';
+        });
+    }
+
+    function showEditPanel(element) {
+        editPanel.style.display = 'block';
+        elementText.value = element.textContent;
+        elementHref.value = element.href || '';
+        elementSrc.value = element.src || '';
+
+        // Show/hide fields based on element type
+        document.getElementById('elementText').parentElement.style.display = 'block';
+        document.getElementById('elementHref').parentElement.style.display = 'block';
+        document.getElementById('elementSrc').parentElement.style.display = 'block';
+
+        if (element.dataset.type === 'image') {
+            document.getElementById('elementText').parentElement.style.display = 'none';
+            document.getElementById('elementHref').parentElement.style.display = 'none';
+        } else if (element.dataset.type !== 'link' && element.dataset.type !== 'button' && element.dataset.type !== 'navbar') {
+            document.getElementById('elementHref').parentElement.style.display = 'none';
+            document.getElementById('elementSrc').parentElement.style.display = 'none';
+        } else {
+            document.getElementById('elementSrc').parentElement.style.display = 'none';
+        }
+    }
+
+    saveEditButton.addEventListener('click', () => {
+        if (selectedElement) {
+            if (selectedElement.dataset.type === 'image') {
+                selectedElement.src = elementSrc.value;
+            } else {
+                selectedElement.textContent = elementText.value;
+                if (selectedElement.href) {
+                    selectedElement.href = elementHref.value;
                 }
             }
-            
-            // Close properties panel when clicking outside
-            document.addEventListener('mousedown', function(e) {
-                const propsPanel = document.getElementById('properties-panel');
-                if (propsPanel.style.display === 'block' && !propsPanel.contains(e.target) && 
-                    !e.target.closest('.canvas-element') && !e.target.closest('.element-controls')) {
-                    propsPanel.style.display = 'none';
-                    if (selectedElement) {
-                        selectedElement.classList.remove('selected');
-                        selectedElement = null;
-                    }
+            editPanel.style.display = 'none';
+            updateCode();
+        }
+    });
+
+    // Code Generation Logic
+    const observer = new MutationObserver(updateCode);
+    observer.observe(editPreview, { childList: true, subtree: true, attributes: true });
+
+    function updateCode() {
+        const elements = editPreview.children;
+        let htmlContent = '';
+        let cssClasses = new Set();
+        let jsContent = '';
+
+        Array.from(elements).forEach(el => {
+            const tempDiv = document.createElement('div');
+            tempDiv.appendChild(el.cloneNode(true));
+            // Remove editor-specific classes before generating HTML
+            const clonedEl = tempDiv.firstElementChild;
+            clonedEl.classList.remove('edit-mode-active');
+            clonedEl.style.position = '';
+            clonedEl.style.top = '';
+            clonedEl.style.left = '';
+            htmlContent += `    ${clonedEl.outerHTML}\n`;
+
+            // Extract classes for CSS generation
+            clonedEl.classList.forEach(cls => {
+                if (cls.match(/^(bg|text|py|px|rounded|shadow|hover|transition|duration|flex|justify|items|w|h|font|object|p|gap|mx|container|max-w|lg|sm|md)-/)) {
+                    cssClasses.add(cls);
                 }
             });
         });
-    </script>
+
+        htmlCode.value = `<div class="p-4 bg-gray-900 min-h-screen">\n${htmlContent.trim()}\n</div>`;
+        cssCode.value = ''; // Let's keep this empty and rely on Tailwind or the generate button
+        jsCode.value = ''; // Let's keep this empty for now
+
+        if (isEditMode) {
+            editPreview.style.display = 'block';
+            viewPreview.style.display = 'none';
+        } else {
+            generateFinalPreview();
+        }
+    }
+
+    function generateFinalPreview() {
+        const finalHtml = htmlCode.value;
+        const finalCss = cssCode.value;
+        const finalJs = jsCode.value;
+        const fullHtml = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Preview</title>
+                <script src="https://cdn.tailwindcss.com"></script>
+                <style>
+                    body {
+                        font-family: 'Inter', sans-serif;
+                    }
+                    ${finalCss}
+                </style>
+            </head>
+            <body>
+                ${finalHtml}
+                <script>${finalJs}</script>
+            </body>
+            </html>
+        `;
+        viewPreview.srcdoc = fullHtml;
+    }
+
+    // Toggle View
+    toggleViewButton.addEventListener('click', () => {
+        isEditMode = !isEditMode;
+        if (isEditMode) {
+            editPreview.style.display = 'block';
+            viewPreview.style.display = 'none';
+            toggleViewButton.textContent = 'View Preview';
+        } else {
+            editPreview.style.display = 'none';
+            viewPreview.style.display = 'block';
+            toggleViewButton.textContent = 'Edit Preview';
+            generateFinalPreview();
+        }
+    });
+
+    // Copy to Clipboard
+    function copyCode(id) {
+        const textarea = document.getElementById(id);
+        textarea.select();
+        document.execCommand('copy');
+        alert('Code copied to clipboard!');
+    }
+
+    // Modern CSS Generation
+    function generateModernCSS() {
+        const elements = editPreview.children;
+        let modernCss = `body { background-color: #111827; color: #f9fafb; font-family: 'Inter', sans-serif; }\n\n`;
+        Array.from(elements).forEach(el => {
+            const originalClasses = el.dataset.originalClass;
+            const newClasses = getModernClasses(el.dataset.type);
+            el.className = newClasses;
+            modernCss += `/* ${el.dataset.type} styles */\n.${el.tagName.toLowerCase()} {\n    ${getModernCssProps(el.dataset.type)}\n}\n\n`;
+        });
+        cssCode.value = modernCss;
+        updateCode();
+    }
+
+    function getModernClasses(type) {
+        switch(type) {
+            case 'button':
+                return 'py-3 px-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold rounded-full shadow-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105';
+            case 'heading':
+                return 'text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600';
+            case 'paragraph':
+                return 'text-lg text-gray-300 leading-relaxed';
+            case 'navbar':
+                return 'w-full py-5 px-8 bg-gray-800 rounded-lg shadow-xl flex justify-between items-center';
+            case 'link':
+                return 'text-blue-400 hover:text-blue-300 underline font-medium transition duration-300';
+            case 'image':
+                return 'w-full h-auto rounded-xl shadow-2xl';
+            default:
+                return '';
+        }
+    }
+
+    function getModernCssProps(type) {
+        switch(type) {
+            case 'button':
+                return `
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+    background-image: linear-gradient(to right, #8b5cf6, #4f46e5);
+    color: white;
+    transform: scale(1.0);
+    cursor: pointer;
+`;
+            case 'heading':
+                return `
+    font-size: 3rem;
+    font-weight: 800;
+    background-image: linear-gradient(to right, #c084fc, #db2777);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+`;
+            case 'paragraph':
+                return `
+    font-size: 1.125rem;
+    color: #d1d5db;
+    line-height: 1.625;
+`;
+            case 'navbar':
+                return `
+    width: 100%;
+    padding: 1.25rem 2rem;
+    background-color: #1f2937;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+`;
+            case 'link':
+                return `
+    color: #60a5fa;
+    text-decoration: underline;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+`;
+            case 'image':
+                return `
+    width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+`;
+            default:
+                return '';
+        }
+    }
+
+    // Modern JS Generation
+    function generateModernJS() {
+        const elements = editPreview.children;
+        let modernJs = '';
+        Array.from(elements).forEach((el, index) => {
+            if (el.dataset.type === 'button' || el.dataset.type === 'link') {
+                const varName = `${el.dataset.type}${index}`;
+                modernJs += `\nconst ${varName} = document.querySelector('.edit-mode-active[data-type="${el.dataset.type}"]:nth-of-type(${index + 1})');\n`;
+                modernJs += `${varName}?.addEventListener('click', () => {\n`;
+                modernJs += `    // A modern effect for a click. Let's make it alert the user of what they clicked.\n`;
+                modernJs += `    console.log('You clicked the ${el.dataset.type}!');\n`;
+                modernJs += `    const messageBox = document.createElement('div');\n`;
+                modernJs += `    messageBox.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50';\n`;
+                modernJs += `    messageBox.innerHTML = \`<div class="bg-gray-800 p-6 rounded-lg shadow-xl text-center max-w-sm"><h3 class="text-xl font-bold text-purple-400 mb-2">Element Clicked!</h3><p class="text-gray-300 mb-4">You clicked on the <strong>${el.dataset.type}</strong> element.</p><button onclick="this.parentElement.parentElement.remove()" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg text-white">OK</button></div>\`;\n`;
+                modernJs += `    document.body.appendChild(messageBox);\n`;
+                modernJs += `});\n`;
+            }
+        });
+        jsCode.value = modernJs;
+        updateCode();
+    }
+</script>
+
 </body>
 </html>
