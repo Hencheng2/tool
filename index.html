@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Webpage Designer — Dark</title>
+  <title>Webpage Designer — Fixed</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{--accent:#7c3aed}
-    body{background:#0b1220;color:#e6eef8}
-    .draggable{cursor:grab}
+    body{background:#071026;color:#e6eef8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     .workspace{min-height:420px}
     .selected{outline:2px dashed var(--accent);position:relative}
     .drag-over{outline:2px dashed #22c55e}
@@ -20,10 +19,10 @@
 </head>
 <body class="h-screen flex flex-col">
 
-  <header class="flex items-center justify-between p-4 bg-[#071026] border-b border-[#111827]">
+  <header class="flex items-center justify-between p-4 bg-[#071026] border-b border-[#0f1724]">
     <div class="flex items-center gap-3">
       <h1 class="text-lg font-semibold">Webpage Designer</h1>
-      <span class="text-sm text-gray-400">dark workspace • drag → edit → export</span>
+      <span class="text-sm text-gray-400">drag → arrange → style → export</span>
     </div>
     <div class="flex items-center gap-2">
       <button id="togglePreview" class="px-3 py-1.5 rounded bg-violet-600 btn">Switch to View</button>
@@ -35,8 +34,7 @@
 
   <main class="flex flex-1 overflow-hidden">
 
-    <!-- Elements -->
-    <aside id="elementsPanel" class="w-1/5 bg-[#071026] p-4 border-r border-[#111827] panel-scroll">
+    <aside id="elementsPanel" class="w-1/5 bg-[#071026] p-4 border-r border-[#0f1724] panel-scroll">
       <h3 class="font-semibold mb-3">Elements</h3>
       <div id="elements" class="space-y-2 text-sm">
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="navbar">Navbar</div>
@@ -56,7 +54,6 @@
       </div>
     </aside>
 
-    <!-- Workspace + Properties + Code -->
     <section class="flex-1 flex flex-col">
 
       <div id="editPreview" class="flex-1 flex overflow-hidden">
@@ -73,7 +70,6 @@
         </div>
       </div>
 
-      <!-- code area bottom -->
       <div id="codePanel" class="bg-[#071026] p-4 border-t border-[#111827] grid grid-cols-3 gap-4">
         <div>
           <label class="text-xs text-gray-400">HTML</label>
@@ -109,7 +105,7 @@
   </main>
 
   <script>
-    // refs
+    // Elements refs
     const elements = document.querySelectorAll('.draggable');
     const workspace = document.getElementById('workspace');
     const properties = document.getElementById('properties');
@@ -128,14 +124,14 @@
     let historyStack = [];
     let historyIndex = -1;
 
-    // library dragstart
-    elements.forEach(el=>el.addEventListener('dragstart', e=> e.dataTransfer.setData('type', el.dataset.type)));
+    // Drag from library
+    elements.forEach(el => el.addEventListener('dragstart', e => e.dataTransfer.setData('type', el.dataset.type)));
 
-    // workspace dragover/drop
-    workspace.addEventListener('dragover', e=>{ e.preventDefault(); highlightClosest(e.target); });
-    workspace.addEventListener('dragleave', e=>{ clearHighlights(); });
+    // Workspace dragover/drop
+    workspace.addEventListener('dragover', e => { e.preventDefault(); highlightClosest(e.target); });
+    workspace.addEventListener('dragleave', e => { clearHighlights(); });
 
-    workspace.addEventListener('drop', e=>{
+    workspace.addEventListener('drop', e => {
       e.preventDefault(); clearHighlights();
       const type = e.dataTransfer.getData('type');
       const ref = findClosestChild(e.target);
@@ -147,148 +143,148 @@
       pushHistory(); updateCode();
     });
 
-    // create elements
-    function createElement(type){
-      const elMap = {
-        navbar: ()=>{ const n=document.createElement('nav'); n.className='nav bg-[#071430] p-3 rounded m-2'; n.innerHTML='<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#" class="text-gray-300">Contact</a>'; return n },
-        header: ()=>{ const h=document.createElement('header'); h.className='bg-[#0b1530] p-4 rounded m-2 text-xl font-semibold'; h.textContent='Header'; return h },
-        hero: ()=>{ const d=document.createElement('div'); d.className='p-8 rounded m-2 text-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white'; d.innerHTML='<h1 class="text-2xl font-bold">Hero title</h1><p class="mt-2 text-sm">Hero subtitle</p>'; return d },
-        section: ()=>{ const s=document.createElement('section'); s.className='bg-[#07192b] p-6 rounded m-2'; s.innerHTML='<h2 class="text-lg font-semibold">Section</h2><p class="mt-2 text-sm text-gray-300">Content...</p>'; return s },
-        card: ()=>{ const c=document.createElement('div'); c.className='card m-2 max-w-sm'; c.innerHTML='<h3 class="font-semibold">Card title</h3><p class="text-sm text-gray-300">Card content</p>'; return c },
-        image: ()=>{ const i=document.createElement('img'); i.src='https://via.placeholder.com/480x240'; i.alt='image'; i.className='m-2 rounded max-w-full h-auto'; return i },
-        video: ()=>{ const v=document.createElement('video'); v.controls=true; v.className='m-2 rounded max-w-full'; return v },
-        form: ()=>{ const f=document.createElement('form'); f.className='m-2 space-y-2'; f.innerHTML='<input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Name"><input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Email"><button class="bg-violet-600 px-3 py-1 rounded text-white">Submit</button>'; return f },
-        input: ()=>{ const ip=document.createElement('input'); ip.className='bg-[#0b1530] p-2 rounded m-2 max-w-xs block'; ip.placeholder='Input'; return ip },
-        list: ()=>{ const ul=document.createElement('ul'); ul.className='list-disc list-inside m-2'; ul.innerHTML='<li>Item 1</li><li>Item 2</li>'; return ul },
-        table: ()=>{ const t=document.createElement('table'); t.className='table-auto border-collapse border border-[#203047] m-2'; t.innerHTML='<tr><th class="border p-2">H1</th><th class="border p-2">H2</th></tr><tr><td class="border p-2">A</td><td class="border p-2">B</td></tr>'; return t },
-        divider: ()=>{ const hr=document.createElement('hr'); hr.className='border-[#203047] my-2'; return hr },
-        footer: ()=>{ const f=document.createElement('footer'); f.className='bg-[#071430] p-3 rounded m-2 text-center text-gray-300'; f.textContent='Footer'; return f },
-        button: ()=>{ const b=document.createElement('button'); b.className='bg-violet-600 px-3 py-1 rounded text-white m-2 inline-block'; b.textContent='Button'; return b }
+    // Element factory
+    function createElement(type) {
+      const map = {
+        navbar: () => { const n = document.createElement('nav'); n.className = 'nav bg-[#071430] p-3 rounded m-2'; n.innerHTML = '<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#" class="text-gray-300">Contact</a>'; return n; },
+        header: () => { const h = document.createElement('header'); h.className = 'bg-[#0b1530] p-4 rounded m-2 text-xl font-semibold'; h.textContent = 'Header'; return h; },
+        hero: () => { const d = document.createElement('div'); d.className = 'p-8 rounded m-2 text-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white'; d.innerHTML = '<h1 class="text-2xl font-bold">Hero title</h1><p class="mt-2 text-sm">Hero subtitle</p>'; return d; },
+        section: () => { const s = document.createElement('section'); s.className = 'bg-[#07192b] p-6 rounded m-2'; s.innerHTML = '<h2 class="text-lg font-semibold">Section</h2><p class="mt-2 text-sm text-gray-300">Content...</p>'; return s; },
+        card: () => { const c = document.createElement('div'); c.className = 'card m-2 max-w-sm'; c.innerHTML = '<h3 class="font-semibold">Card title</h3><p class="text-sm text-gray-300">Card content</p>'; return c; },
+        image: () => { const i = document.createElement('img'); i.src = 'https://via.placeholder.com/480x240'; i.alt = 'image'; i.className = 'm-2 rounded max-w-full h-auto'; return i; },
+        video: () => { const v = document.createElement('video'); v.controls = true; v.className = 'm-2 rounded max-w-full'; return v; },
+        form: () => { const f = document.createElement('form'); f.className = 'm-2 space-y-2'; f.innerHTML = '<input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Name"><input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Email"><button class="bg-violet-600 px-3 py-1 rounded text-white">Submit</button>'; return f; },
+        input: () => { const ip = document.createElement('input'); ip.className = 'bg-[#0b1530] p-2 rounded m-2 max-w-xs block'; ip.placeholder = 'Input'; return ip; },
+        list: () => { const ul = document.createElement('ul'); ul.className = 'list-disc list-inside m-2'; ul.innerHTML = '<li>Item 1</li><li>Item 2</li>'; return ul; },
+        table: () => { const t = document.createElement('table'); t.className = 'table-auto border-collapse border border-[#203047] m-2'; t.innerHTML = '<tr><th class="border p-2">H1</th><th class="border p-2">H2</th></tr><tr><td class="border p-2">A</td><td class="border p-2">B</td></tr>'; return t; },
+        divider: () => { const hr = document.createElement('hr'); hr.className = 'border-[#203047] my-2'; return hr; },
+        footer: () => { const f = document.createElement('footer'); f.className = 'bg-[#071430] p-3 rounded m-2 text-center text-gray-300'; f.textContent = 'Footer'; return f; },
+        button: () => { const b = document.createElement('button'); b.className = 'bg-violet-600 px-3 py-1 rounded text-white m-2 inline-block'; b.textContent = 'Button'; return b; }
       };
-      return (elMap[type] || (()=>null))();
+      return (map[type] || (() => null))();
     }
 
-    // setup: selectable, resizable, reorderable
-    function setupNode(node){
-      node.addEventListener('click', e=>{ e.stopPropagation(); selectNode(node); });
+    // Node setup: selectable, reorder, resize
+    function setupNode(node) {
+      node.addEventListener('click', e => { e.stopPropagation(); selectNode(node); });
       enableReorder(node); enableResize(node);
     }
 
-    function selectNode(node){
+    function selectNode(node) {
       if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); }
-      selectedEl = node; node.classList.add('selected'); showProperties(node); addResizeHandle(node);
+      selectedEl = node; selectedEl.classList.add('selected'); addResizeHandle(selectedEl); showProperties(selectedEl);
     }
 
-    // properties UI
-    function showProperties(node){
-      properties.innerHTML='';
-      // content edit
-      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)){
-        properties.appendChild(rowInput('Text', node.textContent, v=>{ node.textContent=v; updateCode(); }));
-      }
-      if (node.tagName==='INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder||'', v=>{ node.placeholder=v; updateCode(); }));
-      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src||'', v=>{ node.src=v; updateCode(); }));
+    // Properties UI helpers
+    function showProperties(node) {
+      properties.innerHTML = '';
+      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)) properties.appendChild(rowInput('Text', node.textContent, v => { node.textContent = v; updateCode(); }));
+      if (node.tagName === 'INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder || '', v => { node.placeholder = v; updateCode(); }));
+      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src || '', v => { node.src = v; updateCode(); }));
 
-      // style controls
-      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v=>{ node.style.color=v; updateCode(); }));
-      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v=>{ node.style.backgroundColor=v; updateCode(); }));
-      properties.appendChild(rowInput('Font size (px)', parseInt(getComputedStyle(node).fontSize)||16, v=>{ node.style.fontSize=v? v+'px':''; updateCode(); }, 'number'));
-      properties.appendChild(rowInput('Padding (px)', parseInt(getComputedStyle(node).padding)||0, v=>{ node.style.padding=v? v+'px':''; updateCode(); }, 'number'));
-      properties.appendChild(rowInput('Margin (px)', parseInt(getComputedStyle(node).margin)||0, v=>{ node.style.margin=v? v+'px':''; updateCode(); }, 'number'));
-      properties.appendChild(rowInput('Border radius (px)', parseInt(getComputedStyle(node).borderRadius)||0, v=>{ node.style.borderRadius=v? v+'px':''; updateCode(); }, 'number'));
-      properties.appendChild(selectRow('Align', ['left','center','right'], getComputedStyle(node).textAlign||'left', v=>{ node.style.textAlign=v; updateCode(); }));
+      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v => { node.style.color = v; updateCode(); }));
+      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v => { node.style.backgroundColor = v; updateCode(); }));
+      properties.appendChild(rowInput('Font size (px)', parseInt(getComputedStyle(node).fontSize) || 16, v => { node.style.fontSize = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Padding (px)', parseInt(getComputedStyle(node).padding) || 0, v => { node.style.padding = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Margin (px)', parseInt(getComputedStyle(node).margin) || 0, v => { node.style.margin = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Border radius (px)', parseInt(getComputedStyle(node).borderRadius) || 0, v => { node.style.borderRadius = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(selectRow('Align', ['left','center','right'], getComputedStyle(node).textAlign || 'left', v => { node.style.textAlign = v; updateCode(); }));
 
-      // size quick fields
-      properties.appendChild(rowInput('Width (px or %)', parseFloat(getComputedStyle(node).width)||'', v=>{ node.style.width=v; updateCode(); }));
-      properties.appendChild(rowInput('Height (px)', parseFloat(getComputedStyle(node).height)||'', v=>{ node.style.height=v? v+'px':''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Width (px or %)', parseFloat(getComputedStyle(node).width) || '', v => { node.style.width = v; updateCode(); }));
+      properties.appendChild(rowInput('Height (px)', parseFloat(getComputedStyle(node).height) || '', v => { node.style.height = v ? v + 'px' : ''; updateCode(); }, 'number'));
 
-      const del = document.createElement('button'); del.className='mt-3 bg-red-600 px-3 py-1 rounded'; del.textContent='Remove'; del.addEventListener('click', ()=>{ node.remove(); properties.innerHTML='<p>Select an element to edit its properties.</p>'; selectedEl=null; updateCode(); pushHistory(); });
+      const del = document.createElement('button'); del.className = 'mt-3 bg-red-600 px-3 py-1 rounded'; del.textContent = 'Remove'; del.addEventListener('click', () => { node.remove(); properties.innerHTML = '<p>Select an element to edit its properties.</p>'; selectedEl = null; updateCode(); pushHistory(); });
       properties.appendChild(del);
     }
 
-    function rowInput(label, value, oninput, type='text'){
-      const wrap = document.createElement('div'); wrap.className='mb-2';
-      const lab = document.createElement('label'); lab.className='block text-xs text-gray-400'; lab.textContent=label;
-      const inp = document.createElement('input'); inp.className='w-full bg-[#071430] p-1 rounded text-sm'; inp.type=type; inp.value=value; inp.addEventListener('input', e=> oninput(e.target.value));
+    function rowInput(label, value, oninput, type = 'text') {
+      const wrap = document.createElement('div'); wrap.className = 'mb-2';
+      const lab = document.createElement('label'); lab.className = 'block text-xs text-gray-400'; lab.textContent = label;
+      const inp = document.createElement('input'); inp.className = 'w-full bg-[#071430] p-1 rounded text-sm'; inp.type = type; inp.value = value; inp.addEventListener('input', e => oninput(e.target.value));
       wrap.appendChild(lab); wrap.appendChild(inp); return wrap;
     }
-    function rowColor(label, value, oninput){ const wrap=rowInput(label,value,v=>oninput(v)); const input=wrap.querySelector('input'); input.type='color'; input.value=value; input.className='h-8 w-14 p-0'; return wrap; }
-    function selectRow(label, options, cur, onChange){ const wrap=document.createElement('div'); wrap.className='mb-2'; const lab=document.createElement('label'); lab.className='block text-xs text-gray-400'; lab.textContent=label; const sel=document.createElement('select'); sel.className='w-full bg-[#071430] p-1 rounded text-sm'; options.forEach(o=>{ const opt=document.createElement('option'); opt.value=o; opt.textContent=o; if(o===cur) opt.selected=true; sel.appendChild(opt); }); sel.addEventListener('change', e=> onChange(e.target.value)); wrap.appendChild(lab); wrap.appendChild(sel); return wrap; }
+    function rowColor(label, value, oninput) { const wrap = rowInput(label, value, v => oninput(v)); const input = wrap.querySelector('input'); input.type = 'color'; input.value = value; input.className = 'h-8 w-14 p-0'; return wrap; }
+    function selectRow(label, options, cur, onChange) { const wrap = document.createElement('div'); wrap.className = 'mb-2'; const lab = document.createElement('label'); lab.className = 'block text-xs text-gray-400'; lab.textContent = label; const sel = document.createElement('select'); sel.className = 'w-full bg-[#071430] p-1 rounded text-sm'; options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; if (o === cur) opt.selected = true; sel.appendChild(opt); }); sel.addEventListener('change', e => onChange(e.target.value)); wrap.appendChild(lab); wrap.appendChild(sel); return wrap; }
 
-    function rgbToHex(rgb){ if(!rgb) return '#000000'; const m=rgb.match(/\d+/g); if(!m) return '#000000'; return '#'+m.slice(0,3).map(n=>('0'+parseInt(n).toString(16)).slice(-2)).join(''); }
+    function rgbToHex(rgb) { if (!rgb) return '#000000'; const m = rgb.match(/\d+/g); if (!m) return '#000000'; return '#' + m.slice(0, 3).map(n => ('0' + parseInt(n).toString(16)).slice(-2)).join(''); }
 
-    // highlight nearest child for insertion
-    function highlightClosest(eTarget){ const child = findClosestChild(eTarget); document.querySelectorAll('.workspace > *').forEach(n=>n.classList.remove('drag-over')); if(child && child!==workspace) child.classList.add('drag-over'); }
-    function clearHighlights(){ document.querySelectorAll('.workspace > *').forEach(n=>n.classList.remove('drag-over')); }
-    function findClosestChild(target){ if(!target) return null; return target.closest('.workspace > *'); }
+    // highlight insertion
+    function highlightClosest(eTarget) { const child = findClosestChild(eTarget); document.querySelectorAll('.workspace > *').forEach(n => n.classList.remove('drag-over')); if (child && child !== workspace) child.classList.add('drag-over'); }
+    function clearHighlights() { document.querySelectorAll('.workspace > *').forEach(n => n.classList.remove('drag-over')); }
+    function findClosestChild(target) { if (!target) return null; return target.closest('.workspace > *'); }
 
-    // reorder: make node draggable
-    function enableReorder(node){ node.setAttribute('draggable', true);
-      node.addEventListener('dragstart', e=>{ e.dataTransfer.setData('reorder','1'); e.dataTransfer.setData('html', node.outerHTML); node.classList.add('opacity-50'); });
-      node.addEventListener('dragend', ()=> node.classList.remove('opacity-50'));
-      node.addEventListener('dragover', e=>{ e.preventDefault(); node.classList.add('drag-over'); }); node.addEventListener('dragleave', ()=>node.classList.remove('drag-over'));
-      node.addEventListener('drop', e=>{ e.preventDefault(); node.classList.remove('drag-over'); if(e.dataTransfer.getData('reorder')){ const html = e.dataTransfer.getData('html'); node.insertAdjacentHTML('beforebegin', html); const prev = node.previousElementSibling; if(prev) { prev.remove(); setupNode(prev); pushHistory(); updateCode(); } } }); }
+    // reorder
+    function enableReorder(node) {
+      node.setAttribute('draggable', true);
+      node.addEventListener('dragstart', e => { e.dataTransfer.setData('reorder', '1'); e.dataTransfer.setData('html', node.outerHTML); node.classList.add('opacity-50'); });
+      node.addEventListener('dragend', () => node.classList.remove('opacity-50'));
+      node.addEventListener('dragover', e => { e.preventDefault(); node.classList.add('drag-over'); });
+      node.addEventListener('dragleave', () => node.classList.remove('drag-over'));
+      node.addEventListener('drop', e => { e.preventDefault(); node.classList.remove('drag-over'); if (e.dataTransfer.getData('reorder')) { const html = e.dataTransfer.getData('html'); node.insertAdjacentHTML('beforebegin', html); const prev = node.previousElementSibling; if (prev) { prev.remove(); setupNode(prev); pushHistory(); updateCode(); } } });
+    }
 
     // resizing
-    function enableResize(node){ // add handle only for specific tags
-      const tag = node.tagName.toLowerCase(); const resizable = ['img','video','div','section','article','table','form','header','footer']; if(!resizable.includes(tag)) return; addResizeHandle(node); }
-    function addResizeHandle(node){ removeResizeHandle(node); node.style.position = node.style.position || (getComputedStyle(node).position==='static'?'relative':getComputedStyle(node).position);
-      const handle = document.createElement('div'); handle.className='resize-handle'; node.appendChild(handle);
-      let dragging=false, sx, sy, sw, sh;
-      handle.addEventListener('pointerdown', e=>{ e.preventDefault(); e.stopPropagation(); dragging=true; sx=e.clientX; sy=e.clientY; sw=node.getBoundingClientRect().width; sh=node.getBoundingClientRect().height; handle.setPointerCapture(e.pointerId); });
-      handle.addEventListener('pointermove', e=>{ if(!dragging) return; const dx = e.clientX - sx; const dy = e.clientY - sy; node.style.width = Math.max(24, sw+dx)+'px'; node.style.height = Math.max(24, sh+dy)+'px'; updateCodeDebounced(); });
-      handle.addEventListener('pointerup', e=>{ dragging=false; handle.releasePointerCapture(e.pointerId); updateCode(); pushHistory(); });
-    }
-    function removeResizeHandle(node){ const h=node.querySelector('.resize-handle'); if(h) h.remove(); }
+    function enableResize(node) { const tag = node.tagName.toLowerCase(); const resizable = ['img', 'video', 'div', 'section', 'article', 'table', 'form', 'header', 'footer']; if (!resizable.includes(tag)) return; addResizeHandle(node); }
+    function addResizeHandle(node) { removeResizeHandle(node); node.style.position = node.style.position || (getComputedStyle(node).position === 'static' ? 'relative' : getComputedStyle(node).position); const handle = document.createElement('div'); handle.className = 'resize-handle'; node.appendChild(handle); let dragging = false, sx, sy, sw, sh; handle.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dragging = true; sx = e.clientX; sy = e.clientY; sw = node.getBoundingClientRect().width; sh = node.getBoundingClientRect().height; handle.setPointerCapture(e.pointerId); }); handle.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - sx; const dy = e.clientY - sy; node.style.width = Math.max(24, sw + dx) + 'px'; node.style.height = Math.max(24, sh + dy) + 'px'; updateCodeDebounced(); }); handle.addEventListener('pointerup', e => { dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch {} updateCode(); pushHistory(); }); }
+    function removeResizeHandle(node) { const h = node.querySelector('.resize-handle'); if (h) h.remove(); }
 
-    // attach handlers to any new element
-    function setupNode(node){ setupListeners(node); enableReorder(node); enableResize(node); }
-    function setupListeners(node){ node.addEventListener('click', e=>{ e.stopPropagation(); selectNode(node); }); }
+    // setup and listeners
+    function setupNode(node) { node.addEventListener('click', e => { e.stopPropagation(); selectNode(node); }); enableReorder(node); enableResize(node); }
 
-    // when workspace children added via innerHTML, attach handlers
-    const obs = new MutationObserver(ms=>{ ms.forEach(m=>{ m.addedNodes.forEach(n=>{ if(n.nodeType===1) { setupNode(n); } }); }); updateCode(); });
-    obs.observe(workspace,{childList:true});
+    // observe added nodes
+    const obs = new MutationObserver(ms => { ms.forEach(m => { m.addedNodes.forEach(n => { if (n.nodeType === 1) { setupNode(n); } }); }); updateCode(); });
+    obs.observe(workspace, { childList: true });
 
-    // update code
-    function updateCode(){ htmlCode.value = workspace.innerHTML.trim(); }
-    let updateTimeout=null; function updateCodeDebounced(){ clearTimeout(updateTimeout); updateTimeout=setTimeout(updateCode,120); }
+    function updateCode() { htmlCode.value = workspace.innerHTML.trim(); }
+    let updateTimeout = null; function updateCodeDebounced() { clearTimeout(updateTimeout); updateTimeout = setTimeout(updateCode, 120); }
 
     // copy & download
-    function copyCode(id){ const el=document.getElementById(id); el.select(); document.execCommand('copy'); el.setSelectionRange(0,0); }
-    function downloadFile(name, content){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content],{type:'text/html'})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+    function copyCode(id) { const el = document.getElementById(id); el.select(); document.execCommand('copy'); el.setSelectionRange(0, 0); }
+    function downloadFile(name, content) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: 'text/html' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
 
-    function buildFullHtml(){ const body = htmlCode.value || workspace.innerHTML; const css = cssCode.value||''; const js = jsCode.value||''; return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style></head><body>${body}<script>${js}</script></body></html>` }
+    // build full HTML and use Blob for preview (avoids parser issues)
+    function buildFullHtml() { const body = htmlCode.value || workspace.innerHTML; const css = cssCode.value || ''; const js = jsCode.value || ''; return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' + css + '</style></head><body>' + body + '<script>' + js + '<\/script></body></html>'; }
+    function openPreview() {
+      const html = buildFullHtml();
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      previewFrame.src = url;
+      // revoke after short delay to allow load
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
 
-    // generate modern
-    function generateCSS(overwrite=false){ const modern = `body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Segoe UI; background:#081024;color:#e6eef8} .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:12px}`; cssCode.value = overwrite ? modern : cssCode.value + '\n' + modern; }
-    function generateJS(overwrite=false){ const mod = `document.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ b.classList.add('clicked'); setTimeout(()=>b.classList.remove('clicked'),120)}));`; jsCode.value = overwrite ? mod : jsCode.value + '\n' + mod; }
+    function generateCSS(overwrite = false) { const modern = `body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#081024;color:#e6eef8} .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:12px}`; cssCode.value = overwrite ? modern : (cssCode.value ? cssCode.value + '\n' + modern : modern); }
+    function generateJS(overwrite = false) { const modern = `document.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ b.classList.add('clicked'); setTimeout(()=>b.classList.remove('clicked'),120)}));`; jsCode.value = overwrite ? modern : (jsCode.value ? jsCode.value + '\n' + modern : modern); }
 
-    // view mode toggle
-    togglePreviewBtn.addEventListener('click', ()=>{
-      const editing = !viewPreview.classList.contains('hidden');
-      if (editing) { // currently view? switch to edit
-        viewPreview.classList.add('hidden'); document.getElementById('editPreview').classList.remove('hidden'); elementsPanel.classList.remove('hidden'); propertiesPanel.classList.remove('hidden'); codePanel.classList.remove('hidden'); togglePreviewBtn.textContent='Switch to View';
-      } else { // switch to view
-        viewPreview.classList.remove('hidden'); document.getElementById('editPreview').classList.add('hidden'); elementsPanel.classList.add('hidden'); propertiesPanel.classList.add('hidden'); codePanel.classList.add('hidden'); togglePreviewBtn.textContent='Switch to Edit'; previewFrame.srcdoc = buildFullHtml(); }
+    // preview toggle (hide editor when in view)
+    togglePreviewBtn.addEventListener('click', () => {
+      const isView = !viewPreview.classList.contains('hidden');
+      if (isView) {
+        // switch to edit
+        viewPreview.classList.add('hidden'); document.getElementById('editPreview').classList.remove('hidden'); elementsPanel.classList.remove('hidden'); propertiesPanel.classList.remove('hidden'); codePanel.classList.remove('hidden'); togglePreviewBtn.textContent = 'Switch to View';
+      } else {
+        // switch to view
+        viewPreview.classList.remove('hidden'); document.getElementById('editPreview').classList.add('hidden'); elementsPanel.classList.add('hidden'); propertiesPanel.classList.add('hidden'); codePanel.classList.add('hidden'); togglePreviewBtn.textContent = 'Switch to Edit'; openPreview();
+      }
     });
 
-    // helpful: click workspace to deselect
-    workspace.addEventListener('click', ()=>{ if(selectedEl){ selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); selectedEl=null; properties.innerHTML='<p>Select an element to edit its properties.</p>'; } });
+    // deselect on background click
+    workspace.addEventListener('click', () => { if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); selectedEl = null; properties.innerHTML = '<p>Select an element to edit its properties.</p>'; } });
 
     // clear
-    document.getElementById('clearBtn').addEventListener('click', ()=>{ workspace.innerHTML = '<p id="dropHint" class="text-gray-400">Drag elements here. Click an element to edit. Resize with handle. Drag to reorder.</p>'; htmlCode.value=''; cssCode.value=''; jsCode.value=''; pushHistory(); updateCode(); });
+    document.getElementById('clearBtn').addEventListener('click', () => { workspace.innerHTML = '<p id="dropHint" class="text-gray-400">Drag elements here. Click an element to edit. Resize with handle. Drag to reorder.</p>'; htmlCode.value = ''; cssCode.value = ''; jsCode.value = ''; pushHistory(); updateCode(); });
 
-    // history (simple snapshot)
-    function pushHistory(){ historyStack = historyStack.slice(0, historyIndex+1); historyStack.push(workspace.innerHTML); historyIndex = historyStack.length-1; }
-    document.getElementById('undoBtn').addEventListener('click', ()=>{ if(historyIndex>0){ historyIndex--; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
-    document.getElementById('redoBtn').addEventListener('click', ()=>{ if(historyIndex < historyStack.length-1){ historyIndex++; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    // history
+    function pushHistory() { historyStack = historyStack.slice(0, historyIndex + 1); historyStack.push(workspace.innerHTML); historyIndex = historyStack.length - 1; }
+    document.getElementById('undoBtn').addEventListener('click', () => { if (historyIndex > 0) { historyIndex--; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    document.getElementById('redoBtn').addEventListener('click', () => { if (historyIndex < historyStack.length - 1) { historyIndex++; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    function rebindAll() { Array.from(workspace.children).forEach(ch => { if (ch.id === 'dropHint') return; setupNode(ch); }); }
 
-    function rebindAll(){ // re-attach handlers after history restore
-      Array.from(workspace.children).forEach(ch=>{ if(ch.id==='dropHint') return; setupNode(ch); }); }
+    // initial bind
+    setTimeout(() => { pushHistory(); updateCode(); }, 80);
 
-    // initial
-    setTimeout(()=>{ pushHistory(); updateCode(); }, 70);
-
+    // expose some helpers globally for buttons
+    window.copyCode = copyCode; window.downloadFile = downloadFile; window.generateCSS = generateCSS; window.generateJS = generateJS; window.buildFullHtml = buildFullHtml;
   </script>
 </body>
 </html>
