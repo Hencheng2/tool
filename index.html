@@ -51,7 +51,6 @@
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="divider">Divider</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="footer">Footer</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="button">Button</div>
-        <!-- New elements -->
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="article">Article</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="sidebar">Sidebar</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="gallery">Gallery</div>
@@ -114,12 +113,60 @@
   </main>
 
   <script>
-    // ... keep all your existing JS logic ...
+    const elements = document.querySelectorAll('.draggable');
+    const workspace = document.getElementById('workspace');
+    const properties = document.getElementById('properties');
+    const propertiesPanel = document.getElementById('propertiesPanel');
+    const htmlCode = document.getElementById('htmlCode');
+    const cssCode = document.getElementById('cssCode');
+    const jsCode = document.getElementById('jsCode');
+    const previewFrame = document.getElementById('previewFrame');
+    const viewPreview = document.getElementById('viewPreview');
+    const togglePreviewBtn = document.getElementById('togglePreview');
+    const dropHint = document.getElementById('dropHint');
+    const elementsPanel = document.getElementById('elementsPanel');
+    const codePanel = document.getElementById('codePanel');
 
-    // Extend element factory
+    let selectedEl = null;
+    let historyStack = [];
+    let historyIndex = -1;
+
+    // Drag from library
+    elements.forEach(el => el.addEventListener('dragstart', e => e.dataTransfer.setData('type', el.dataset.type)));
+
+    // Workspace dragover/drop
+    workspace.addEventListener('dragover', e => { e.preventDefault(); highlightClosest(e.target); });
+    workspace.addEventListener('dragleave', e => { clearHighlights(); });
+
+    workspace.addEventListener('drop', e => {
+      e.preventDefault(); clearHighlights();
+      const type = e.dataTransfer.getData('type');
+      const ref = findClosestChild(e.target);
+      const node = createElement(type);
+      if (!node) return;
+      setupNode(node);
+      if (ref && ref !== workspace) ref.insertAdjacentElement('beforebegin', node); else workspace.appendChild(node);
+      dropHint.style.display = workspace.children.length ? 'none' : 'block';
+      pushHistory(); updateCode();
+    });
+
+    // Element factory
     function createElement(type) {
       const map = {
-        // existing ones...
+        navbar: () => { const n = document.createElement('nav'); n.className = 'nav bg-[#071430] p-3 rounded m-2'; n.innerHTML = '<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#">Contact</a>'; return n; },
+        header: () => { const h = document.createElement('header'); h.className = 'bg-[#0b1530] p-4 rounded m-2 text-xl font-semibold'; h.textContent = 'Header'; return h; },
+        hero: () => { const d = document.createElement('div'); d.className = 'p-8 rounded m-2 text-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white'; d.innerHTML = '<h1 class="text-2xl font-bold">Hero title</h1><p class="mt-2 text-sm">Hero subtitle</p>'; return d; },
+        section: () => { const s = document.createElement('section'); s.className = 'bg-[#07192b] p-6 rounded m-2'; s.innerHTML = '<h2 class="text-lg font-semibold">Section</h2><p class="mt-2 text-sm text-gray-300">Content...</p>'; return s; },
+        card: () => { const c = document.createElement('div'); c.className = 'card m-2 max-w-sm'; c.innerHTML = '<h3 class="font-semibold">Card title</h3><p class="text-sm text-gray-300">Card content</p>'; return c; },
+        image: () => { const i = document.createElement('img'); i.src = 'https://via.placeholder.com/480x240'; i.alt = 'image'; i.className = 'm-2 rounded max-w-full h-auto'; return i; },
+        video: () => { const v = document.createElement('video'); v.controls = true; v.className = 'm-2 rounded max-w-full'; return v; },
+        form: () => { const f = document.createElement('form'); f.className = 'm-2 space-y-2'; f.innerHTML = '<input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Name"><input class="bg-[#0b1530] p-2 rounded w-full" placeholder="Email"><button class="bg-violet-600 px-3 py-1 rounded text-white">Submit</button>'; return f; },
+        input: () => { const ip = document.createElement('input'); ip.className = 'bg-[#0b1530] p-2 rounded m-2 max-w-xs block'; ip.placeholder = 'Input'; return ip; },
+        list: () => { const ul = document.createElement('ul'); ul.className = 'list-disc list-inside m-2'; ul.innerHTML = '<li>Item 1</li><li>Item 2</li>'; return ul; },
+        table: () => { const t = document.createElement('table'); t.className = 'table-auto border-collapse border border-[#203047] m-2'; t.innerHTML = '<tr><th class="border p-2">H1</th><th class="border p-2">H2</th></tr><tr><td class="border p-2">A</td><td class="border p-2">B</td></tr>'; return t; },
+        divider: () => { const hr = document.createElement('hr'); hr.className = 'border-[#203047] my-2'; return hr; },
+        footer: () => { const f = document.createElement('footer'); f.className = 'bg-[#071430] p-3 rounded m-2 text-center text-gray-300'; f.textContent = 'Footer'; return f; },
+        button: () => { const b = document.createElement('button'); b.className = 'bg-violet-600 px-3 py-1 rounded text-white m-2 inline-block'; b.textContent = 'Button'; return b; },
         article: () => { const a = document.createElement('article'); a.className = 'bg-[#07192b] p-4 rounded m-2'; a.innerHTML = '<h2 class="text-lg font-semibold">Article</h2><p class="mt-2 text-sm text-gray-300">Some article content...</p>'; return a; },
         sidebar: () => { const s = document.createElement('aside'); s.className = 'bg-[#0b1530] p-4 rounded m-2 w-48'; s.innerHTML = '<h3 class="font-semibold">Sidebar</h3><ul class="mt-2 text-sm text-gray-300"><li>Item 1</li><li>Item 2</li></ul>'; return s; },
         gallery: () => { const g = document.createElement('div'); g.className = 'grid grid-cols-3 gap-2 m-2'; g.innerHTML = '<img src="https://via.placeholder.com/120" class="rounded"><img src="https://via.placeholder.com/120" class="rounded"><img src="https://via.placeholder.com/120" class="rounded">'; return g; },
@@ -129,6 +176,22 @@
       };
       return (map[type] || (() => null))();
     }
-  </script>
-</body>
-</html>
+
+    function setupNode(node) {
+      node.addEventListener('click', e => { e.stopPropagation(); selectNode(node); });
+      enableReorder(node); enableResize(node);
+    }
+
+    function selectNode(node) {
+      if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); }
+      selectedEl = node; selectedEl.classList.add('selected'); addResizeHandle(selectedEl); showProperties(selectedEl);
+    }
+
+    function showProperties(node) {
+      properties.innerHTML = '';
+      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)) properties.appendChild(rowInput('Text', node.textContent, v => { node.textContent = v; updateCode(); }));
+      if (node.tagName === 'INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder || '', v => { node.placeholder = v; updateCode(); }));
+      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src || '', v => { node.src = v; updateCode(); }));
+
+      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v => { node.style.color = v; updateCode(); }));
+      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v =>
