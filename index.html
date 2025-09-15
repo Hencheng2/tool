@@ -15,6 +15,8 @@
     textarea{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Roboto Mono,monospace}
     .panel-scroll{max-height:62vh;overflow:auto}
     .btn{transition:all .12s}
+    .draggable{cursor:grab;user-select:none}
+    .draggable:active{cursor:grabbing}
   </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -138,22 +140,45 @@
     let historyIndex = -1;
 
     // Drag from library
-    elements.forEach(el => el.addEventListener('dragstart', e => e.dataTransfer.setData('type', el.dataset.type)));
+    elements.forEach(el => {
+      el.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', el.dataset.type);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+    });
 
     // Workspace dragover/drop
-    workspace.addEventListener('dragover', e => { e.preventDefault(); highlightClosest(e.target); });
-    workspace.addEventListener('dragleave', e => { clearHighlights(); });
+    workspace.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      highlightClosest(e.clientX, e.clientY);
+    });
+    
+    workspace.addEventListener('dragleave', e => {
+      clearHighlights();
+    });
 
     workspace.addEventListener('drop', e => {
-      e.preventDefault(); clearHighlights();
-      const type = e.dataTransfer.getData('type');
-      const ref = findClosestChild(e.target);
+      e.preventDefault();
+      clearHighlights();
+      const type = e.dataTransfer.getData('text/plain');
       const node = createElement(type);
       if (!node) return;
+      
+      // Position the element where it was dropped
+      const rect = workspace.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      node.style.position = 'absolute';
+      node.style.left = `${x}px`;
+      node.style.top = `${y}px`;
+      
       setupNode(node);
-      if (ref && ref !== workspace) ref.insertAdjacentElement('beforebegin', node); else workspace.appendChild(node);
-      dropHint.style.display = workspace.children.length ? 'none' : 'block';
-      pushHistory(); updateCode();
+      workspace.appendChild(node);
+      dropHint.style.display = workspace.children.length > 1 ? 'none' : 'block';
+      pushHistory();
+      updateCode();
     });
 
     // Element factory
@@ -185,241 +210,139 @@
         icon: () => { const i = document.createElement('div'); i.className = 'm-2 text-2xl'; i.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>'; return i; },
         map: () => { const m = document.createElement('div'); m.className = 'bg-[#0b1530] p-8 rounded m-2 text-center'; m.innerHTML = '<div class="text-gray-400">Map Placeholder</div>'; return m; }
       };
-      return map[type] ? map[type]() : null;
+      return (map[type] || (() => null))();
     }
 
-    // Setup node
+    // Node setup: selectable, reorder, resize
     function setupNode(node) {
-      node.draggable = true;
-      node.addEventListener('click', e => selectElement(e.target));
-      node.addEventListener('dragstart', e => { e.dataTransfer.setData('id', node.id); e.dataTransfer.effectAllowed = 'move'; });
-      node.addEventListener('dragover', e => { e.preventDefault(); highlightClosest(e.target); });
-      node.addEventListener('dragleave', e => { clearHighlights(); });
-      node.addEventListener('drop', e => {
-        e.preventDefault(); clearHighlights();
-        const id = e.dataTransfer.getData('id');
-        const el = document.getElementById(id);
-        if (!el) return;
-        const ref = findClosestChild(e.target);
-        if (ref && ref !== node) ref.insertAdjacentElement('beforebegin', el); else node.insertAdjacentElement('afterend', el);
-        pushHistory(); updateCode();
-      });
-      node.id = 'el' + Date.now();
-      const resizeHandle = document.createElement('div');
-      resizeHandle.className = 'resize-handle';
-      resizeHandle.addEventListener('mousedown', e => { e.stopPropagation(); initResize(node, e); });
-      node.appendChild(resizeHandle);
+      node.addEventListener('click', e => { e.stopPropagation(); selectNode(node); });
+      enableReorder(node); enableResize(node);
     }
 
-    // Select element
-    function selectElement(el) {
-      if (selectedEl) selectedEl.classList.remove('selected');
-      selectedEl = el;
-      el.classList.add('selected');
-      showProperties(el);
+    function selectNode(node) {
+      if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); }
+      selectedEl = node; selectedEl.classList.add('selected'); addResizeHandle(selectedEl); showProperties(selectedEl);
     }
 
-    // Show properties
-    function showProperties(el) {
-      properties.innerHTML = `
-        <h4 class="font-semibold mb-2">${el.nodeName.toLowerCase()}</h4>
-        <div class="space-y-2">
-          <div><label class="text-xs text-gray-400">ID</label><input class="w-full bg-[#0b1530] p-2 rounded" value="${el.id}" onchange="updateProp('id', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Class</label><input class="w-full bg-[#0b1530] p-2 rounded" value="${el.className}" onchange="updateProp('className', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Content</label><textarea class="w-full bg-[#0b1530] p-2 rounded" onchange="updateProp('innerHTML', this.value)">${el.innerHTML}</textarea></div>
-          <div><label class="text-xs text-gray-400">Background</label><input type="color" class="w-full bg-[#0b1530] p-1 rounded" value="#07192b" onchange="updateProp('style.backgroundColor', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Color</label><input type="color" class="w-full bg-[#0b1530] p-1 rounded" value="#ffffff" onchange="updateProp('style.color', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Padding</label><input class="w-full bg-[#0b1530] p-2 rounded" value="16px" onchange="updateProp('style.padding', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Margin</label><input class="w-full bg-[#0b1530] p-2 rounded" value="8px" onchange="updateProp('style.margin', this.value)"></div>
-          <div><label class="text-xs text-gray-400">Border Radius</label><input class="w-full bg-[#0b1530] p-2 rounded" value="4px" onchange="updateProp('style.borderRadius', this.value)"></div>
-          <button class="bg-red-600 px-3 py-1.5 rounded w-full mt-2" onclick="deleteElement()">Delete</button>
-        </div>
-      `;
+    // Properties UI helpers
+    function showProperties(node) {
+      properties.innerHTML = '';
+      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)) properties.appendChild(rowInput('Text', node.textContent, v => { node.textContent = v; updateCode(); }));
+      if (node.tagName === 'INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder || '', v => { node.placeholder = v; updateCode(); }));
+      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src || '', v => { node.src = v; updateCode(); }));
+
+      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v => { node.style.color = v; updateCode(); }));
+      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v => { node.style.backgroundColor = v; updateCode(); }));
+      properties.appendChild(rowInput('Font size (px)', parseInt(getComputedStyle(node).fontSize) || 16, v => { node.style.fontSize = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Padding (px)', parseInt(getComputedStyle(node).padding) || 0, v => { node.style.padding = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Margin (px)', parseInt(getComputedStyle(node).margin) || 0, v => { node.style.margin = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(rowInput('Border radius (px)', parseInt(getComputedStyle(node).borderRadius) || 0, v => { node.style.borderRadius = v ? v + 'px' : ''; updateCode(); }, 'number'));
+      properties.appendChild(selectRow('Align', ['left','center','right'], getComputedStyle(node).textAlign || 'left', v => { node.style.textAlign = v; updateCode(); }));
+
+      properties.appendChild(rowInput('Width (px or %)', parseFloat(getComputedStyle(node).width) || '', v => { node.style.width = v; updateCode(); }));
+      properties.appendChild(rowInput('Height (px)', parseFloat(getComputedStyle(node).height) || '', v => { node.style.height = v ? v + 'px' : ''; updateCode(); }, 'number'));
+
+      const del = document.createElement('button'); del.className = 'mt-3 bg-red-600 px-3 py-1 rounded'; del.textContent = 'Remove'; del.addEventListener('click', () => { node.remove(); properties.innerHTML = '<p>Select an element to edit its properties.</p>'; selectedEl = null; updateCode(); pushHistory(); });
+      properties.appendChild(del);
     }
 
-    // Update property
-    function updateProp(prop, value) {
-      if (!selectedEl) return;
-      if (prop.includes('.')) {
-        const [obj, key] = prop.split('.');
-        selectedEl[obj][key] = value;
-      } else selectedEl[prop] = value;
-      pushHistory(); updateCode();
+    function rowInput(label, value, oninput, type = 'text') {
+      const wrap = document.createElement('div'); wrap.className = 'mb-2';
+      const lab = document.createElement('label'); lab.className = 'block text-xs text-gray-400'; lab.textContent = label;
+      const inp = document.createElement('input'); inp.className = 'w-full bg-[#071430] p-1 rounded text-sm'; inp.type = type; inp.value = value; inp.addEventListener('input', e => oninput(e.target.value));
+      wrap.appendChild(lab); wrap.appendChild(inp); return wrap;
     }
+    function rowColor(label, value, oninput) { const wrap = rowInput(label, value, v => oninput(v)); const input = wrap.querySelector('input'); input.type = 'color'; input.value = value; input.className = 'h-8 w-14 p-0'; return wrap; }
+    function selectRow(label, options, cur, onChange) { const wrap = document.createElement('div'); wrap.className = 'mb-2'; const lab = document.createElement('label'); lab.className = 'block text-xs text-gray-400'; lab.textContent = label; const sel = document.createElement('select'); sel.className = 'w-full bg-[#071430] p-1 rounded text-sm'; options.forEach(o => { const opt = document.createElement('option'); opt.value = o; opt.textContent = o; if (o === cur) opt.selected = true; sel.appendChild(opt); }); sel.addEventListener('change', e => onChange(e.target.value)); wrap.appendChild(lab); wrap.appendChild(sel); return wrap; }
 
-    // Delete element
-    function deleteElement() {
-      if (!selectedEl) return;
-      selectedEl.remove();
-      selectedEl = null;
-      properties.innerHTML = '<p>Select an element to edit its properties.</p>';
-      dropHint.style.display = workspace.children.length ? 'none' : 'block';
-      pushHistory(); updateCode();
-    }
+    function rgbToHex(rgb) { if (!rgb) return '#000000'; const m = rgb.match(/\d+/g); if (!m) return '#000000'; return '#' + m.slice(0, 3).map(n => ('0' + parseInt(n).toString(16)).slice(-2)).join(''); }
 
-    // Find closest child
-    function findClosestChild(el) {
-      while (el && el.parentElement !== workspace) el = el.parentElement;
-      return el;
-    }
-
-    // Highlight closest
-    function highlightClosest(el) {
+    // highlight insertion
+    function highlightClosest(x, y) {
       clearHighlights();
-      const closest = findClosestChild(el);
-      if (closest && closest !== workspace) closest.classList.add('drag-over');
-    }
-
-    // Clear highlights
-    function clearHighlights() {
-      workspace.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-    }
-
-    // Init resize
-    function initResize(el, e) {
-      e.preventDefault();
-      const startX = e.clientX, startY = e.clientY;
-      const startWidth = parseInt(getComputedStyle(el).width), startHeight = parseInt(getComputedStyle(el).height);
-      function resize(e) {
-        el.style.width = (startWidth + e.clientX - startX) + 'px';
-        el.style.height = (startHeight + e.clientY - startY) + 'px';
+      const children = Array.from(workspace.children);
+      for (const child of children) {
+        if (child.id === 'dropHint') continue;
+        const rect = child.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+          child.classList.add('drag-over');
+          break;
+        }
       }
-      function stopResize() {
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResize);
-        pushHistory(); updateCode();
-      }
-      window.addEventListener('mousemove', resize);
-      window.addEventListener('mouseup', stopResize);
+    }
+    
+    function clearHighlights() { document.querySelectorAll('.workspace > *').forEach(n => n.classList.remove('drag-over')); }
+
+    // reorder
+    function enableReorder(node) {
+      node.setAttribute('draggable', true);
+      node.addEventListener('dragstart', e => { e.dataTransfer.setData('reorder', '1'); e.dataTransfer.setData('html', node.outerHTML); node.classList.add('opacity-50'); });
+      node.addEventListener('dragend', () => node.classList.remove('opacity-50'));
+      node.addEventListener('dragover', e => { e.preventDefault(); node.classList.add('drag-over'); });
+      node.addEventListener('dragleave', () => node.classList.remove('drag-over'));
+      node.addEventListener('drop', e => { e.preventDefault(); node.classList.remove('drag-over'); if (e.dataTransfer.getData('reorder')) { const html = e.dataTransfer.getData('html'); node.insertAdjacentHTML('beforebegin', html); const prev = node.previousElementSibling; if (prev) { prev.remove(); setupNode(prev); pushHistory(); updateCode(); } } });
     }
 
-    // Update code
-    function updateCode() {
-      htmlCode.value = workspace.innerHTML.replace(/<div class="resize-handle"><\/div>/g, '');
-      generateCSS(); generateJS();
-    }
+    // resizing
+    function enableResize(node) { const tag = node.tagName.toLowerCase(); const resizable = ['img', 'video', 'div', 'section', 'article', 'table', 'form', 'header', 'footer']; if (!resizable.includes(tag)) return; addResizeHandle(node); }
+    function addResizeHandle(node) { removeResizeHandle(node); node.style.position = node.style.position || (getComputedStyle(node).position === 'static' ? 'relative' : getComputedStyle(node).position); const handle = document.createElement('div'); handle.className = 'resize-handle'; node.appendChild(handle); let dragging = false, sx, sy, sw, sh; handle.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); dragging = true; sx = e.clientX; sy = e.clientY; sw = node.getBoundingClientRect().width; sh = node.getBoundingClientRect().height; handle.setPointerCapture(e.pointerId); }); handle.addEventListener('pointermove', e => { if (!dragging) return; const dx = e.clientX - sx; const dy = e.clientY - sy; node.style.width = Math.max(24, sw + dx) + 'px'; node.style.height = Math.max(24, sh + dy) + 'px'; updateCodeDebounced(); }); handle.addEventListener('pointerup', e => { dragging = false; try { handle.releasePointerCapture(e.pointerId); } catch {} updateCode(); pushHistory(); }); }
+    function removeResizeHandle(node) { const h = node.querySelector('.resize-handle'); if (h) h.remove(); }
 
-    // Generate CSS
-    function generateCSS(modern = false) {
-      let css = modern ? '/* Modern CSS with Tailwind-like classes */\n' : '/* Custom CSS */\n';
-      css += modern ? '.container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }\n' : '';
-      css += modern ? '.btn { display: inline-block; padding: 0.5rem 1rem; background: #7c3aed; color: white; border-radius: 0.25rem; text-decoration: none; transition: all 0.2s; }\n' : '';
-      css += modern ? '.btn:hover { background: #6d28d9; transform: translateY(-1px); }\n' : '';
-      css += modern ? '.card { background: #0f172a; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }\n' : '';
-      cssCode.value = css;
-    }
+    // observe added nodes
+    const obs = new MutationObserver(ms => { ms.forEach(m => { m.addedNodes.forEach(n => { if (n.nodeType === 1) { setupNode(n); } }); }); updateCode(); });
+    obs.observe(workspace, { childList: true });
 
-    // Generate JS
-    function generateJS(modern = false) {
-      let js = modern ? '// Modern JavaScript with interactive functionality\n' : '// Custom JavaScript\n';
-      js += modern ? 'document.addEventListener("DOMContentLoaded", function() {\n' : '';
-      js += modern ? '  // Initialize interactive components\n' : '';
-      js += modern ? '  const buttons = document.querySelectorAll("button");\n' : '';
-      js += modern ? '  buttons.forEach(button => {\n' : '';
-      js += modern ? '    button.addEventListener("click", function(e) {\n' : '';
-      js += modern ? '      e.preventDefault();\n' : '';
-      js += modern ? '      alert("Button clicked: " + this.textContent);\n' : '';
-      js += modern ? '    });\n' : '';
-      js += modern ? '  });\n' : '';
-      js += modern ? '});\n' : '';
-      jsCode.value = js;
-    }
+    function updateCode() { htmlCode.value = workspace.innerHTML.trim(); }
+    let updateTimeout = null; function updateCodeDebounced() { clearTimeout(updateTimeout); updateTimeout = setTimeout(updateCode, 120); }
 
-    // Copy code
-    function copyCode(id) {
-      const textarea = document.getElementById(id);
-      textarea.select();
-      document.execCommand('copy');
-      alert('Copied to clipboard');
-    }
+    // copy & download
+    function copyCode(id) { const el = document.getElementById(id); el.select(); document.execCommand('copy'); el.setSelectionRange(0, 0); }
+    function clearCode(id) { document.getElementById(id).value = ''; }
+    function downloadFile(name, content) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: 'text/html' })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
 
-    // Clear code
-    function clearCode(id) {
-      const textarea = document.getElementById(id);
-      textarea.value = '';
-    }
-
-    // Build full HTML
-    function buildFullHtml() {
-      return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generated Page</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>${cssCode.value}</style>
-</head>
-<body>
-  ${htmlCode.value}
-  <script>${jsCode.value}<\/script>
-</body>
-</html>`;
-    }
-
-    // Download file
-    function downloadFile(filename, content) {
-      const blob = new Blob([content], { type: 'text/html' });
+    // build full HTML and use Blob for preview (avoids parser issues)
+    function buildFullHtml() { const body = htmlCode.value || workspace.innerHTML; const css = cssCode.value || ''; const js = jsCode.value || ''; return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>' + css + '</style></head><body>' + body + '<script>' + js + '<\/script></body></html>'; }
+    function openPreview() {
+      const html = buildFullHtml();
+      const blob = new Blob([html], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(url);
+      previewFrame.src = url;
+      // revoke after short delay to allow load
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
     }
 
-    // Toggle preview
+    function generateCSS(overwrite = false) { const modern = `body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#081024;color:#e6eef8} .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:12px}`; cssCode.value = overwrite ? modern : (cssCode.value ? cssCode.value + '\n' + modern : modern); }
+    function generateJS(overwrite = false) { const modern = `document.querySelectorAll('button').forEach(b=>b.addEventListener('click', ()=>{ b.classList.add('clicked'); setTimeout(()=>b.classList.remove('clicked'),120)}));`; jsCode.value = overwrite ? modern : (jsCode.value ? jsCode.value + '\n' + modern : modern); }
+
+    // preview toggle (hide editor when in view)
     togglePreviewBtn.addEventListener('click', () => {
-      const isPreview = viewPreview.classList.toggle('hidden');
-      editPreview.classList.toggle('hidden');
-      togglePreviewBtn.textContent = isPreview ? 'Switch to View' : 'Switch to Edit';
-      if (!isPreview) {
-        const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-        doc.open();
-        doc.write(buildFullHtml());
-        doc.close();
+      const isView = !viewPreview.classList.contains('hidden');
+      if (isView) {
+        // switch to edit
+        viewPreview.classList.add('hidden'); document.getElementById('editPreview').classList.remove('hidden'); elementsPanel.classList.remove('hidden'); propertiesPanel.classList.remove('hidden'); codePanel.classList.remove('hidden'); togglePreviewBtn.textContent = 'Switch to View';
+      } else {
+        // switch to view
+        viewPreview.classList.remove('hidden'); document.getElementById('editPreview').classList.add('hidden'); elementsPanel.classList.add('hidden'); propertiesPanel.classList.add('hidden'); codePanel.classList.add('hidden'); togglePreviewBtn.textContent = 'Switch to Edit'; openPreview();
       }
     });
 
-    // Push history
-    function pushHistory() {
-      historyStack = historyStack.slice(0, historyIndex + 1);
-      historyStack.push(workspace.innerHTML);
-      historyIndex = historyStack.length - 1;
-    }
+    // deselect on background click
+    workspace.addEventListener('click', () => { if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); selectedEl = null; properties.innerHTML = '<p>Select an element to edit its properties.</p>'; } });
 
-    // Undo
-    document.getElementById('undoBtn').addEventListener('click', () => {
-      if (historyIndex > 0) {
-        historyIndex--;
-        workspace.innerHTML = historyStack[historyIndex];
-        updateCode();
-      }
-    });
+    // clear
+    document.getElementById('clearBtn').addEventListener('click', () => { workspace.innerHTML = '<p id="dropHint" class="text-gray-400">Drag elements here. Click an element to edit. Resize with handle. Drag to reorder.</p>'; htmlCode.value = ''; cssCode.value = ''; jsCode.value = ''; pushHistory(); updateCode(); });
 
-    // Redo
-    document.getElementById('redoBtn').addEventListener('click', () => {
-      if (historyIndex < historyStack.length - 1) {
-        historyIndex++;
-        workspace.innerHTML = historyStack[historyIndex];
-        updateCode();
-      }
-    });
+    // history
+    function pushHistory() { historyStack = historyStack.slice(0, historyIndex + 1); historyStack.push(workspace.innerHTML); historyIndex = historyStack.length - 1; }
+    document.getElementById('undoBtn').addEventListener('click', () => { if (historyIndex > 0) { historyIndex--; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    document.getElementById('redoBtn').addEventListener('click', () => { if (historyIndex < historyStack.length - 1) { historyIndex++; workspace.innerHTML = historyStack[historyIndex]; rebindAll(); updateCode(); } });
+    function rebindAll() { Array.from(workspace.children).forEach(ch => { if (ch.id === 'dropHint') return; setupNode(ch); }); }
 
-    // Clear all
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      if (confirm('Clear all elements?')) {
-        workspace.innerHTML = '';
-        dropHint.style.display = 'block';
-        selectedEl = null;
-        properties.innerHTML = '<p>Select an element to edit its properties.</p>';
-        pushHistory(); updateCode();
-      }
-    });
+    // initial bind
+    setTimeout(() => { pushHistory(); updateCode(); }, 80);
 
-    // Init
-    pushHistory();
-    updateCode();
+    // expose some helpers globally for buttons
+    window.copyCode = copyCode; window.downloadFile = downloadFile; window.generateCSS = generateCSS; window.generateJS = generateJS; window.buildFullHtml = buildFullHtml; window.clearCode = clearCode;
   </script>
 </body>
 </html>
