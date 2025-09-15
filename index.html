@@ -51,12 +51,17 @@
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="divider">Divider</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="footer">Footer</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="button">Button</div>
-        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="article">Article</div>
+        <!-- New elements -->
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="grid">Grid</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="sidebar">Sidebar</div>
-        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="gallery">Gallery</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="carousel">Carousel</div>
-        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="quote">Quote/Testimonial</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="modal">Modal</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="accordion">Accordion</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="tabs">Tabs</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="badge">Badge</div>
         <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="progress">Progress Bar</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="icon">Icon</div>
+        <div class="draggable bg-[#0f1724] p-2 rounded" draggable="true" data-type="map">Map</div>
       </div>
     </aside>
 
@@ -91,7 +96,7 @@
           <div class="flex gap-2 mt-2">
             <button class="bg-violet-600 px-2 py-1 rounded" onclick="copyCode('cssCode')">Copy</button>
             <button class="bg-green-600 px-2 py-1 rounded" onclick="generateCSS(true)">Generate Modern</button>
-            <button class="bg-red-600 px-2 py-1 rounded" onclick="document.getElementById('cssCode').value=''">Clear</button>
+            <button class="bg-red-600 px-2 py-1 rounded" onclick="clearCode('cssCode')">Clear</button>
           </div>
         </div>
         <div>
@@ -100,7 +105,7 @@
           <div class="flex gap-2 mt-2">
             <button class="bg-violet-600 px-2 py-1 rounded" onclick="copyCode('jsCode')">Copy</button>
             <button class="bg-green-600 px-2 py-1 rounded" onclick="generateJS(true)">Generate Modern</button>
-            <button class="bg-red-600 px-2 py-1 rounded" onclick="document.getElementById('jsCode').value=''">Clear</button>
+            <button class="bg-red-600 px-2 py-1 rounded" onclick="clearCode('jsCode')">Clear</button>
           </div>
         </div>
       </div>
@@ -113,6 +118,7 @@
   </main>
 
   <script>
+    // Elements refs
     const elements = document.querySelectorAll('.draggable');
     const workspace = document.getElementById('workspace');
     const properties = document.getElementById('properties');
@@ -153,7 +159,7 @@
     // Element factory
     function createElement(type) {
       const map = {
-        navbar: () => { const n = document.createElement('nav'); n.className = 'nav bg-[#071430] p-3 rounded m-2'; n.innerHTML = '<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#">Contact</a>'; return n; },
+        navbar: () => { const n = document.createElement('nav'); n.className = 'nav bg-[#071430] p-3 rounded m-2'; n.innerHTML = '<a href="#" class="mr-3 text-white">Home</a><a href="#" class="mr-3 text-gray-300">About</a><a href="#" class="text-gray-300">Contact</a>'; return n; },
         header: () => { const h = document.createElement('header'); h.className = 'bg-[#0b1530] p-4 rounded m-2 text-xl font-semibold'; h.textContent = 'Header'; return h; },
         hero: () => { const d = document.createElement('div'); d.className = 'p-8 rounded m-2 text-center bg-gradient-to-r from-violet-600 to-indigo-600 text-white'; d.innerHTML = '<h1 class="text-2xl font-bold">Hero title</h1><p class="mt-2 text-sm">Hero subtitle</p>'; return d; },
         section: () => { const s = document.createElement('section'); s.className = 'bg-[#07192b] p-6 rounded m-2'; s.innerHTML = '<h2 class="text-lg font-semibold">Section</h2><p class="mt-2 text-sm text-gray-300">Content...</p>'; return s; },
@@ -167,31 +173,253 @@
         divider: () => { const hr = document.createElement('hr'); hr.className = 'border-[#203047] my-2'; return hr; },
         footer: () => { const f = document.createElement('footer'); f.className = 'bg-[#071430] p-3 rounded m-2 text-center text-gray-300'; f.textContent = 'Footer'; return f; },
         button: () => { const b = document.createElement('button'); b.className = 'bg-violet-600 px-3 py-1 rounded text-white m-2 inline-block'; b.textContent = 'Button'; return b; },
-        article: () => { const a = document.createElement('article'); a.className = 'bg-[#07192b] p-4 rounded m-2'; a.innerHTML = '<h2 class="text-lg font-semibold">Article</h2><p class="mt-2 text-sm text-gray-300">Some article content...</p>'; return a; },
-        sidebar: () => { const s = document.createElement('aside'); s.className = 'bg-[#0b1530] p-4 rounded m-2 w-48'; s.innerHTML = '<h3 class="font-semibold">Sidebar</h3><ul class="mt-2 text-sm text-gray-300"><li>Item 1</li><li>Item 2</li></ul>'; return s; },
-        gallery: () => { const g = document.createElement('div'); g.className = 'grid grid-cols-3 gap-2 m-2'; g.innerHTML = '<img src="https://via.placeholder.com/120" class="rounded"><img src="https://via.placeholder.com/120" class="rounded"><img src="https://via.placeholder.com/120" class="rounded">'; return g; },
-        carousel: () => { const c = document.createElement('div'); c.className = 'm-2 p-4 bg-[#07192b] rounded text-center'; c.innerHTML = '<p class="text-sm text-gray-400">[Carousel placeholder]</p>'; return c; },
-        quote: () => { const q = document.createElement('blockquote'); q.className = 'm-2 p-4 italic border-l-4 border-violet-600 bg-[#0b1530] text-gray-300'; q.textContent = '“This is a testimonial or quote.”'; return q; },
-        progress: () => { const p = document.createElement('div'); p.className = 'm-2 w-full bg-[#203047] rounded'; p.innerHTML = '<div class="bg-violet-600 h-2 rounded" style="width:50%"></div>'; return p; }
+        // New elements
+        grid: () => { const g = document.createElement('div'); g.className = 'grid grid-cols-2 gap-4 m-2'; g.innerHTML = '<div class="bg-[#0b1530] p-4 rounded">Grid Item 1</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 2</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 3</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 4</div>'; return g; },
+        sidebar: () => { const s = document.createElement('aside'); s.className = 'bg-[#071430] p-4 rounded m-2 w-48'; s.innerHTML = '<h3 class="font-semibold mb-3">Sidebar</h3><ul class="space-y-2"><li><a href="#" class="text-gray-300">Link 1</a></li><li><a href="#" class="text-gray-300">Link 2</a></li><li><a href="#" class="text-gray-300">Link 3</a></li></ul>'; return s; },
+        carousel: () => { const c = document.createElement('div'); c.className = 'relative m-2 rounded overflow-hidden'; c.innerHTML = '<div class="flex transition-transform duration-300"><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 1</div><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 2</div><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 3</div></div><div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2"><button class="w-3 h-3 rounded-full bg-white"></button><button class="w-3 h-3 rounded-full bg-gray-500"></button><button class="w-3 h-3 rounded-full bg-gray-500"></button></div>'; return c; },
+        modal: () => { const m = document.createElement('div'); m.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden'; m.innerHTML = '<div class="bg-[#071430] p-6 rounded-lg max-w-md w-full"><h3 class="text-lg font-semibold mb-3">Modal Title</h3><p class="text-gray-300 mb-4">Modal content goes here.</p><button class="bg-violet-600 px-3 py-1 rounded text-white">Close</button></div>'; return m; },
+        accordion: () => { const a = document.createElement('div'); a.className = 'space-y-2 m-2'; a.innerHTML = '<div class="bg-[#0b1530] p-3 rounded"><h4 class="font-semibold">Accordion Item 1</h4><p class="text-gray-300 mt-2 hidden">Accordion content 1</p></div><div class="bg-[#0b1530] p-3 rounded"><h4 class="font-semibold">Accordion Item 2</h4><p class="text-gray-300 mt-2 hidden">Accordion content 2</p></div>'; return a; },
+        tabs: () => { const t = document.createElement('div'); t.className = 'm-2'; t.innerHTML = '<div class="flex border-b border-[#203047]"><button class="px-4 py-2 border-b-2 border-violet-600">Tab 1</button><button class="px-4 py-2">Tab 2</button><button class="px-4 py-2">Tab 3</button></div><div class="mt-2"><div class="bg-[#0b1530] p-4 rounded">Tab 1 content</div><div class="bg-[#0b1530] p-4 rounded hidden">Tab 2 content</div><div class="bg-[#0b1530] p-4 rounded hidden">Tab 3 content</div></div>'; return t; },
+        badge: () => { const b = document.createElement('span'); b.className = 'bg-violet-600 text-white px-2 py-1 rounded-full text-xs m-2 inline-block'; b.textContent = 'Badge'; return b; },
+        progress: () => { const p = document.createElement('div'); p.className = 'm-2'; p.innerHTML = '<div class="w-full bg-[#0b1530] rounded-full h-2"><div class="bg-violet-600 h-2 rounded-full" style="width: 45%"></div></div><p class="text-xs mt-1 text-gray-300">45% complete</p>'; return p; },
+        icon: () => { const i = document.createElement('div'); i.className = 'm-2 text-2xl'; i.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>'; return i; },
+        map: () => { const m = document.createElement('div'); m.className = 'bg-[#0b1530] p-8 rounded m-2 text-center'; m.innerHTML = '<div class="text-gray-400">Map Placeholder</div>'; return m; }
       };
-      return (map[type] || (() => null))();
+      return map[type] ? map[type]() : null;
     }
 
+    // Setup node
     function setupNode(node) {
-      node.addEventListener('click', e => { e.stopPropagation(); selectNode(node); });
-      enableReorder(node); enableResize(node);
+      node.draggable = true;
+      node.addEventListener('click', e => selectElement(e.target));
+      node.addEventListener('dragstart', e => { e.dataTransfer.setData('id', node.id); e.dataTransfer.effectAllowed = 'move'; });
+      node.addEventListener('dragover', e => { e.preventDefault(); highlightClosest(e.target); });
+      node.addEventListener('dragleave', e => { clearHighlights(); });
+      node.addEventListener('drop', e => {
+        e.preventDefault(); clearHighlights();
+        const id = e.dataTransfer.getData('id');
+        const el = document.getElementById(id);
+        if (!el) return;
+        const ref = findClosestChild(e.target);
+        if (ref && ref !== node) ref.insertAdjacentElement('beforebegin', el); else node.insertAdjacentElement('afterend', el);
+        pushHistory(); updateCode();
+      });
+      node.id = 'el' + Date.now();
+      const resizeHandle = document.createElement('div');
+      resizeHandle.className = 'resize-handle';
+      resizeHandle.addEventListener('mousedown', e => { e.stopPropagation(); initResize(node, e); });
+      node.appendChild(resizeHandle);
     }
 
-    function selectNode(node) {
-      if (selectedEl) { selectedEl.classList.remove('selected'); removeResizeHandle(selectedEl); }
-      selectedEl = node; selectedEl.classList.add('selected'); addResizeHandle(selectedEl); showProperties(selectedEl);
+    // Select element
+    function selectElement(el) {
+      if (selectedEl) selectedEl.classList.remove('selected');
+      selectedEl = el;
+      el.classList.add('selected');
+      showProperties(el);
     }
 
-    function showProperties(node) {
-      properties.innerHTML = '';
-      if (['BUTTON','A','H1','H2','H3','P','LI','HEADER'].includes(node.tagName)) properties.appendChild(rowInput('Text', node.textContent, v => { node.textContent = v; updateCode(); }));
-      if (node.tagName === 'INPUT') properties.appendChild(rowInput('Placeholder', node.placeholder || '', v => { node.placeholder = v; updateCode(); }));
-      if (['IMG','VIDEO'].includes(node.tagName)) properties.appendChild(rowInput('Source (URL)', node.src || '', v => { node.src = v; updateCode(); }));
+    // Show properties
+    function showProperties(el) {
+      properties.innerHTML = `
+        <h4 class="font-semibold mb-2">${el.nodeName.toLowerCase()}</h4>
+        <div class="space-y-2">
+          <div><label class="text-xs text-gray-400">ID</label><input class="w-full bg-[#0b1530] p-2 rounded" value="${el.id}" onchange="updateProp('id', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Class</label><input class="w-full bg-[#0b1530] p-2 rounded" value="${el.className}" onchange="updateProp('className', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Content</label><textarea class="w-full bg-[#0b1530] p-2 rounded" onchange="updateProp('innerHTML', this.value)">${el.innerHTML}</textarea></div>
+          <div><label class="text-xs text-gray-400">Background</label><input type="color" class="w-full bg-[#0b1530] p-1 rounded" value="#07192b" onchange="updateProp('style.backgroundColor', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Color</label><input type="color" class="w-full bg-[#0b1530] p-1 rounded" value="#ffffff" onchange="updateProp('style.color', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Padding</label><input class="w-full bg-[#0b1530] p-2 rounded" value="16px" onchange="updateProp('style.padding', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Margin</label><input class="w-full bg-[#0b1530] p-2 rounded" value="8px" onchange="updateProp('style.margin', this.value)"></div>
+          <div><label class="text-xs text-gray-400">Border Radius</label><input class="w-full bg-[#0b1530] p-2 rounded" value="4px" onchange="updateProp('style.borderRadius', this.value)"></div>
+          <button class="bg-red-600 px-3 py-1.5 rounded w-full mt-2" onclick="deleteElement()">Delete</button>
+        </div>
+      `;
+    }
 
-      properties.appendChild(rowColor('Text color', rgbToHex(getComputedStyle(node).color), v => { node.style.color = v; updateCode(); }));
-      properties.appendChild(rowColor('Background', rgbToHex(getComputedStyle(node).backgroundColor), v =>
+    // Update property
+    function updateProp(prop, value) {
+      if (!selectedEl) return;
+      if (prop.includes('.')) {
+        const [obj, key] = prop.split('.');
+        selectedEl[obj][key] = value;
+      } else selectedEl[prop] = value;
+      pushHistory(); updateCode();
+    }
+
+    // Delete element
+    function deleteElement() {
+      if (!selectedEl) return;
+      selectedEl.remove();
+      selectedEl = null;
+      properties.innerHTML = '<p>Select an element to edit its properties.</p>';
+      dropHint.style.display = workspace.children.length ? 'none' : 'block';
+      pushHistory(); updateCode();
+    }
+
+    // Find closest child
+    function findClosestChild(el) {
+      while (el && el.parentElement !== workspace) el = el.parentElement;
+      return el;
+    }
+
+    // Highlight closest
+    function highlightClosest(el) {
+      clearHighlights();
+      const closest = findClosestChild(el);
+      if (closest && closest !== workspace) closest.classList.add('drag-over');
+    }
+
+    // Clear highlights
+    function clearHighlights() {
+      workspace.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+    }
+
+    // Init resize
+    function initResize(el, e) {
+      e.preventDefault();
+      const startX = e.clientX, startY = e.clientY;
+      const startWidth = parseInt(getComputedStyle(el).width), startHeight = parseInt(getComputedStyle(el).height);
+      function resize(e) {
+        el.style.width = (startWidth + e.clientX - startX) + 'px';
+        el.style.height = (startHeight + e.clientY - startY) + 'px';
+      }
+      function stopResize() {
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResize);
+        pushHistory(); updateCode();
+      }
+      window.addEventListener('mousemove', resize);
+      window.addEventListener('mouseup', stopResize);
+    }
+
+    // Update code
+    function updateCode() {
+      htmlCode.value = workspace.innerHTML.replace(/<div class="resize-handle"><\/div>/g, '');
+      generateCSS(); generateJS();
+    }
+
+    // Generate CSS
+    function generateCSS(modern = false) {
+      let css = modern ? '/* Modern CSS with Tailwind-like classes */\n' : '/* Custom CSS */\n';
+      css += modern ? '.container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }\n' : '';
+      css += modern ? '.btn { display: inline-block; padding: 0.5rem 1rem; background: #7c3aed; color: white; border-radius: 0.25rem; text-decoration: none; transition: all 0.2s; }\n' : '';
+      css += modern ? '.btn:hover { background: #6d28d9; transform: translateY(-1px); }\n' : '';
+      css += modern ? '.card { background: #0f172a; border-radius: 0.5rem; padding: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }\n' : '';
+      cssCode.value = css;
+    }
+
+    // Generate JS
+    function generateJS(modern = false) {
+      let js = modern ? '// Modern JavaScript with interactive functionality\n' : '// Custom JavaScript\n';
+      js += modern ? 'document.addEventListener("DOMContentLoaded", function() {\n' : '';
+      js += modern ? '  // Initialize interactive components\n' : '';
+      js += modern ? '  const buttons = document.querySelectorAll("button");\n' : '';
+      js += modern ? '  buttons.forEach(button => {\n' : '';
+      js += modern ? '    button.addEventListener("click", function(e) {\n' : '';
+      js += modern ? '      e.preventDefault();\n' : '';
+      js += modern ? '      alert("Button clicked: " + this.textContent);\n' : '';
+      js += modern ? '    });\n' : '';
+      js += modern ? '  });\n' : '';
+      js += modern ? '});\n' : '';
+      jsCode.value = js;
+    }
+
+    // Copy code
+    function copyCode(id) {
+      const textarea = document.getElementById(id);
+      textarea.select();
+      document.execCommand('copy');
+      alert('Copied to clipboard');
+    }
+
+    // Clear code
+    function clearCode(id) {
+      const textarea = document.getElementById(id);
+      textarea.value = '';
+    }
+
+    // Build full HTML
+    function buildFullHtml() {
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generated Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>${cssCode.value}</style>
+</head>
+<body>
+  ${htmlCode.value}
+  <script>${jsCode.value}<\/script>
+</body>
+</html>`;
+    }
+
+    // Download file
+    function downloadFile(filename, content) {
+      const blob = new Blob([content], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Toggle preview
+    togglePreviewBtn.addEventListener('click', () => {
+      const isPreview = viewPreview.classList.toggle('hidden');
+      editPreview.classList.toggle('hidden');
+      togglePreviewBtn.textContent = isPreview ? 'Switch to View' : 'Switch to Edit';
+      if (!isPreview) {
+        const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+        doc.open();
+        doc.write(buildFullHtml());
+        doc.close();
+      }
+    });
+
+    // Push history
+    function pushHistory() {
+      historyStack = historyStack.slice(0, historyIndex + 1);
+      historyStack.push(workspace.innerHTML);
+      historyIndex = historyStack.length - 1;
+    }
+
+    // Undo
+    document.getElementById('undoBtn').addEventListener('click', () => {
+      if (historyIndex > 0) {
+        historyIndex--;
+        workspace.innerHTML = historyStack[historyIndex];
+        updateCode();
+      }
+    });
+
+    // Redo
+    document.getElementById('redoBtn').addEventListener('click', () => {
+      if (historyIndex < historyStack.length - 1) {
+        historyIndex++;
+        workspace.innerHTML = historyStack[historyIndex];
+        updateCode();
+      }
+    });
+
+    // Clear all
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (confirm('Clear all elements?')) {
+        workspace.innerHTML = '';
+        dropHint.style.display = 'block';
+        selectedEl = null;
+        properties.innerHTML = '<p>Select an element to edit its properties.</p>';
+        pushHistory(); updateCode();
+      }
+    });
+
+    // Init
+    pushHistory();
+    updateCode();
+  </script>
+</body>
+</html>
