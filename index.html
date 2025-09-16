@@ -1,1237 +1,509 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Web Designer Tool</title>
-    <!-- Monaco Editor from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --dark-bg: #1e1e1e;
-            --darker-bg: #161616;
-            --sidebar-bg: #252526;
-            --accent-color: #007acc;
-            --accent-hover: #0062a3;
-            --text-color: #e0e0e0;
-            --border-color: #444;
-            --success-color: #4CAF50;
-            --danger-color: #f44336;
-        }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WebDesign Pro — Editor + Accurate Preview</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --dark-bg:#1e1e1e;--darker-bg:#161616;--sidebar-bg:#252526;--accent:#007acc;
+  --text:#e0e0e0;--border:#444;--danger:#f44336;--success:#4CAF50;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,system-ui,Arial;}
+body{background:var(--dark-bg);color:var(--text);height:100vh;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--darker-bg);border-bottom:1px solid var(--border)}
+.logo{color:var(--accent);font-weight:700}
+.view-toggle{display:flex;background:var(--sidebar-bg);border-radius:6px;overflow:hidden}
+.view-toggle button{padding:6px 12px;background:none;border:0;color:var(--text);cursor:pointer}
+.view-toggle button.active{background:var(--accent);color:#fff}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:250px;background:var(--sidebar-bg);padding:14px;border-right:1px solid var(--border);overflow:auto}
+.category-title{color:var(--accent);margin-bottom:8px;font-weight:600}
+.elements-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.element-item{background:var(--dark-bg);border:1px solid var(--border);padding:8px;border-radius:6px;text-align:center;cursor:grab}
+.element-item:hover{background:#2b2b2b}
+.work-area-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{display:flex;gap:8px;padding:10px;background:var(--darker-bg);border-bottom:1px solid var(--border);align-items:center}
+.toolbar .btn{background:var(--sidebar-bg);border:1px solid var(--border);padding:6px 10px;border-radius:6px;cursor:pointer}
+.toolbar .btn.danger{background:var(--danger);color:#fff;margin-left:auto}
+.workspace{flex:1;display:flex;overflow:hidden;background:
+  linear-gradient(45deg,#252526 25%,transparent 25%),
+  linear-gradient(-45deg,#252526 25%,transparent 25%),
+  linear-gradient(45deg,transparent 75%,#252526 75%),
+  linear-gradient(-45deg,transparent 75%,#252526 75%);
+background-size:20px 20px;padding:20px;justify-content:center;align-items:flex-start}
+#design-area{width:100%;height:800px;background:#fff;box-shadow:0 8px 20px rgba(0,0,0,.5);position:relative;overflow:visible}
+.code-panel{width:520px;background:var(--darker-bg);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.code-tabs{display:flex;background:var(--sidebar-bg);border-bottom:1px solid var(--border)}
+.code-tab{padding:10px 16px;cursor:pointer}
+.code-tab.active{background:var(--accent);color:#fff}
+.code-container{flex:1;position:relative}
+.editor{width:100%;height:100%}
+.copy-button{position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border:0;padding:6px 8px;border-radius:6px;cursor:pointer}
+.property-group{margin-top:12px}
+.property-input{width:100%;padding:8px;background:var(--dark-bg);border:1px solid var(--border);border-radius:6px;color:var(--text)}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+/* Elements */
+.element{position:absolute;cursor:move;border:2px dashed transparent;user-select:none;min-width:40px;min-height:30px}
+.element.selected{border-color:var(--accent)}
+.element .element-content{width:100%;height:100%;overflow:auto}
+.resize-handle{position:absolute;width:10px;height:10px;background:var(--accent);z-index:10}
+.nw{top:-5px;left:-5px;cursor:nw-resize}.ne{top:-5px;right:-5px;cursor:ne-resize}
+.sw{bottom:-5px;left:-5px;cursor:sw-resize}.se{bottom:-5px;right:-5px;cursor:se-resize}
 
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            height: 100vh;
-            overflow: hidden;
-        }
+/* Visual preview mode hides the editor UI and replaces design area with iframe */
+.preview-mode .sidebar,
+.preview-mode .code-panel,
+.preview-mode .toolbar{display:none}
+.preview-mode .workspace{padding:0}
+.preview-mode #design-area{box-shadow:none;}
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .header {
-            background-color: var(--darker-bg);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        .view-toggle {
-            display: flex;
-            background-color: var(--sidebar-bg);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .view-toggle button {
-            background: none;
-            border: none;
-            color: var(--text-color);
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .view-toggle button.active {
-            background-color: var(--accent-color);
-        }
-
-        .view-toggle button:hover:not(.active) {
-            background-color: var(--border-color);
-        }
-
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .sidebar {
-            width: 250px;
-            background-color: var(--sidebar-bg);
-            padding: 15px;
-            border-right: 1px solid var(--border-color);
-            overflow-y: auto;
-        }
-
-        .elements-category {
-            margin-bottom: 20px;
-        }
-
-        .category-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: var(--accent-color);
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .elements-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .element-item {
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 10px;
-            text-align: center;
-            cursor: grab;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .element-item:hover {
-            background-color: var(--accent-hover);
-            border-color: var(--accent-color);
-        }
-
-        .element-item:active {
-            cursor: grabbing;
-        }
-
-        .work-area-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .work-area-toolbar {
-            padding: 10px 15px;
-            background-color: var(--darker-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .toolbar-button {
-            background-color: var(--sidebar-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .toolbar-button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .delete-button {
-            background-color: var(--danger-color);
-            margin-left: auto;
-        }
-
-        .delete-button:hover {
-            background-color: #d32f2f;
-        }
-
-        .work-area {
-            flex: 1;
-            overflow: auto;
-            background-color: #2d2d30;
-            background-image: 
-                linear-gradient(45deg, #252526 25%, transparent 25%), 
-                linear-gradient(-45deg, #252526 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #252526 75%), 
-                linear-gradient(-45deg, transparent 75%, #252526 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            display: flex;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        #design-area {
-            width: 100%;
-            min-height: 100%;
-            background-color: #fff;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        .code-panel {
-            width: 600px;
-            background-color: var(--darker-bg);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .code-tabs {
-            display: flex;
-            background-color: var(--sidebar-bg);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .code-tab.active {
-            background-color: var(--accent-color);
-        }
-
-        .code-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .editor {
-            width: 100%;
-            height: 100%;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            background-color: var(--success-color);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-
-        .copy-button:hover {
-            opacity: 1;
-        }
-
-        .element-properties {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .property-group {
-            margin-bottom: 15px;
-        }
-
-        .property-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .property-input {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-color);
-        }
-
-        .color-input {
-            height: 40px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Preview mode styling */
-        .preview-mode .sidebar,
-        .preview-mode .code-panel,
-        .preview-mode .work-area-toolbar {
-            display: none;
-        }
-
-        .preview-mode .work-area-container {
-            width: 100%;
-        }
-
-        .preview-mode .work-area {
-            padding: 0;
-            background: none;
-        }
-
-        /* Element styles */
-        .element {
-            position: absolute;
-            cursor: move;
-            border: 2px dashed transparent;
-            user-select: none;
-            min-width: 50px;
-            min-height: 30px;
-        }
-
-        .element.selected {
-            border-color: var(--accent-color);
-        }
-
-        .element:hover {
-            border-color: rgba(0, 122, 204, 0.5);
-        }
-
-        .element-content {
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-        }
-
-        .resize-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent-color);
-            z-index: 10;
-        }
-
-        .nw { top: -5px; left: -5px; cursor: nw-resize; }
-        .ne { top: -5px; right: -5px; cursor: ne-resize; }
-        .sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-        .se { bottom: -5px; right: -5px; cursor: se-resize; }
-
-        /* Specific element styles */
-        .navbar {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .button {
-            padding: 10px 20px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            text-align: center;
-            cursor: pointer;
-        }
-
-        .image-placeholder {
-            background-color: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            border: 2px dashed #999;
-            width: 100%;
-            height: 100%;
-        }
-
-        .modal {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            color: #333;
-        }
-
-        .text-element {
-            padding: 10px;
-            min-width: 100px;
-            min-height: 40px;
-        }
-
-        .form-element {
-            padding: 15px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15px;
-            color: #333;
-        }
-
-        .video-container {
-            background-color: #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            width: 100%;
-            height: 100%;
-        }
-
-        .element-actions {
-            position: absolute;
-            top: -30px;
-            right: 0;
-            display: flex;
-            gap: 5px;
-        }
-
-        .element-action {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 3px 6px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .element-action.delete {
-            background-color: var(--danger-color);
-        }
-    </style>
+/* helpful small styles for generated elements */
+.navbar{width:100%;background:#333;color:#fff;padding:10px;display:flex;justify-content:space-between}
+.button{padding:10px 16px;background:var(--accent);color:#fff;border-radius:6px;border:0;cursor:pointer}
+.image-placeholder{background:#eee;border:2px dashed #999;display:flex;align-items:center;justify-content:center;color:#777}
+.card{background:#fff;border-radius:8px;padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.modal-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5)}
+.modal-box{background:#fff;padding:18px;border-radius:8px;max-width:90%;max-height:90%;overflow:auto}
+.scroll-container{background:#f7f7f7;border:1px solid #ddd;padding:10px;overflow:auto}
+</style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">WebDesign Pro</div>
-            <div class="view-toggle">
-                <button id="design-view-btn" class="active">Design View</button>
-                <button id="preview-view-btn">Preview View</button>
-            </div>
-        </header>
+<div class="app">
+  <header class="header">
+    <div class="logo">WebDesign Pro</div>
+    <div class="view-toggle">
+      <button id="design-view-btn" class="active">Design View</button>
+      <button id="preview-view-btn">Preview View</button>
+    </div>
+  </header>
 
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="elements-category">
-                    <h3 class="category-title">Basic Elements</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="button">Button</div>
-                        <div class="element-item" draggable="true" data-type="text">Text</div>
-                        <div class="element-item" draggable="true" data-type="image">Image</div>
-                        <div class="element-item" draggable="true" data-type="div">Container</div>
-                    </div>
-                </div>
+  <div class="main">
+    <aside class="sidebar">
+      <div class="category-title">Basic Elements</div>
+      <div class="elements-list">
+        <div class="element-item" draggable="true" data-type="button">Button</div>
+        <div class="element-item" draggable="true" data-type="text">Text</div>
+        <div class="element-item" draggable="true" data-type="image">Image</div>
+        <div class="element-item" draggable="true" data-type="div">Container</div>
+        <div class="element-item" draggable="true" data-type="scroll-container">Scrollable Container</div>
+      </div>
 
-                <div class="elements-category">
-                    <h3 class="category-title">Navigation</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="navbar">Navbar</div>
-                        <div class="element-item" draggable="true" data-type="menu">Menu</div>
-                    </div>
-                </div>
+      <div style="height:12px"></div>
+      <div class="category-title">Navigation / UI</div>
+      <div class="elements-list">
+        <div class="element-item" draggable="true" data-type="navbar">Navbar</div>
+        <div class="element-item" draggable="true" data-type="menu">Menu</div>
+      </div>
 
-                <div class="elements-category">
-                    <h3 class="category-title">Content</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="card">Card</div>
-                        <div class="element-item" draggable="true" data-type="modal">Modal</div>
-                        <div class="element-item" draggable="true" data-type="form">Form</div>
-                        <div class="element-item" draggable="true" data-type="video">Video</div>
-                    </div>
-                </div>
+      <div style="height:12px"></div>
+      <div class="category-title">Content</div>
+      <div class="elements-list">
+        <div class="element-item" draggable="true" data-type="card">Card</div>
+        <div class="element-item" draggable="true" data-type="modal">Modal</div>
+        <div class="element-item" draggable="true" data-type="form">Form</div>
+        <div class="element-item" draggable="true" data-type="video">Video</div>
+      </div>
 
-                <div class="element-properties">
-                    <h3 class="category-title">Properties</h3>
-                    <div class="property-group">
-                        <label class="property-label">Background Color</label>
-                        <input type="color" class="property-input color-input" id="prop-bg-color" value="#ffffff">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Width</label>
-                        <input type="text" class="property-input" id="prop-width" placeholder="e.g., 100px or 50%">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Height</label>
-                        <input type="text" class="property-input" id="prop-height" placeholder="e.g., 100px or 50%">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Text Color</label>
-                        <input type="color" class="property-input color-input" id="prop-text-color" value="#000000">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Text Content</label>
-                        <textarea class="property-input" id="prop-text-content" rows="3"></textarea>
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Link URL</label>
-                        <input type="text" class="property-input" id="prop-link-url" placeholder="https://example.com">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Font Size</label>
-                        <input type="text" class="property-input" id="prop-font-size" placeholder="e.g., 16px">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Border Radius</label>
-                        <input type="text" class="property-input" id="prop-border-radius" placeholder="e.g., 5px">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Image URL</label>
-                        <input type="text" class="property-input" id="prop-image-url" placeholder="https://example.com/image.jpg">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Video URL</label>
-                        <input type="text" class="property-input" id="prop-video-url" placeholder="https://example.com/video.mp4">
-                    </div>
-                </div>
-            </aside>
+      <div class="property-group">
+        <div class="category-title">Properties</div>
+        <label>Background</label>
+        <input id="prop-bg-color" type="color" class="property-input" value="#ffffff">
+        <label style="margin-top:8px">Width</label>
+        <input id="prop-width" class="property-input" placeholder="e.g., 200px or 50%">
+        <label style="margin-top:8px">Height</label>
+        <input id="prop-height" class="property-input" placeholder="e.g., 150px">
+        <label style="margin-top:8px">Text</label>
+        <textarea id="prop-text-content" class="property-input" rows="3"></textarea>
+        <label style="margin-top:8px">Image URL</label>
+        <input id="prop-image-url" class="property-input" placeholder="https://...jpg">
+        <label style="margin-top:8px">Video URL</label>
+        <input id="prop-video-url" class="property-input" placeholder="https://...mp4">
+      </div>
+    </aside>
 
-            <div class="work-area-container">
-                <div class="work-area-toolbar">
-                    <button class="toolbar-button" id="export-html">Export HTML</button>
-                    <button class="toolbar-button" id="import-html">Import HTML</button>
-                    <button class="toolbar-button" id="clear-all">Clear All</button>
-                    <button class="toolbar-button delete-button" id="delete-element">Delete Selected</button>
-                </div>
-                <div class="work-area">
-                    <div id="design-area"></div>
-                </div>
-            </div>
+    <div class="work-area-wrap">
+      <div class="toolbar">
+        <button id="export-html" class="btn">Export HTML</button>
+        <button id="import-html" class="btn">Import HTML</button>
+        <button id="clear-all" class="btn">Clear All</button>
+        <button id="delete-element" class="btn danger">Delete Selected</button>
+      </div>
 
-            <div class="code-panel">
-                <div class="code-tabs">
-                    <div class="code-tab active" data-tab="html">HTML</div>
-                    <div class="code-tab" data-tab="css">CSS</div>
-                    <div class="code-tab" data-tab="js">JavaScript</div>
-                </div>
-                <div class="code-container">
-                    <div id="html-editor" class="editor"></div>
-                    <div id="css-editor" class="editor hidden"></div>
-                    <div id="js-editor" class="editor hidden"></div>
-                    <button class="copy-button" id="copy-html">Copy HTML</button>
-                    <button class="copy-button" id="copy-css" style="top: 45px; right: 10px;">Copy CSS</button>
-                    <button class="copy-button" id="copy-js" style="top: 80px; right: 10px;">Copy JS</button>
-                </div>
-            </div>
-        </div>
+      <div class="workspace">
+        <div id="design-area"></div>
+      </div>
     </div>
 
-    <script>
-        // Initialize variables
-        let selectedElement = null;
-        let htmlEditor, cssEditor, jsEditor;
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
-        let isResizing = false;
-        let resizeDirection = null;
+    <div class="code-panel">
+      <div class="code-tabs">
+        <div class="code-tab active" data-tab="html">HTML</div>
+        <div class="code-tab" data-tab="css">CSS</div>
+        <div class="code-tab" data-tab="js">JS</div>
+      </div>
+      <div class="code-container">
+        <div id="html-editor" class="editor"></div>
+        <div id="css-editor" class="editor" style="display:none"></div>
+        <div id="js-editor" class="editor" style="display:none"></div>
+        <button id="copy-html" class="copy-button">Copy HTML</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeMonacoEditors();
-            setupEventListeners();
-            setupElementDragAndDrop();
-        });
+<script>
+let selectedElement = null;
+let htmlEditor, cssEditor, jsEditor;
+let designSnapshot = null;
 
-        // Initialize Monaco editors
-        function initializeMonacoEditors() {
-            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
-            require(['vs/editor/editor.main'], function() {
-                htmlEditor = monaco.editor.create(document.getElementById('html-editor'), {
-                    value: '<!-- Your HTML code will appear here -->\n<div class="container">\n  <h1>Hello World</h1>\n</div>',
-                    language: 'html',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
+// init editors + app
+document.addEventListener('DOMContentLoaded', () => {
+  initMonaco();
+  setupDragFromSidebar();
+  setupToolbar();
+  setupViewToggle();
+  bindGlobalShortcuts();
+  // initial sample element
+  createNewElement('navbar', 0, 0, true);
+  createNewElement('card', 100, 120);
+  generateCode();
+});
 
-                cssEditor = monaco.editor.create(document.getElementById('css-editor'), {
-                    value: '/* Your CSS code will appear here */\nbody {\n  font-family: Arial, sans-serif;\n}',
-                    language: 'css',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
+function initMonaco(){
+  require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
+  require(['vs/editor/editor.main'], function() {
+    htmlEditor = monaco.editor.create(document.getElementById('html-editor'), {value:'',language:'html',theme:'vs-dark',automaticLayout:true});
+    cssEditor = monaco.editor.create(document.getElementById('css-editor'), {value:'',language:'css',theme:'vs-dark',automaticLayout:true});
+    jsEditor = monaco.editor.create(document.getElementById('js-editor'), {value:'',language:'javascript',theme:'vs-dark',automaticLayout:true});
+  });
+  document.querySelectorAll('.code-tab').forEach(t=>{
+    t.addEventListener('click',()=>{
+      document.querySelectorAll('.code-tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.editor').forEach(e=>e.style.display='none');
+      t.classList.add('active');
+      document.getElementById(t.dataset.tab+'-editor').style.display='block';
+    });
+  });
+}
 
-                jsEditor = monaco.editor.create(document.getElementById('js-editor'), {
-                    value: '// Your JavaScript code will appear here\nconsole.log("Hello World");',
-                    language: 'javascript',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
-            });
-        }
+// sidebar drag
+function setupDragFromSidebar(){
+  document.querySelectorAll('.element-item').forEach(item=>{
+    item.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', item.dataset.type));
+  });
+  const design = document.getElementById('design-area');
+  design.addEventListener('dragover', e=>e.preventDefault());
+  design.addEventListener('drop', e=>{
+    e.preventDefault();
+    const type = e.dataTransfer.getData('text/plain');
+    const rect = design.getBoundingClientRect();
+    createNewElement(type, e.clientX - rect.left, e.clientY - rect.top);
+  });
+}
 
-        // Set up event listeners
-        function setupEventListeners() {
-            // View toggle buttons
-            document.getElementById('design-view-btn').addEventListener('click', function() {
-                document.body.classList.remove('preview-mode');
-                this.classList.add('active');
-                document.getElementById('preview-view-btn').classList.remove('active');
-            });
+// create element factory
+function createNewElement(type, x=50, y=50, fullWidth=false){
+  const design = document.getElementById('design-area');
+  const el = document.createElement('div');
+  el.className = 'element';
+  el.dataset.type = type;
+  // default position
+  el.style.left = (x||50) + 'px';
+  el.style.top = (y||50) + 'px';
 
-            document.getElementById('preview-view-btn').addEventListener('click', function() {
-                document.body.classList.add('preview-mode');
-                this.classList.add('active');
-                document.getElementById('design-view-btn').classList.remove('active');
-                generateCode();
-            });
+  // content by type
+  switch(type){
+    case 'button':
+      el.innerHTML = `<div class="element-content"><button class="button">Click Me</button></div>`; el.style.width='120px'; el.style.height='44px'; break;
+    case 'navbar':
+      el.innerHTML = `<div class="element-content"><div class="navbar"><div>Logo</div><div><a href="#home" style="color:#fff">Home</a></div></div></div>`; el.style.left='0'; el.style.top='0'; el.style.width='100%'; el.style.height='56px'; break;
+    case 'image':
+      el.innerHTML = `<div class="element-content"><div class="image-placeholder"><i class="fas fa-image"></i> Image</div></div>`; el.style.width='220px'; el.style.height='150px'; break;
+    case 'card':
+      el.innerHTML = `<div class="element-content"><div class="card"><h3>Card Title</h3><p>Card description...</p><button class="button">Learn More</button></div></div>`; el.style.width='260px'; el.style.height='170px'; break;
+    case 'modal':
+      // for design show modal box, in preview it becomes a trigger + overlay
+      el.innerHTML = `<div class="element-content"><div class="modal"><h3>Modal Title</h3><p>Modal content...</p></div></div>`; el.style.width='380px'; el.style.height='160px'; break;
+    case 'form':
+      el.innerHTML = `<div class="element-content"><div class="form-element"><input placeholder="Name" style="width:100%;margin-bottom:8px;padding:6px"/><button class="button">Submit</button></div></div>`; el.style.width='320px'; el.style.height='160px'; break;
+    case 'video':
+      el.innerHTML = `<div class="element-content"><div class="video-container"><i class="fas fa-video"></i> Video</div></div>`; el.style.width='320px'; el.style.height='200px'; break;
+    case 'div':
+      el.innerHTML = `<div class="element-content"><div style="padding:8px">Container</div></div>`; el.style.width='180px'; el.style.height='120px'; break;
+    case 'menu':
+      el.innerHTML = `<div class="element-content"><div style="background:#333;color:#fff;padding:8px"><div>Home</div><div>Profile</div><div>Settings</div></div></div>`; el.style.width='160px'; el.style.height='160px'; break;
+    case 'scroll-container':
+      el.innerHTML = `<div class="element-content"><div class="scroll-container" style="height:100%;"><div style="height:800px">Scrollable inner content (tall). Add blocks inside for scroll.</div></div></div>`; el.style.width='360px'; el.style.height='220px'; break;
+    default:
+      el.innerHTML = `<div class="element-content">${type}</div>`; el.style.width='120px'; el.style.height='80px';
+  }
 
-            // Code tabs
-            document.querySelectorAll('.code-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.editor').forEach(e => e.classList.add('hidden'));
-                    
-                    this.classList.add('active');
-                    document.getElementById(`${this.dataset.tab}-editor`).classList.remove('hidden');
-                });
-            });
+  addResizeHandles(el);
+  el.addEventListener('mousedown', startElementDrag);
+  el.addEventListener('click', (e)=>{ e.stopPropagation(); selectElement(el); });
+  design.appendChild(el);
+  selectElement(el);
+  generateCode();
+}
 
-            // Copy buttons
-            document.getElementById('copy-html').addEventListener('click', function() {
-                const code = htmlEditor.getValue();
-                copyToClipboard(code, this);
-            });
+// selection
+function selectElement(el){
+  document.querySelectorAll('.element').forEach(x=>x.classList.remove('selected'));
+  selectedElement = el;
+  if(el) el.classList.add('selected');
+  updatePropertiesPanel();
+}
 
-            document.getElementById('copy-css').addEventListener('click', function() {
-                const code = cssEditor.getValue();
-                copyToClipboard(code, this);
-            });
+// dragging
+let dragOffset = {x:0,y:0};
+function startElementDrag(e){
+  if (document.body.classList.contains('preview-mode')) return;
+  if(e.button!==0) return;
+  const el = e.currentTarget.closest('.element');
+  selectElement(el);
+  const rect = el.getBoundingClientRect();
+  const designRect = document.getElementById('design-area').getBoundingClientRect();
+  dragOffset.x = e.clientX - rect.left;
+  dragOffset.y = e.clientY - rect.top;
+  function onMove(ev){
+    let nx = ev.clientX - designRect.left - dragOffset.x;
+    let ny = ev.clientY - designRect.top - dragOffset.y;
+    nx = Math.max(0, nx); ny = Math.max(0, ny);
+    nx = Math.min(designRect.width - el.offsetWidth, nx);
+    ny = Math.min(designRect.height - el.offsetHeight, ny);
+    el.style.left = nx + 'px'; el.style.top = ny + 'px';
+  }
+  function onUp(){ document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); generateCode(); }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  e.preventDefault();
+}
 
-            document.getElementById('copy-js').addEventListener('click', function() {
-                const code = jsEditor.getValue();
-                copyToClipboard(code, this);
-            });
+// resize handles
+function addResizeHandles(el){
+  ['nw','ne','sw','se'].forEach(pos=>{
+    const h = document.createElement('div'); h.className = 'resize-handle ' + pos;
+    h.addEventListener('mousedown', (e)=>startResize(e,pos)); el.appendChild(h);
+  });
+}
+function startResize(e,dir){
+  e.stopPropagation();
+  if (document.body.classList.contains('preview-mode')) return;
+  const el = e.currentTarget.parentElement;
+  const start = {x:e.clientX,y:e.clientY,w:el.offsetWidth,h:el.offsetHeight,left:parseInt(el.style.left||0),top:parseInt(el.style.top||0)};
+  function onMove(ev){
+    const dx = ev.clientX - start.x, dy = ev.clientY - start.y;
+    if(dir==='nw'){ el.style.width = Math.max(40, start.w - dx) + 'px'; el.style.height = Math.max(30, start.h - dy) + 'px'; el.style.left = start.left + dx + 'px'; el.style.top = start.top + dy + 'px'; }
+    if(dir==='ne'){ el.style.width = Math.max(40, start.w + dx) + 'px'; el.style.height = Math.max(30, start.h - dy) + 'px'; el.style.top = start.top + dy + 'px'; }
+    if(dir==='sw'){ el.style.width = Math.max(40, start.w - dx) + 'px'; el.style.height = Math.max(30, start.h + dy) + 'px'; el.style.left = start.left + dx + 'px'; }
+    if(dir==='se'){ el.style.width = Math.max(40, start.w + dx) + 'px'; el.style.height = Math.max(30, start.h + dy) + 'px'; }
+  }
+  function onUp(){ document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); generateCode(); }
+  document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+}
 
-            // Property inputs
-            document.getElementById('prop-bg-color').addEventListener('input', updateElementProperties);
-            document.getElementById('prop-width').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-height').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-text-color').addEventListener('input', updateElementProperties);
-            document.getElementById('prop-text-content').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-link-url').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-font-size').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-border-radius').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-image-url').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-video-url').addEventListener('change', updateElementProperties);
+// properties panel
+function updatePropertiesPanel(){
+  if(!selectedElement) return;
+  const style = window.getComputedStyle(selectedElement);
+  document.getElementById('prop-bg-color').value = rgbToHex(style.backgroundColor) || '#ffffff';
+  document.getElementById('prop-width').value = selectedElement.style.width || style.width;
+  document.getElementById('prop-height').value = selectedElement.style.height || style.height;
+  const firstText = selectedElement.querySelector('button, p, h1, h2, span, div');
+  document.getElementById('prop-text-content').value = firstText? firstText.textContent.trim() : '';
+  const img = selectedElement.querySelector('img');
+  document.getElementById('prop-image-url').value = img? img.src : '';
+  const vid = selectedElement.querySelector('video source, video');
+  document.getElementById('prop-video-url').value = vid? (vid.src || vid.getAttribute('src')) : '';
+}
 
-            // Toolbar buttons
-            document.getElementById('clear-all').addEventListener('click', function() {
-                document.getElementById('design-area').innerHTML = '';
-                generateCode();
-            });
+// apply prop changes
+['prop-bg-color','prop-width','prop-height','prop-text-content','prop-image-url','prop-video-url'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', ()=>{
+    if(!selectedElement) return;
+    const v = document.getElementById(id).value;
+    if(id==='prop-bg-color') selectedElement.style.backgroundColor = v;
+    if(id==='prop-width') selectedElement.style.width = v;
+    if(id==='prop-height') selectedElement.style.height = v;
+    if(id==='prop-text-content'){
+      const t = selectedElement.querySelector('button, p, h1, h2, span, div');
+      if(t) t.textContent = v;
+    }
+    if(id==='prop-image-url'){
+      const ph = selectedElement.querySelector('.image-placeholder');
+      if(ph) ph.innerHTML = `<img src="${v}" style="width:100%;height:100%;object-fit:cover">`;
+    }
+    if(id==='prop-video-url'){
+      const vc = selectedElement.querySelector('.video-container');
+      if(vc) vc.innerHTML = `<video controls style="width:100%;height:100%"><source src="${v}" type="video/mp4">Your browser does not support video.</video>`;
+    }
+    generateCode();
+  });
+});
 
-            document.getElementById('delete-element').addEventListener('click', function() {
-                if (selectedElement) {
-                    selectedElement.remove();
-                    selectedElement = null;
-                    generateCode();
-                }
-            });
+// toolbar
+function setupToolbar(){
+  document.getElementById('clear-all').addEventListener('click', ()=>{
+    document.getElementById('design-area').innerHTML=''; selectedElement=null; generateCode();
+  });
+  document.getElementById('delete-element').addEventListener('click', ()=>{
+    if(selectedElement){ selectedElement.remove(); selectedElement=null; generateCode(); }
+  });
+  document.getElementById('export-html').addEventListener('click', ()=>{ prompt('Copy HTML below:', generatePageHTML()); });
+  document.getElementById('import-html').addEventListener('click', ()=>{
+    const html = prompt('Paste HTML (full page) to import:');
+    if(!html) return;
+    // simple import: put into design area as raw preview iframe
+    document.getElementById('design-area').innerHTML = '<iframe sandbox="allow-scripts allow-same-origin" style="width:100%;height:100%;border:0" srcdoc="'+escapeHtml(html)+'"></iframe>';
+    document.body.classList.add('preview-mode');
+  });
+}
 
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Delete key to remove selected element
-                if (e.key === 'Delete' && selectedElement) {
-                    selectedElement.remove();
-                    selectedElement = null;
-                    generateCode();
-                }
-            });
-        }
+// view toggle
+function setupViewToggle(){
+  document.getElementById('design-view-btn').addEventListener('click', ()=>{ exitPreview(); });
+  document.getElementById('preview-view-btn').addEventListener('click', ()=>{ enterPreview(); });
+}
 
-        // Copy text to clipboard and show feedback
-        function copyToClipboard(text, button) {
-            navigator.clipboard.writeText(text).then(() => {
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            });
-        }
+// generate code and populate editors
+function generateCode(){
+  const html = generatePageHTML();
+  const css = generateInlineCSS();
+  const js = generateInlineJS();
+  if(htmlEditor) htmlEditor.setValue(html);
+  if(cssEditor) cssEditor.setValue(css);
+  if(jsEditor) jsEditor.setValue(js);
+  // if in preview mode refresh iframe
+  if(document.body.classList.contains('preview-mode')){
+    setPreviewIframe(html + '\n<style>\n' + css + '\n</style>\n<script>\n' + js + '\n<\/script>');
+  }
+}
 
-        // Set up element drag and drop from sidebar
-        function setupElementDragAndDrop() {
-            const elementItems = document.querySelectorAll('.element-item');
-            
-            elementItems.forEach(item => {
-                item.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.dataset.type);
-                });
-            });
+function generatePageHTML(){
+  const design = document.getElementById('design-area');
+  const elems = design.querySelectorAll('.element');
+  // container width/height (represent viewport)
+  const w = design.clientWidth, h = design.clientHeight;
+  let body = `<div id="page-root" style="position:relative;width:${w}px;height:${h}px;">\n`;
+  elems.forEach((el, i)=>{
+    const type = el.dataset.type || 'div';
+    const content = el.querySelector('.element-content').innerHTML;
+    // inline styles for position & size & visual bg
+    const left = el.style.left || window.getComputedStyle(el).left;
+    const top = el.style.top || window.getComputedStyle(el).top;
+    const width = el.style.width || window.getComputedStyle(el).width;
+    const height = el.style.height || window.getComputedStyle(el).height;
+    const bg = el.style.backgroundColor ? `background:${el.style.backgroundColor};` : '';
+    const borderRadius = el.style.borderRadius ? `border-radius:${el.style.borderRadius};` : '';
+    if(type==='modal'){
+      // For modal create a trigger + hidden overlay (so clicking trigger opens the modal)
+      const triggerId = `modal-trigger-${i}`, modalId = `modal-box-${i}`;
+      body += `<div id="${triggerId}" style="position:absolute;left:${left};top:${top};width:${width};height:${height};${bg}${borderRadius}"><button class="button">Open Modal</button></div>\n`;
+      body += `<div id="${modalId}" class="modal-overlay" style="display:none"><div class="modal-box">${content}<div style="text-align:right;margin-top:12px"><button class="button" data-close>Close</button></div></div></div>\n`;
+    } else {
+      body += `<div id="el-${i}" style="position:absolute;left:${left};top:${top};width:${width};height:${height};${bg}${borderRadius}">${content}</div>\n`;
+    }
+  });
+  body += `</div>`;
+  return '<!doctype html>\n<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+body+'</body></html>';
+}
 
-            const designArea = document.getElementById('design-area');
-            
-            designArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                // Show visual feedback that dropping is allowed
-                e.dataTransfer.dropEffect = 'copy';
-            });
-            
-            designArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                const type = e.dataTransfer.getData('text/plain');
-                createNewElement(type, e.clientX, e.clientY);
-            });
-        }
+function generateInlineCSS(){
+  // minimal CSS to ensure layout & internal scrolling is local (no outer scrollbars)
+  return `html,body{margin:0;height:100%;overflow:hidden}#page-root{box-sizing:border-box}
+.modal-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:999}
+.modal-box{background:#fff;padding:18px;border-radius:8px;max-width:800px;max-height:90%;overflow:auto}
+.scroll-container{overflow:auto}`;
+}
 
-        // Create a new element
-        function createNewElement(type, x, y) {
-            const designArea = document.getElementById('design-area');
-            const rect = designArea.getBoundingClientRect();
-            
-            // Calculate position relative to design area
-            const posX = x - rect.left - 50;
-            const posY = y - rect.top - 25;
-            
-            const element = document.createElement('div');
-            element.classList.add('element');
-            element.dataset.type = type;
-            
-            // Set position
-            element.style.left = `${posX}px`;
-            element.style.top = `${posY}px`;
-            
-            // Create content based on type
-            switch(type) {
-                case 'button':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <button class="button">Click Me</button>
-                        </div>
-                    `;
-                    element.style.width = '120px';
-                    element.style.height = '45px';
-                    break;
-                case 'navbar':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="navbar">
-                                <div class="logo">Logo</div>
-                                <div class="nav-links">
-                                    <a href="#home" style="color: white; margin-right: 15px; text-decoration: none;">Home</a>
-                                    <a href="#about" style="color: white; margin-right: 15px; text-decoration: none;">About</a>
-                                    <a href="#contact" style="color: white; text-decoration: none;">Contact</a>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '100%';
-                    element.style.top = '0';
-                    element.style.left = '0';
-                    break;
-                case 'image':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="image-placeholder">
-                                <i class="fas fa-image" style="font-size: 24px;"></i>
-                                <span style="margin-left: 8px;">Image</span>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '200px';
-                    element.style.height = '150px';
-                    break;
-                case 'modal':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="modal">
-                                <h3>Modal Title</h3>
-                                <p>This is a modal dialog. You can add any content here.</p>
-                                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                                    <button class="button" style="margin-right: 10px;">Cancel</button>
-                                    <button class="button">OK</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '400px';
-                    element.style.height = '200px';
-                    break;
-                case 'text':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="text-element">This is a text element. You can edit me!</div>
-                        </div>
-                    `;
-                    element.style.width = '200px';
-                    element.style.height = '60px';
-                    break;
-                case 'form':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="form-element">
-                                <h3 style="margin-bottom: 15px; color: #333;">Contact Form</h3>
-                                <div class="form-group">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" class="form-input" placeholder="Your name">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" class="form-input" placeholder="Your email">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Message</label>
-                                    <textarea class="form-input" placeholder="Your message" rows="3"></textarea>
-                                </div>
-                                <button class="button" style="margin-top: 10px;">Submit</button>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '350px';
-                    element.style.height = '380px';
-                    break;
-                case 'card':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="card">
-                                <h3 style="margin-bottom: 10px; color: #333;">Card Title</h3>
-                                <p style="color: #666; margin-bottom: 15px;">This is a card component. You can put any content inside it.</p>
-                                <button class="button">Learn More</button>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '250px';
-                    element.style.height = '180px';
-                    break;
-                case 'video':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div class="video-container">
-                                <i class="fas fa-video" style="font-size: 24px; margin-right: 8px;"></i>
-                                <span>Video Player</span>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '300px';
-                    element.style.height = '200px';
-                    break;
-                case 'div':
-                    element.innerHTML = `
-                        <div class="element-content" style="background-color: #f0f0f0; padding: 10px;">
-                            Container
-                        </div>
-                    `;
-                    element.style.width = '150px';
-                    element.style.height = '100px';
-                    break;
-                case 'menu':
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div style="background-color: #333; color: white; padding: 10px;">
-                                <div style="margin-bottom: 8px;">
-                                    <i class="fas fa-home" style="margin-right: 8px;"></i>
-                                    <span>Home</span>
-                                </div>
-                                <div style="margin-bottom: 8px;">
-                                    <i class="fas fa-user" style="margin-right: 8px;"></i>
-                                    <span>Profile</span>
-                                </div>
-                                <div style="margin-bottom: 8px;">
-                                    <i class="fas fa-cog" style="margin-right: 8px;"></i>
-                                    <span>Settings</span>
-                                </div>
-                                <div>
-                                    <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i>
-                                    <span>Logout</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    element.style.width = '150px';
-                    element.style.height = '180px';
-                    break;
-                default:
-                    element.innerHTML = `
-                        <div class="element-content">
-                            <div>${type}</div>
-                        </div>
-                    `;
-                    element.style.width = '100px';
-                    element.style.height = '100px';
-                    element.style.backgroundColor = '#ddd';
-            }
-            
-            // Add resize handles
-            addResizeHandles(element);
-            
-            // Add event listeners for selection and dragging
-            element.addEventListener('mousedown', startElementDrag);
-            
-            designArea.appendChild(element);
-            selectElement(element);
-            
-            // Update code
-            generateCode();
-        }
+function generateInlineJS(){
+  // make triggers work, close buttons, allow links to open, videos playable
+  return `document.addEventListener('click',function(e){
+    if(e.target.matches('[data-close]')){ e.target.closest('.modal-overlay').style.display='none'; }
+    // open modal triggers
+    if(e.target.closest('[id^="modal-trigger-"]')){ const id = e.target.closest('[id^="modal-trigger-"]').id; const idx = id.split('-').pop(); const modal = document.getElementById('modal-box-'+idx); if(modal) modal.style.display='flex'; }
+  },false);`;
+}
 
-        // Select an element
-        function selectElement(element) {
-            // Deselect previous element
-            if (selectedElement) {
-                selectedElement.classList.remove('selected');
-            }
-            
-            // Select new element
-            selectedElement = element;
-            selectedElement.classList.add('selected');
-            
-            // Update properties panel
-            updatePropertiesPanel();
-        }
+// preview lifecycle
+function enterPreview(){
+  // snapshot design HTML for restore
+  designSnapshot = document.getElementById('design-area').innerHTML;
+  document.body.classList.add('preview-mode');
+  // build full page (includes CSS & JS)
+  const full = generatePageHTML();
+  const css = generateInlineCSS();
+  const js = generateInlineJS();
+  setPreviewIframe(full + '\n<style>\n' + css + '\n</style>\n<script>\n' + js + '\n<\/script>');
+  document.getElementById('preview-view-btn').classList.add('active');
+  document.getElementById('design-view-btn').classList.remove('active');
+}
 
-        // Start dragging an element
-        function startElementDrag(e) {
-            // Only handle left mouse button
-            if (e.button !== 0) return;
-            
-            const element = e.target.closest('.element');
-            if (!element) return;
-            
-            selectElement(element);
-            
-            // Calculate offset between mouse and element position
-            const rect = element.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            
-            // Set up event listeners for dragging
-            document.addEventListener('mousemove', doElementDrag);
-            document.addEventListener('mouseup', stopElementDrag);
-            
-            // Prevent text selection during drag
-            e.preventDefault();
-        }
+function setPreviewIframe(srcdoc){
+  const area = document.getElementById('design-area');
+  area.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms');
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.style.border = '0';
+  iframe.style.display = 'block';
+  iframe.srcdoc = srcdoc;
+  // prevent outer scrollbars by making iframe itself the viewport
+  area.appendChild(iframe);
+}
 
-        // Perform element dragging
-        function doElementDrag(e) {
-            if (!selectedElement) return;
-            
-            const designArea = document.getElementById('design-area');
-            const designRect = designArea.getBoundingClientRect();
-            
-            // Calculate new position
-            let newX = e.clientX - designRect.left - dragOffset.x;
-            let newY = e.clientY - designRect.top - dragOffset.y;
-            
-            // Apply constraints to keep element within design area
-            newX = Math.max(0, newX);
-            newY = Math.max(0, newY);
-            newX = Math.min(designRect.width - selectedElement.offsetWidth, newX);
-            newY = Math.min(designRect.height - selectedElement.offsetHeight, newY);
-            
-            // Update element position
-            selectedElement.style.left = `${newX}px`;
-            selectedElement.style.top = `${newY}px`;
-        }
+function exitPreview(){
+  if(!document.body.classList.contains('preview-mode')) return;
+  document.body.classList.remove('preview-mode');
+  if(designSnapshot!==null){
+    const area = document.getElementById('design-area');
+    area.innerHTML = designSnapshot;
+    // re-bind events for elements created via innerHTML
+    rebindAllElements();
+  }
+  document.getElementById('design-view-btn').classList.add('active');
+  document.getElementById('preview-view-btn').classList.remove('active');
+  generateCode();
+}
 
-        // Stop element dragging
-        function stopElementDrag() {
-            document.removeEventListener('mousemove', doElementDrag);
-            document.removeEventListener('mouseup', stopElementDrag);
-            
-            // Update code after dragging
-            generateCode();
-        }
+// after restoring design-area from snapshot, reattach handlers
+function rebindAllElements(){
+  document.querySelectorAll('.element').forEach(el=>{
+    el.addEventListener('mousedown', startElementDrag);
+    el.addEventListener('click', (e)=>{ e.stopPropagation(); selectElement(el); });
+    // ensure resize handles trigger resize: re-add handles if absent
+    if(!el.querySelector('.resize-handle')) addResizeHandles(el);
+  });
+}
 
-        // Add resize handles to an element
-        function addResizeHandles(element) {
-            const handles = ['nw', 'ne', 'sw', 'se'];
-            
-            handles.forEach(handle => {
-                const div = document.createElement('div');
-                div.classList.add('resize-handle', handle);
-                div.addEventListener('mousedown', (e) => startResize(e, handle));
-                element.appendChild(div);
-            });
-        }
+// helpers & utilities
+function generateRawElementsArray(){ return Array.from(document.querySelectorAll('#design-area .element')); }
+function rgbToHex(rgb){
+  if(!rgb) return '#ffffff';
+  const m = rgb.match(/\d+/g); if(!m) return '#ffffff';
+  return '#'+(+m[0]).toString(16).padStart(2,'0')+(+m[1]).toString(16).padStart(2,'0')+(+m[2]).toString(16).padStart(2,'0');
+}
+function escapeHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-        // Start resizing an element
-        function startResize(e, direction) {
-            e.stopPropagation();
-            isResizing = true;
-            resizeDirection = direction;
-            
-            const element = e.currentTarget.parentElement;
-            selectElement(element);
-            
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startWidth = parseInt(element.style.width || element.offsetWidth);
-            const startHeight = parseInt(element.style.height || element.offsetHeight);
-            const startLeft = parseInt(element.style.left || 0);
-            const startTop = parseInt(element.style.top || 0);
-            
-            function onMouseMove(moveEvent) {
-                const dx = moveEvent.clientX - startX;
-                const dy = moveEvent.clientY - startY;
-                
-                if (resizeDirection === 'nw') {
-                    element.style.width = `${Math.max(50, startWidth - dx)}px`;
-                    element.style.height = `${Math.max(30, startHeight - dy)}px`;
-                    element.style.left = `${startLeft + dx}px`;
-                    element.style.top = `${startTop + dy}px`;
-                } else if (resizeDirection === 'ne') {
-                    element.style.width = `${Math.max(50, startWidth + dx)}px`;
-                    element.style.height = `${Math.max(30, startHeight - dy)}px`;
-                    element.style.top = `${startTop + dy}px`;
-                } else if (resizeDirection === 'sw') {
-                    element.style.width = `${Math.max(50, startWidth - dx)}px`;
-                    element.style.height = `${Math.max(30, startHeight + dy)}px`;
-                    element.style.left = `${startLeft + dx}px`;
-                } else if (resizeDirection === 'se') {
-                    element.style.width = `${Math.max(50, startWidth + dx)}px`;
-                    element.style.height = `${Math.max(30, startHeight + dy)}px`;
-                }
-            }
-            
-            function onMouseUp() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                isResizing = false;
-                resizeDirection = null;
-                generateCode();
-            }
-            
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            
-            e.preventDefault();
-        }
+// short keys
+function bindGlobalShortcuts(){
+  document.addEventListener('keydown', (e)=>{
+    if(e.key==='Delete' && selectedElement){ selectedElement.remove(); selectedElement=null; generateCode(); }
+    if((e.ctrlKey||e.metaKey) && e.key==='s'){ e.preventDefault(); alert('Code copied to clipboard'); navigator.clipboard.writeText(htmlEditor.getValue()); }
+  });
+}
 
-        // Update properties panel based on selected element
-        function updatePropertiesPanel() {
-            if (!selectedElement) return;
-            
-            // Get computed styles
-            const style = window.getComputedStyle(selectedElement);
-            
-            // Update input values
-            document.getElementById('prop-bg-color').value = rgbToHex(style.backgroundColor);
-            document.getElementById('prop-width').value = style.width;
-            document.getElementById('prop-height').value = style.height;
-            document.getElementById('prop-text-color').value = rgbToHex(style.color);
-            document.getElementById('prop-font-size').value = style.fontSize;
-            document.getElementById('prop-border-radius').value = style.borderRadius;
-            
-            // Update text content if applicable
-            const textElement = selectedElement.querySelector('div, p, h1, h2, h3, h4, h5, h6, span, button');
-            if (textElement) {
-                document.getElementById('prop-text-content').value = textElement.textContent;
-            } else {
-                document.getElementById('prop-text-content').value = '';
-            }
-            
-            // Update link URL if applicable
-            const linkElement = selectedElement.querySelector('a');
-            if (linkElement) {
-                document.getElementById('prop-link-url').value = linkElement.href;
-            } else {
-                document.getElementById('prop-link-url').value = '';
-            }
-            
-            // Update image URL if applicable
-            const imgElement = selectedElement.querySelector('img');
-            if (imgElement) {
-                document.getElementById('prop-image-url').value = imgElement.src;
-            } else {
-                document.getElementById('prop-image-url').value = '';
-            }
-            
-            // Update video URL if applicable
-            const videoElement = selectedElement.querySelector('video');
-            if (videoElement) {
-                document.getElementById('prop-video-url').value = videoElement.src;
-            } else {
-                document.getElementById('prop-video-url').value = '';
-            }
-        }
+// when click outside elements, deselect
+document.getElementById('design-area').addEventListener('click', ()=>{ document.querySelectorAll('.element').forEach(x=>x.classList.remove('selected')); selectedElement=null; });
 
-        // Update element properties based on property panel inputs
-        function updateElementProperties() {
-            if (!selectedElement) return;
-            
-            // Apply background color
-            selectedElement.style.backgroundColor = document.getElementById('prop-bg-color').value;
-            
-            // Apply width and height
-            selectedElement.style.width = document.getElementById('prop-width').value;
-            selectedElement.style.height = document.getElementById('prop-height').value;
-            
-            // Apply text color to all child elements that might contain text
-            const textColor = document.getElementById('prop-text-color').value;
-            const textElements = selectedElement.querySelectorAll('div, p, h1, h2, h3, h4, h5, h6, span, button, a');
-            textElements.forEach(el => {
-                el.style.color = textColor;
-            });
-            
-            // Apply font size
-            const fontSize = document.getElementById('prop-font-size').value;
-            if (fontSize) {
-                selectedElement.querySelector('.element-content').style.fontSize = fontSize;
-            }
-            
-            // Apply border radius
-            const borderRadius = document.getElementById('prop-border-radius').value;
-            if (borderRadius) {
-                selectedElement.style.borderRadius = borderRadius;
-            }
-            
-            // Apply text content
-            const textContent = document.getElementById('prop-text-content').value;
-            const firstTextElement = selectedElement.querySelector('div, p, h1, h2, h3, h4, h5, h6, span, button');
-            if (firstTextElement && textContent) {
-                firstTextElement.textContent = textContent;
-            }
-            
-            // Apply link URL
-            const linkUrl = document.getElementById('prop-link-url').value;
-            const linkElement = selectedElement.querySelector('a');
-            if (linkUrl) {
-                if (linkElement) {
-                    linkElement.href = linkUrl;
-                } else {
-                    // If there's a URL but no link element, wrap the content in an anchor tag
-                    const content = selectedElement.querySelector('.element-content');
-                    content.innerHTML = `<a href="${linkUrl}" style="color: inherit; text-decoration: none;">${content.innerHTML}</a>`;
-                }
-            }
-            
-            // Apply image URL
-            const imageUrl = document.getElementById('prop-image-url').value;
-            if (imageUrl) {
-                const imgPlaceholder = selectedElement.querySelector('.image-placeholder');
-                if (imgPlaceholder) {
-                    imgPlaceholder.innerHTML = `<img src="${imageUrl}" alt="User image" style="width: 100%; height: 100%; object-fit: cover;">`;
-                }
-            }
-            
-            // Apply video URL
-            const videoUrl = document.getElementById('prop-video-url').value;
-            if (videoUrl) {
-                const videoContainer = selectedElement.querySelector('.video-container');
-                if (videoContainer) {
-                    videoContainer.innerHTML = `
-                        <video controls style="width: 100%; height: 100%;">
-                            <source src="${videoUrl}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    `;
-                }
-            }
-            
-            generateCode();
-        }
-
-        // Generate code for all elements
-        function generateCode() {
-            const designArea = document.getElementById('design-area');
-            let htmlCode = '<!DOCTYPE html>\n<html>\n<head>\n\t<title>Your Page</title>\n\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n\t<style>\n';
-            
-            // Generate CSS
-            let cssCode = '\t\t* {\n\t\t\tbox-sizing: border-box;\n\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t}\n\n';
-            cssCode += '\t\tbody {\n\t\t\tfont-family: Arial, sans-serif;\n\t\t\tline-height: 1.6;\n\t\t\tcolor: #333;\n\t\t\tmax-width: 1200px;\n\t\t\tmargin: 0 auto;\n\t\t\tpadding: 20px;\n\t\t}\n';
-            
-            // Generate element HTML and CSS
-            const elements = designArea.querySelectorAll('.element');
-            elements.forEach((element, index) => {
-                const type = element.dataset.type;
-                const id = `element-${index}`;
-                
-                // Add HTML for the element
-                htmlCode += `\t\t<div id="${id}">\n`;
-                htmlCode += `\t\t\t${element.querySelector('.element-content').innerHTML}\n`;
-                htmlCode += `\t\t</div>\n`;
-                
-                // Add CSS for the element
-                const style = window.getComputedStyle(element);
-                cssCode += `\n\t\t#${id} {\n`;
-                cssCode += `\t\t\tposition: absolute;\n`;
-                cssCode += `\t\t\tleft: ${element.style.left};\n`;
-                cssCode += `\t\t\ttop: ${element.style.top};\n`;
-                cssCode += `\t\t\twidth: ${element.style.width};\n`;
-                cssCode += `\t\t\theight: ${element.style.height};\n`;
-                
-                if (element.style.backgroundColor && element.style.backgroundColor !== 'rgba(0, 0, 0, 0)') {
-                    cssCode += `\t\t\tbackground-color: ${element.style.backgroundColor};\n`;
-                }
-                
-                if (element.style.borderRadius) {
-                    cssCode += `\t\t\tborder-radius: ${element.style.borderRadius};\n`;
-                }
-                
-                cssCode += `\t\t}\n`;
-            });
-            
-            htmlCode += '\t</style>\n</head>\n<body>\n';
-            htmlCode += '</body>\n</html>';
-            
-            // Update editors
-            if (htmlEditor) {
-                htmlEditor.setValue(htmlCode);
-            }
-            
-            if (cssEditor) {
-                cssEditor.setValue(cssCode);
-            }
-        }
-
-        // Helper function to convert RGB to Hex
-        function rgbToHex(rgb) {
-            if (!rgb || rgb === 'rgba(0, 0, 0, 0)') return '#ffffff';
-            
-            const rgbValues = rgb.match(/\d+/g);
-            if (!rgbValues || rgbValues.length < 3) return '#ffffff';
-            
-            return '#' + 
-                parseInt(rgbValues[0]).toString(16).padStart(2, '0') +
-                parseInt(rgbValues[1]).toString(16).padStart(2, '0') +
-                parseInt(rgbValues[2]).toString(16).padStart(2, '0');
-        }
-    </script>
+// copy HTML button
+document.getElementById('copy-html').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(htmlEditor.getValue()).then(()=>{ alert('HTML copied'); });
+});
+</script>
 </body>
 </html>
