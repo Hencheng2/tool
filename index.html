@@ -151,7 +151,6 @@
     workspace.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
-      highlightClosest(e.clientX, e.clientY);
     });
     
     workspace.addEventListener('dragleave', e => {
@@ -164,15 +163,6 @@
       const type = e.dataTransfer.getData('text/plain');
       const node = createElement(type);
       if (!node) return;
-      
-      // Position the element where it was dropped
-      const rect = workspace.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      node.style.position = 'absolute';
-      node.style.left = `${x}px`;
-      node.style.top = `${y}px`;
       
       setupNode(node);
       workspace.appendChild(node);
@@ -202,7 +192,7 @@
         grid: () => { const g = document.createElement('div'); g.className = 'grid grid-cols-2 gap-4 m-2'; g.innerHTML = '<div class="bg-[#0b1530] p-4 rounded">Grid Item 1</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 2</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 3</div><div class="bg-[#0b1530] p-4 rounded">Grid Item 4</div>'; return g; },
         sidebar: () => { const s = document.createElement('aside'); s.className = 'bg-[#071430] p-4 rounded m-2 w-48'; s.innerHTML = '<h3 class="font-semibold mb-3">Sidebar</h3><ul class="space-y-2"><li><a href="#" class="text-gray-300">Link 1</a></li><li><a href="#" class="text-gray-300">Link 2</a></li><li><a href="#" class="text-gray-300">Link 3</a></li></ul>'; return s; },
         carousel: () => { const c = document.createElement('div'); c.className = 'relative m-2 rounded overflow-hidden'; c.innerHTML = '<div class="flex transition-transform duration-300"><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 1</div><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 2</div><div class="min-w-full bg-[#0b1530] p-8 text-center">Slide 3</div></div><div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2"><button class="w-3 h-3 rounded-full bg-white"></button><button class="w-3 h-3 rounded-full bg-gray-500"></button><button class="w-3 h-3 rounded-full bg-gray-500"></button></div>'; return c; },
-        modal: () => { const m = document.createElement('div'); m.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden'; m.innerHTML = '<div class="bg-[#071430] p-6 rounded-lg max-w-md w-full"><h3 class="text-lg font-semibold mb-3">Modal Title</h3><p class="text-gray-300 mb-4">Modal content goes here.</p><button class="bg-violet-600 px-3 py-1 rounded text-white">Close</button></div>'; return m; },
+        modal: () => { const m = document.createElement('div'); m.className = 'bg-black bg-opacity-50 flex items-center justify-center m-2 p-4'; m.innerHTML = '<div class="bg-[#071430] p-6 rounded-lg max-w-md w-full"><h3 class="text-lg font-semibold mb-3">Modal Title</h3><p class="text-gray-300 mb-4">Modal content goes here.</p><button class="bg-violet-600 px-3 py-1 rounded text-white">Close</button></div>'; return m; },
         accordion: () => { const a = document.createElement('div'); a.className = 'space-y-2 m-2'; a.innerHTML = '<div class="bg-[#0b1530] p-3 rounded"><h4 class="font-semibold">Accordion Item 1</h4><p class="text-gray-300 mt-2 hidden">Accordion content 1</p></div><div class="bg-[#0b1530] p-3 rounded"><h4 class="font-semibold">Accordion Item 2</h4><p class="text-gray-300 mt-2 hidden">Accordion content 2</p></div>'; return a; },
         tabs: () => { const t = document.createElement('div'); t.className = 'm-2'; t.innerHTML = '<div class="flex border-b border-[#203047]"><button class="px-4 py-2 border-b-2 border-violet-600">Tab 1</button><button class="px-4 py-2">Tab 2</button><button class="px-4 py-2">Tab 3</button></div><div class="mt-2"><div class="bg-[#0b1530] p-4 rounded">Tab 1 content</div><div class="bg-[#0b1530] p-4 rounded hidden">Tab 2 content</div><div class="bg-[#0b1530] p-4 rounded hidden">Tab 3 content</div></div>'; return t; },
         badge: () => { const b = document.createElement('span'); b.className = 'bg-violet-600 text-white px-2 py-1 rounded-full text-xs m-2 inline-block'; b.textContent = 'Badge'; return b; },
@@ -258,19 +248,6 @@
     function rgbToHex(rgb) { if (!rgb) return '#000000'; const m = rgb.match(/\d+/g); if (!m) return '#000000'; return '#' + m.slice(0, 3).map(n => ('0' + parseInt(n).toString(16)).slice(-2)).join(''); }
 
     // highlight insertion
-    function highlightClosest(x, y) {
-      clearHighlights();
-      const children = Array.from(workspace.children);
-      for (const child of children) {
-        if (child.id === 'dropHint') continue;
-        const rect = child.getBoundingClientRect();
-        if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
-          child.classList.add('drag-over');
-          break;
-        }
-      }
-    }
-    
     function clearHighlights() { document.querySelectorAll('.workspace > *').forEach(n => n.classList.remove('drag-over')); }
 
     // reorder
