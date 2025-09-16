@@ -119,11 +119,16 @@
             text-align: center;
             cursor: grab;
             transition: all 0.2s;
+            user-select: none;
         }
 
         .element-item:hover {
             background-color: var(--accent-hover);
             border-color: var(--accent-color);
+        }
+
+        .element-item:active {
+            cursor: grabbing;
         }
 
         .work-area-container {
@@ -286,6 +291,7 @@
             position: absolute;
             cursor: move;
             border: 2px dashed transparent;
+            user-select: none;
         }
 
         .element.selected {
@@ -368,28 +374,28 @@
                 <div class="elements-category">
                     <h3 class="category-title">Basic Elements</h3>
                     <div class="elements-list">
-                        <div class="element-item" data-type="button">Button</div>
-                        <div class="element-item" data-type="text">Text</div>
-                        <div class="element-item" data-type="image">Image</div>
-                        <div class="element-item" data-type="div">Container</div>
+                        <div class="element-item" draggable="true" data-type="button">Button</div>
+                        <div class="element-item" draggable="true" data-type="text">Text</div>
+                        <div class="element-item" draggable="true" data-type="image">Image</div>
+                        <div class="element-item" draggable="true" data-type="div">Container</div>
                     </div>
                 </div>
 
                 <div class="elements-category">
                     <h3 class="category-title">Navigation</h3>
                     <div class="elements-list">
-                        <div class="element-item" data-type="navbar">Navbar</div>
-                        <div class="element-item" data-type="menu">Menu</div>
+                        <div class="element-item" draggable="true" data-type="navbar">Navbar</div>
+                        <div class="element-item" draggable="true" data-type="menu">Menu</div>
                     </div>
                 </div>
 
                 <div class="elements-category">
                     <h3 class="category-title">Content</h3>
                     <div class="elements-list">
-                        <div class="element-item" data-type="card">Card</div>
-                        <div class="element-item" data-type="modal">Modal</div>
-                        <div class="element-item" data-type="form">Form</div>
-                        <div class="element-item" data-type="video">Video</div>
+                        <div class="element-item" draggable="true" data-type="card">Card</div>
+                        <div class="element-item" draggable="true" data-type="modal">Modal</div>
+                        <div class="element-item" draggable="true" data-type="form">Form</div>
+                        <div class="element-item" draggable="true" data-type="video">Video</div>
                     </div>
                 </div>
 
@@ -537,6 +543,12 @@
             document.getElementById('prop-text-color').addEventListener('input', updateElementProperties);
             document.getElementById('prop-text-content').addEventListener('change', updateElementProperties);
             document.getElementById('prop-link-url').addEventListener('change', updateElementProperties);
+
+            // Toolbar buttons
+            document.getElementById('clear-all').addEventListener('click', function() {
+                document.getElementById('design-area').innerHTML = '';
+                generateCode();
+            });
         }
 
         // Set up element drag and drop from sidebar
@@ -553,6 +565,8 @@
             
             designArea.addEventListener('dragover', function(e) {
                 e.preventDefault();
+                // Show visual feedback that dropping is allowed
+                e.dataTransfer.dropEffect = 'copy';
             });
             
             designArea.addEventListener('drop', function(e) {
@@ -629,59 +643,80 @@
             addResizeHandles(element);
             
             // Add event listeners for selection and dragging
-            element.addEventListener('mousedown', selectElement);
+            element.addEventListener('mousedown', startElementDrag);
             
             designArea.appendChild(element);
-            selectElement({ currentTarget: element });
+            selectElement(element);
+            
+            // Update code
+            generateCode();
         }
 
         // Select an element
-        function selectElement(e) {
+        function selectElement(element) {
             // Deselect previous element
             if (selectedElement) {
                 selectedElement.classList.remove('selected');
             }
             
             // Select new element
-            selectedElement = e.currentTarget;
+            selectedElement = element;
             selectedElement.classList.add('selected');
             
             // Update properties panel
             updatePropertiesPanel();
-            
-            // Prevent the event from triggering drag start immediately
-            e.stopPropagation();
-            
-            // Setup dragging
-            setupElementDragging(e);
         }
 
-        // Set up element dragging
-        function setupElementDragging(e) {
+        // Start dragging an element
+        function startElementDrag(e) {
+            // Only handle left mouse button
+            if (e.button !== 0) return;
+            
             const element = e.currentTarget;
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startLeft = parseInt(element.style.left || 0);
-            const startTop = parseInt(element.style.top || 0);
+            selectElement(element);
             
-            function onMouseMove(moveEvent) {
-                const dx = moveEvent.clientX - startX;
-                const dy = moveEvent.clientY - startY;
-                
-                element.style.left = `${startLeft + dx}px`;
-                element.style.top = `${startTop + dy}px`;
-            }
+            // Calculate offset between mouse and element position
+            const rect = element.getBoundingClientRect();
+            dragOffset.x = e.clientX - rect.left;
+            dragOffset.y = e.clientY - rect.top;
             
-            function onMouseUp() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                generateCode();
-            }
+            // Set up event listeners for dragging
+            document.addEventListener('mousemove', doElementDrag);
+            document.addEventListener('mouseup', stopElementDrag);
             
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            
+            // Prevent text selection during drag
             e.preventDefault();
+        }
+
+        // Perform element dragging
+        function doElementDrag(e) {
+            if (!selectedElement) return;
+            
+            const designArea = document.getElementById('design-area');
+            const designRect = designArea.getBoundingClientRect();
+            
+            // Calculate new position
+            let newX = e.clientX - designRect.left - dragOffset.x;
+            let newY = e.clientY - designRect.top - dragOffset.y;
+            
+            // Apply constraints to keep element within design area
+            newX = Math.max(0, newX);
+            newY = Math.max(0, newY);
+            newX = Math.min(designRect.width - selectedElement.offsetWidth, newX);
+            newY = Math.min(designRect.height - selectedElement.offsetHeight, newY);
+            
+            // Update element position
+            selectedElement.style.left = `${newX}px`;
+            selectedElement.style.top = `${newY}px`;
+        }
+
+        // Stop element dragging
+        function stopElementDrag() {
+            document.removeEventListener('mousemove', doElementDrag);
+            document.removeEventListener('mouseup', stopElementDrag);
+            
+            // Update code after dragging
+            generateCode();
         }
 
         // Add resize handles to an element
@@ -703,6 +738,8 @@
             resizeDirection = direction;
             
             const element = e.currentTarget.parentElement;
+            selectElement(element);
+            
             const startX = e.clientX;
             const startY = e.clientY;
             const startWidth = parseInt(element.style.width || element.offsetWidth);
@@ -715,21 +752,21 @@
                 const dy = moveEvent.clientY - startY;
                 
                 if (resizeDirection === 'nw') {
-                    element.style.width = `${startWidth - dx}px`;
-                    element.style.height = `${startHeight - dy}px`;
+                    element.style.width = `${Math.max(20, startWidth - dx)}px`;
+                    element.style.height = `${Math.max(20, startHeight - dy)}px`;
                     element.style.left = `${startLeft + dx}px`;
                     element.style.top = `${startTop + dy}px`;
                 } else if (resizeDirection === 'ne') {
-                    element.style.width = `${startWidth + dx}px`;
-                    element.style.height = `${startHeight - dy}px`;
+                    element.style.width = `${Math.max(20, startWidth + dx)}px`;
+                    element.style.height = `${Math.max(20, startHeight - dy)}px`;
                     element.style.top = `${startTop + dy}px`;
                 } else if (resizeDirection === 'sw') {
-                    element.style.width = `${startWidth - dx}px`;
-                    element.style.height = `${startHeight + dy}px`;
+                    element.style.width = `${Math.max(20, startWidth - dx)}px`;
+                    element.style.height = `${Math.max(20, startHeight + dy)}px`;
                     element.style.left = `${startLeft + dx}px`;
                 } else if (resizeDirection === 'se') {
-                    element.style.width = `${startWidth + dx}px`;
-                    element.style.height = `${startHeight + dy}px`;
+                    element.style.width = `${Math.max(20, startWidth + dx)}px`;
+                    element.style.height = `${Math.max(20, startHeight + dy)}px`;
                 }
             }
             
