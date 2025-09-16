@@ -3,915 +3,430 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Web Designer Tool</title>
-    <!-- Monaco Editor from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.js"></script>
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Grok Web Designer Tool</title>
     <style>
+        /* Dark theme and modern look */
         :root {
-            --dark-bg: #1e1e1e;
-            --darker-bg: #161616;
-            --sidebar-bg: #252526;
-            --accent-color: #007acc;
-            --accent-hover: #0062a3;
-            --text-color: #e0e0e0;
-            --border-color: #444;
-            --success-color: #4CAF50;
+            --bg-color: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #007bff;
+            --border-color: #333333;
+            --editor-bg: #252526;
+            --button-bg: #007bff;
+            --button-hover: #0056b3;
         }
-
-        * {
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-color);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-        }
-
-        .header {
-            background-color: var(--darker-bg);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-
-        .view-toggle {
-            display: flex;
-            background-color: var(--sidebar-bg);
-            border-radius: 5px;
             overflow: hidden;
         }
-
-        .view-toggle button {
-            background: none;
+        #toolbar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #252526;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #toolbar button {
+            background-color: var(--button-bg);
+            color: white;
             border: none;
-            color: var(--text-color);
-            padding: 8px 15px;
+            padding: 8px 16px;
+            margin-right: 5px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            border-radius: 4px;
+            transition: background-color 0.3s;
         }
-
-        .view-toggle button.active {
-            background-color: var(--accent-color);
+        #toolbar button:hover {
+            background-color: var(--button-hover);
         }
-
-        .view-toggle button:hover:not(.active) {
-            background-color: var(--border-color);
-        }
-
-        .main-content {
+        #main {
             display: flex;
             flex: 1;
             overflow: hidden;
         }
-
-        .sidebar {
+        #sidebar {
             width: 250px;
-            background-color: var(--sidebar-bg);
-            padding: 15px;
+            background-color: #252526;
             border-right: 1px solid var(--border-color);
+            padding: 10px;
             overflow-y: auto;
         }
-
-        .elements-category {
-            margin-bottom: 20px;
+        #sidebar h3 {
+            margin-top: 0;
         }
-
-        .category-title {
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: var(--accent-color);
-            padding-bottom: 5px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .elements-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .element-item {
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 5px;
-            padding: 10px;
-            text-align: center;
-            cursor: grab;
-            transition: all 0.2s;
-            user-select: none;
-        }
-
-        .element-item:hover {
-            background-color: var(--accent-hover);
-            border-color: var(--accent-color);
-        }
-
-        .element-item:active {
-            cursor: grabbing;
-        }
-
-        .work-area-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .work-area-toolbar {
-            padding: 10px 15px;
-            background-color: var(--darker-bg);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 10px;
-        }
-
-        .toolbar-button {
-            background-color: var(--sidebar-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .toolbar-button:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .work-area {
-            flex: 1;
-            padding: 20px;
-            overflow: auto;
-            background-color: #2d2d30;
-            background-image: 
-                linear-gradient(45deg, #252526 25%, transparent 25%), 
-                linear-gradient(-45deg, #252526 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #252526 75%), 
-                linear-gradient(-45deg, transparent 75%, #252526 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-        }
-
-        #design-area {
+        #elements-list button {
+            display: block;
             width: 100%;
-            min-height: 100%;
-            background-color: #fff;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-            position: relative;
-        }
-
-        .code-panel {
-            width: 600px;
-            background-color: var(--darker-bg);
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .code-tabs {
-            display: flex;
-            background-color: var(--sidebar-bg);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .code-tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .code-tab.active {
-            background-color: var(--accent-color);
-        }
-
-        .code-container {
-            flex: 1;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .editor {
-            width: 100%;
-            height: 100%;
-        }
-
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 10;
-            background-color: var(--success-color);
+            margin-bottom: 5px;
+            background-color: var(--button-bg);
             color: white;
             border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 8px;
             cursor: pointer;
-            opacity: 0.8;
-            transition: opacity 0.2s;
+            border-radius: 4px;
         }
-
-        .copy-button:hover {
-            opacity: 1;
+        #elements-list button:hover {
+            background-color: var(--button-hover);
         }
-
-        .element-properties {
+        #properties {
             margin-top: 20px;
-            padding-top: 10px;
+        }
+        #properties input, #properties select {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: #333333;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+        #work-area-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #work-area {
+            flex: 1;
+            background-color: #ffffff; /* White for editing, but we'll make preview dark if needed */
+            position: relative;
+            overflow: auto;
+            border: 1px solid var(--border-color);
+            margin: 10px;
+        }
+        #work-area.edit-mode .element {
+            border: 1px dashed #007bff;
+            cursor: move;
+            resize: both;
+            overflow: auto;
+            position: absolute;
+        }
+        #work-area.preview-mode {
+            background-color: var(--bg-color);
+        }
+        #work-area.preview-mode .element {
+            border: none;
+            resize: none;
+            cursor: default;
+            position: absolute;
+        }
+        #code-section {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
             border-top: 1px solid var(--border-color);
         }
-
-        .property-group {
-            margin-bottom: 15px;
+        .code-editor {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
         }
-
-        .property-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
+        .code-editor:last-child {
+            border-right: none;
         }
-
-        .property-input {
-            width: 100%;
-            padding: 8px;
-            background-color: var(--dark-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-color);
-        }
-
-        .color-input {
-            height: 40px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Preview mode styling */
-        .preview-mode .sidebar,
-        .preview-mode .code-panel,
-        .preview-mode .work-area-toolbar {
-            display: none;
-        }
-
-        .preview-mode .work-area-container {
-            width: 100%;
-        }
-
-        .preview-mode .work-area {
-            padding: 0;
-            background: none;
-        }
-
-        /* Element styles */
-        .element {
-            position: absolute;
-            cursor: move;
-            border: 2px dashed transparent;
-            user-select: none;
-        }
-
-        .element.selected {
-            border-color: var(--accent-color);
-        }
-
-        .element:hover {
-            border-color: rgba(0, 122, 204, 0.5);
-        }
-
-        .resize-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent-color);
-            z-index: 10;
-        }
-
-        .nw { top: -5px; left: -5px; cursor: nw-resize; }
-        .ne { top: -5px; right: -5px; cursor: ne-resize; }
-        .sw { bottom: -5px; left: -5px; cursor: sw-resize; }
-        .se { bottom: -5px; right: -5px; cursor: se-resize; }
-
-        /* Specific element styles */
-        .navbar {
-            width: 100%;
-            background-color: #333;
-            color: white;
-            padding: 10px;
+        .editor-header {
             display: flex;
             justify-content: space-between;
+            padding: 5px;
+            background-color: #252526;
         }
-
-        .button {
-            padding: 10px 20px;
-            background-color: var(--accent-color);
+        .editor-header span {
+            font-weight: bold;
+        }
+        .editor-header button {
+            background-color: var(--button-bg);
             color: white;
             border: none;
-            border-radius: 4px;
-            text-align: center;
+            padding: 4px 8px;
             cursor: pointer;
+            border-radius: 4px;
         }
-
-        .image-placeholder {
-            background-color: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #777;
-            border: 2px dashed #999;
+        .editor-header button:hover {
+            background-color: var(--button-hover);
         }
-
-        .modal {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            color: #333;
+        #monaco-html, #monaco-css, #monaco-js {
+            flex: 1;
+            min-height: 200px;
         }
-
-        .text-element {
-            padding: 10px;
-            min-width: 100px;
-            min-height: 40px;
+        /* Hide code section initially, toggle visibility */
+        #code-section {
+            height: 40%; /* Adjustable */
         }
     </style>
+    <!-- Monaco Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">WebDesign Pro</div>
-            <div class="view-toggle">
-                <button id="design-view-btn" class="active">Design View</button>
-                <button id="preview-view-btn">Preview View</button>
+    <div id="toolbar">
+        <div>
+            <button onclick="addElement('div')">Add Div</button>
+            <button onclick="addElement('button')">Add Button</button>
+            <button onclick="addElement('img')">Add Image</button>
+            <button onclick="addElement('nav')">Add Navbar</button>
+            <button onclick="addElement('a')">Add Link</button>
+            <button onclick="addElement('video')">Add Video</button>
+            <button onclick="addElement('modal')">Add Modal</button>
+        </div>
+        <div>
+            <button onclick="toggleView()">Toggle Preview/Edit</button>
+        </div>
+    </div>
+    <div id="main">
+        <div id="sidebar">
+            <h3>Properties</h3>
+            <div id="properties">
+                <!-- Dynamic properties will be injected here -->
             </div>
-        </header>
-
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="elements-category">
-                    <h3 class="category-title">Basic Elements</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="button">Button</div>
-                        <div class="element-item" draggable="true" data-type="text">Text</div>
-                        <div class="element-item" draggable="true" data-type="image">Image</div>
-                        <div class="element-item" draggable="true" data-type="div">Container</div>
-                    </div>
-                </div>
-
-                <div class="elements-category">
-                    <h3 class="category-title">Navigation</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="navbar">Navbar</div>
-                        <div class="element-item" draggable="true" data-type="menu">Menu</div>
-                    </div>
-                </div>
-
-                <div class="elements-category">
-                    <h3 class="category-title">Content</h3>
-                    <div class="elements-list">
-                        <div class="element-item" draggable="true" data-type="card">Card</div>
-                        <div class="element-item" draggable="true" data-type="modal">Modal</div>
-                        <div class="element-item" draggable="true" data-type="form">Form</div>
-                        <div class="element-item" draggable="true" data-type="video">Video</div>
-                    </div>
-                </div>
-
-                <div class="element-properties">
-                    <h3 class="category-title">Properties</h3>
-                    <div class="property-group">
-                        <label class="property-label">Background Color</label>
-                        <input type="color" class="property-input color-input" id="prop-bg-color" value="#ffffff">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Width</label>
-                        <input type="text" class="property-input" id="prop-width" placeholder="e.g., 100px or 50%">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Height</label>
-                        <input type="text" class="property-input" id="prop-height" placeholder="e.g., 100px or 50%">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Text Color</label>
-                        <input type="color" class="property-input color-input" id="prop-text-color" value="#000000">
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Text Content</label>
-                        <textarea class="property-input" id="prop-text-content" rows="3"></textarea>
-                    </div>
-                    <div class="property-group">
-                        <label class="property-label">Link URL</label>
-                        <input type="text" class="property-input" id="prop-link-url" placeholder="https://example.com">
-                    </div>
-                </div>
-            </aside>
-
-            <div class="work-area-container">
-                <div class="work-area-toolbar">
-                    <button class="toolbar-button" id="export-html">Export HTML</button>
-                    <button class="toolbar-button" id="import-html">Import HTML</button>
-                    <button class="toolbar-button" id="clear-all">Clear All</button>
-                </div>
-                <div class="work-area">
-                    <div id="design-area"></div>
-                </div>
+        </div>
+        <div id="work-area-container">
+            <div id="work-area" class="edit-mode"></div>
+        </div>
+    </div>
+    <div id="code-section">
+        <div class="code-editor">
+            <div class="editor-header">
+                <span>HTML</span>
+                <button onclick="copyCode('html')">Copy</button>
             </div>
-
-            <div class="code-panel">
-                <div class="code-tabs">
-                    <div class="code-tab active" data-tab="html">HTML</div>
-                    <div class="code-tab" data-tab="css">CSS</div>
-                    <div class="code-tab" data-tab="js">JavaScript</div>
-                </div>
-                <div class="code-container">
-                    <div id="html-editor" class="editor"></div>
-                    <div id="css-editor" class="editor hidden"></div>
-                    <div id="js-editor" class="editor hidden"></div>
-                    <button class="copy-button" id="copy-html">Copy HTML</button>
-                </div>
+            <div id="monaco-html"></div>
+        </div>
+        <div class="code-editor">
+            <div class="editor-header">
+                <span>CSS</span>
+                <button onclick="copyCode('css')">Copy</button>
             </div>
+            <div id="monaco-css"></div>
+        </div>
+        <div class="code-editor">
+            <div class="editor-header">
+                <span>JavaScript</span>
+                <button onclick="copyCode('js')">Copy</button>
+            </div>
+            <div id="monaco-js"></div>
         </div>
     </div>
 
     <script>
-        // Initialize variables
         let selectedElement = null;
-        let htmlEditor, cssEditor, jsEditor;
-        let isDragging = false;
-        let dragOffset = { x: 0, y: 0 };
-        let isResizing = false;
-        let resizeDirection = null;
+        let isEditMode = true;
+        let elementCounter = 0;
+        let jsCode = ''; // For now, minimal JS support
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeMonacoEditors();
-            setupEventListeners();
-            setupElementDragAndDrop();
+        // Initialize Monaco Editors
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            window.htmlEditor = monaco.editor.create(document.getElementById('monaco-html'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+            window.cssEditor = monaco.editor.create(document.getElementById('monaco-css'), {
+                value: '',
+                language: 'css',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+            window.jsEditor = monaco.editor.create(document.getElementById('monaco-js'), {
+                value: '',
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
         });
 
-        // Initialize Monaco editors
-        function initializeMonacoEditors() {
-            require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' }});
-            require(['vs/editor/editor.main'], function() {
-                htmlEditor = monaco.editor.create(document.getElementById('html-editor'), {
-                    value: '<!-- Your HTML code will appear here -->\n<div class="container">\n  <h1>Hello World</h1>\n</div>',
-                    language: 'html',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
+        // Add element to work area
+        function addElement(type) {
+            const workArea = document.getElementById('work-area');
+            const el = document.createElement(type);
+            el.id = `el-${elementCounter++}`;
+            el.classList.add('element');
+            el.style.position = 'absolute';
+            el.style.left = '50px';
+            el.style.top = '50px';
+            el.style.width = '100px';
+            el.style.height = '50px';
+            el.style.backgroundColor = '#f0f0f0'; // Default light for visibility in edit
 
-                cssEditor = monaco.editor.create(document.getElementById('css-editor'), {
-                    value: '/* Your CSS code will appear here */\nbody {\n  font-family: Arial, sans-serif;\n}',
-                    language: 'css',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
-
-                jsEditor = monaco.editor.create(document.getElementById('js-editor'), {
-                    value: '// Your JavaScript code will appear here\nconsole.log("Hello World");',
-                    language: 'javascript',
-                    theme: 'vs-dark',
-                    automaticLayout: true
-                });
-            });
-        }
-
-        // Set up event listeners
-        function setupEventListeners() {
-            // View toggle buttons
-            document.getElementById('design-view-btn').addEventListener('click', function() {
-                document.body.classList.remove('preview-mode');
-                this.classList.add('active');
-                document.getElementById('preview-view-btn').classList.remove('active');
-            });
-
-            document.getElementById('preview-view-btn').addEventListener('click', function() {
-                document.body.classList.add('preview-mode');
-                this.classList.add('active');
-                document.getElementById('design-view-btn').classList.remove('active');
-                generateCode();
-            });
-
-            // Code tabs
-            document.querySelectorAll('.code-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.editor').forEach(e => e.classList.add('hidden'));
-                    
-                    this.classList.add('active');
-                    document.getElementById(`${this.dataset.tab}-editor`).classList.remove('hidden');
-                });
-            });
-
-            // Copy buttons
-            document.getElementById('copy-html').addEventListener('click', function() {
-                const code = htmlEditor.getValue();
-                navigator.clipboard.writeText(code).then(() => {
-                    this.textContent = 'Copied!';
-                    setTimeout(() => {
-                        this.textContent = 'Copy HTML';
-                    }, 2000);
-                });
-            });
-
-            // Property inputs
-            document.getElementById('prop-bg-color').addEventListener('input', updateElementProperties);
-            document.getElementById('prop-width').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-height').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-text-color').addEventListener('input', updateElementProperties);
-            document.getElementById('prop-text-content').addEventListener('change', updateElementProperties);
-            document.getElementById('prop-link-url').addEventListener('change', updateElementProperties);
-
-            // Toolbar buttons
-            document.getElementById('clear-all').addEventListener('click', function() {
-                document.getElementById('design-area').innerHTML = '';
-                generateCode();
-            });
-        }
-
-        // Set up element drag and drop from sidebar
-        function setupElementDragAndDrop() {
-            const elementItems = document.querySelectorAll('.element-item');
-            
-            elementItems.forEach(item => {
-                item.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', this.dataset.type);
-                });
-            });
-
-            const designArea = document.getElementById('design-area');
-            
-            designArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                // Show visual feedback that dropping is allowed
-                e.dataTransfer.dropEffect = 'copy';
-            });
-            
-            designArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                const type = e.dataTransfer.getData('text/plain');
-                createNewElement(type, e.clientX, e.clientY);
-            });
-        }
-
-        // Create a new element
-        function createNewElement(type, x, y) {
-            const designArea = document.getElementById('design-area');
-            const rect = designArea.getBoundingClientRect();
-            
-            // Calculate position relative to design area
-            const posX = x - rect.left - 50;
-            const posY = y - rect.top - 25;
-            
-            const element = document.createElement('div');
-            element.classList.add('element');
-            element.dataset.type = type;
-            
-            // Set position
-            element.style.left = `${posX}px`;
-            element.style.top = `${posY}px`;
-            
-            // Create content based on type
-            switch(type) {
-                case 'button':
-                    element.innerHTML = '<div class="button">Button</div>';
-                    element.style.width = '100px';
-                    element.style.height = '40px';
-                    break;
-                case 'navbar':
-                    element.innerHTML = `
-                        <div class="navbar">
-                            <div>Logo</div>
-                            <div>Menu 1 | Menu 2 | Menu 3</div>
-                        </div>
-                    `;
-                    element.style.width = '100%';
-                    element.style.top = '0';
-                    element.style.left = '0';
-                    break;
-                case 'image':
-                    element.innerHTML = '<div class="image-placeholder">Image</div>';
-                    element.style.width = '200px';
-                    element.style.height = '150px';
-                    break;
-                case 'modal':
-                    element.innerHTML = `
-                        <div class="modal">
-                            <h3>Modal Title</h3>
-                            <p>This is a modal dialog</p>
-                            <button>Close</button>
-                        </div>
-                    `;
-                    element.style.width = '300px';
-                    element.style.height = '200px';
-                    break;
-                case 'text':
-                    element.innerHTML = '<div class="text-element">Text Element</div>';
-                    element.style.width = '150px';
-                    element.style.height = '40px';
-                    break;
-                default:
-                    element.innerHTML = `<div>${type}</div>`;
-                    element.style.width = '100px';
-                    element.style.height = '100px';
-                    element.style.backgroundColor = '#ddd';
+            if (type === 'button') {
+                el.innerText = 'Button';
+                el.onclick = () => {}; // Can add JS later
+            } else if (type === 'img') {
+                el.src = 'https://via.placeholder.com/100x50';
+                el.alt = 'Image';
+            } else if (type === 'nav') {
+                el.innerHTML = '<ul><li>Item 1</li><li>Item 2</li></ul>';
+                el.style.backgroundColor = '#333';
+                el.style.color = '#fff';
+                el.style.padding = '10px';
+                el.style.width = '100%';
+                el.style.height = 'auto';
+            } else if (type === 'a') {
+                el.href = '#';
+                el.innerText = 'Link';
+            } else if (type === 'video') {
+                el.src = 'https://www.w3schools.com/html/mov_bbb.mp4';
+                el.controls = true;
+                el.style.width = '200px';
+            } else if (type === 'modal') {
+                el.innerHTML = '<div>Modal Content</div>';
+                el.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                el.style.display = 'none'; // Hidden by default
+            } else {
+                el.innerText = 'Div Content';
+                el.contentEditable = true;
             }
-            
-            // Add resize handles
-            addResizeHandles(element);
-            
-            // Add event listeners for selection and dragging
-            element.addEventListener('mousedown', startElementDrag);
-            
-            designArea.appendChild(element);
-            selectElement(element);
-            
-            // Update code
-            generateCode();
+
+            workArea.appendChild(el);
+            makeDraggable(el);
+            makeResizable(el);
+            el.addEventListener('click', selectElement);
+            updateCode();
         }
 
-        // Select an element
-        function selectElement(element) {
-            // Deselect previous element
-            if (selectedElement) {
-                selectedElement.classList.remove('selected');
+        // Make element draggable
+        function makeDraggable(el) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            el.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                if (!isEditMode) return;
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
             }
-            
-            // Select new element
-            selectedElement = element;
-            selectedElement.classList.add('selected');
-            
-            // Update properties panel
-            updatePropertiesPanel();
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+                updateCode();
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
         }
 
-        // Start dragging an element
-        function startElementDrag(e) {
-            // Only handle left mouse button
-            if (e.button !== 0) return;
-            
-            const element = e.currentTarget;
-            selectElement(element);
-            
-            // Calculate offset between mouse and element position
-            const rect = element.getBoundingClientRect();
-            dragOffset.x = e.clientX - rect.left;
-            dragOffset.y = e.clientY - rect.top;
-            
-            // Set up event listeners for dragging
-            document.addEventListener('mousemove', doElementDrag);
-            document.addEventListener('mouseup', stopElementDrag);
-            
-            // Prevent text selection during drag
-            e.preventDefault();
+        // Make element resizable (using CSS resize)
+        function makeResizable(el) {
+            // Already set in CSS for edit-mode
         }
 
-        // Perform element dragging
-        function doElementDrag(e) {
-            if (!selectedElement) return;
-            
-            const designArea = document.getElementById('design-area');
-            const designRect = designArea.getBoundingClientRect();
-            
-            // Calculate new position
-            let newX = e.clientX - designRect.left - dragOffset.x;
-            let newY = e.clientY - designRect.top - dragOffset.y;
-            
-            // Apply constraints to keep element within design area
-            newX = Math.max(0, newX);
-            newY = Math.max(0, newY);
-            newX = Math.min(designRect.width - selectedElement.offsetWidth, newX);
-            newY = Math.min(designRect.height - selectedElement.offsetHeight, newY);
-            
-            // Update element position
-            selectedElement.style.left = `${newX}px`;
-            selectedElement.style.top = `${newY}px`;
-        }
-
-        // Stop element dragging
-        function stopElementDrag() {
-            document.removeEventListener('mousemove', doElementDrag);
-            document.removeEventListener('mouseup', stopElementDrag);
-            
-            // Update code after dragging
-            generateCode();
-        }
-
-        // Add resize handles to an element
-        function addResizeHandles(element) {
-            const handles = ['nw', 'ne', 'sw', 'se'];
-            
-            handles.forEach(handle => {
-                const div = document.createElement('div');
-                div.classList.add('resize-handle', handle);
-                div.addEventListener('mousedown', (e) => startResize(e, handle));
-                element.appendChild(div);
-            });
-        }
-
-        // Start resizing an element
-        function startResize(e, direction) {
+        // Select element and show properties
+        function selectElement(e) {
+            if (!isEditMode) return;
             e.stopPropagation();
-            isResizing = true;
-            resizeDirection = direction;
-            
-            const element = e.currentTarget.parentElement;
-            selectElement(element);
-            
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startWidth = parseInt(element.style.width || element.offsetWidth);
-            const startHeight = parseInt(element.style.height || element.offsetHeight);
-            const startLeft = parseInt(element.style.left || 0);
-            const startTop = parseInt(element.style.top || 0);
-            
-            function onMouseMove(moveEvent) {
-                const dx = moveEvent.clientX - startX;
-                const dy = moveEvent.clientY - startY;
-                
-                if (resizeDirection === 'nw') {
-                    element.style.width = `${Math.max(20, startWidth - dx)}px`;
-                    element.style.height = `${Math.max(20, startHeight - dy)}px`;
-                    element.style.left = `${startLeft + dx}px`;
-                    element.style.top = `${startTop + dy}px`;
-                } else if (resizeDirection === 'ne') {
-                    element.style.width = `${Math.max(20, startWidth + dx)}px`;
-                    element.style.height = `${Math.max(20, startHeight - dy)}px`;
-                    element.style.top = `${startTop + dy}px`;
-                } else if (resizeDirection === 'sw') {
-                    element.style.width = `${Math.max(20, startWidth - dx)}px`;
-                    element.style.height = `${Math.max(20, startHeight + dy)}px`;
-                    element.style.left = `${startLeft + dx}px`;
-                } else if (resizeDirection === 'se') {
-                    element.style.width = `${Math.max(20, startWidth + dx)}px`;
-                    element.style.height = `${Math.max(20, startHeight + dy)}px`;
-                }
-            }
-            
-            function onMouseUp() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                isResizing = false;
-                resizeDirection = null;
-                generateCode();
-            }
-            
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            
-            e.preventDefault();
-        }
+            selectedElement = e.target;
+            const properties = document.getElementById('properties');
+            properties.innerHTML = '';
 
-        // Update properties panel based on selected element
-        function updatePropertiesPanel() {
-            if (!selectedElement) return;
-            
-            // Get computed styles
-            const style = window.getComputedStyle(selectedElement);
-            
-            // Update input values
-            document.getElementById('prop-bg-color').value = rgbToHex(style.backgroundColor);
-            document.getElementById('prop-width').value = style.width;
-            document.getElementById('prop-height').value = style.height;
-            document.getElementById('prop-text-color').value = rgbToHex(style.color);
-            
-            // Update text content if applicable
-            const textElement = selectedElement.querySelector('div, p, h1, h2, h3, h4, h5, h6, span, button');
-            if (textElement) {
-                document.getElementById('prop-text-content').value = textElement.textContent;
+            // Common properties
+            addPropertyInput('width', selectedElement.style.width, (val) => { selectedElement.style.width = val; updateCode(); });
+            addPropertyInput('height', selectedElement.style.height, (val) => { selectedElement.style.height = val; updateCode(); });
+            addPropertyInput('backgroundColor', selectedElement.style.backgroundColor, (val) => { selectedElement.style.backgroundColor = val; updateCode(); });
+            addPropertyInput('color', selectedElement.style.color, (val) => { selectedElement.style.color = val; updateCode(); });
+            addPropertyInput('fontSize', selectedElement.style.fontSize, (val) => { selectedElement.style.fontSize = val; updateCode(); });
+
+            // Type-specific
+            if (selectedElement.tagName === 'BUTTON' || selectedElement.tagName === 'A') {
+                addPropertyInput('link', selectedElement.href || '', (val) => { selectedElement.href = val; updateCode(); });
+                addPropertyInput('text', selectedElement.innerText, (val) => { selectedElement.innerText = val; updateCode(); });
+            } else if (selectedElement.tagName === 'IMG' || selectedElement.tagName === 'VIDEO') {
+                addPropertyInput('src', selectedElement.src, (val) => { selectedElement.src = val; updateCode(); });
+            } else if (selectedElement.tagName === 'NAV') {
+                addPropertyInput('content', selectedElement.innerHTML, (val) => { selectedElement.innerHTML = val; updateCode(); });
             } else {
-                document.getElementById('prop-text-content').value = '';
+                addPropertyInput('text', selectedElement.innerText, (val) => { selectedElement.innerText = val; updateCode(); });
             }
-            
-            // Update link URL if applicable
-            const linkElement = selectedElement.querySelector('a');
-            if (linkElement) {
-                document.getElementById('prop-link-url').value = linkElement.href;
+
+            // For modals, add show/hide JS if needed
+            if (selectedElement.tagName === 'DIV' && selectedElement.classList.contains('modal')) {
+                // Basic JS for modal, but for now, placeholder
+            }
+        }
+
+        function addPropertyInput(label, value, onChange) {
+            const properties = document.getElementById('properties');
+            const div = document.createElement('div');
+            div.innerHTML = `<label>${label}</label>`;
+            const input = document.createElement('input');
+            input.value = value;
+            input.oninput = (e) => onChange(e.target.value);
+            div.appendChild(input);
+            properties.appendChild(div);
+        }
+
+        // Toggle between edit and preview
+        function toggleView() {
+            const workArea = document.getElementById('work-area');
+            isEditMode = !isEditMode;
+            if (isEditMode) {
+                workArea.classList.remove('preview-mode');
+                workArea.classList.add('edit-mode');
+                workArea.style.backgroundColor = '#ffffff';
             } else {
-                document.getElementById('prop-link-url').value = '';
+                workArea.classList.remove('edit-mode');
+                workArea.classList.add('preview-mode');
+                workArea.style.backgroundColor = var(--bg-color);
+                // In preview, execute any JS if present
+                eval(jsCode);
             }
         }
 
-        // Update element properties based on property panel inputs
-        function updateElementProperties() {
-            if (!selectedElement) return;
-            
-            // Apply background color
-            selectedElement.style.backgroundColor = document.getElementById('prop-bg-color').value;
-            
-            // Apply width and height
-            selectedElement.style.width = document.getElementById('prop-width').value;
-            selectedElement.style.height = document.getElementById('prop-height').value;
-            
-            // Apply text color to all child elements that might contain text
-            const textColor = document.getElementById('prop-text-color').value;
-            const textElements = selectedElement.querySelectorAll('div, p, h1, h2, h3, h4, h5, h6, span, button');
-            textElements.forEach(el => {
-                el.style.color = textColor;
+        // Update code in editors
+        function updateCode() {
+            const workArea = document.getElementById('work-area');
+            let html = '<div id="page">';
+            let css = '#page { position: relative; }\n';
+
+            Array.from(workArea.children).forEach(el => {
+                const id = el.id;
+                html += el.outerHTML.replace(/position: absolute;/g, '').replace(/left: .*?px;/g, '').replace(/top: .*?px;/g, '') + '\n';
+                css += `#${id} { position: absolute; left: ${el.style.left}; top: ${el.style.top}; width: ${el.style.width}; height: ${el.style.height}; background-color: ${el.style.backgroundColor}; color: ${el.style.color}; font-size: ${el.style.fontSize}; }\n`;
             });
-            
-            // Apply text content
-            const textContent = document.getElementById('prop-text-content').value;
-            const firstTextElement = selectedElement.querySelector('div, p, h1, h2, h3, h4, h5, h6, span, button');
-            if (firstTextElement) {
-                firstTextElement.textContent = textContent;
+            html += '</div>';
+
+            // JS minimal, e.g., for buttons or modals
+            jsCode = '// Add your JS here\n';
+            if (document.querySelector('button')) {
+                jsCode += 'document.querySelector("button").addEventListener("click", () => { console.log("Button clicked"); });\n';
             }
-            
-            // Apply link URL
-            const linkUrl = document.getElementById('prop-link-url').value;
-            const linkElement = selectedElement.querySelector('a');
-            if (linkUrl) {
-                if (linkElement) {
-                    linkElement.href = linkUrl;
-                } else {
-                    // If there's a URL but no link element, wrap the content in an anchor tag
-                    selectedElement.innerHTML = `<a href="${linkUrl}">${selectedElement.innerHTML}</a>`;
-                }
-            }
-            
-            generateCode();
+
+            htmlEditor.setValue(html);
+            cssEditor.setValue(css);
+            jsEditor.setValue(jsCode);
         }
 
-        // Generate code for all elements
-        function generateCode() {
-            const designArea = document.getElementById('design-area');
-            let htmlCode = '<!DOCTYPE html>\n<html>\n<head>\n\t<title>Your Page</title>\n\t<style>\n';
-            
-            // Generate CSS
-            let cssCode = '\t\tbody {\n\t\t\tfont-family: Arial, sans-serif;\n\t\t\tmargin: 0;\n\t\t\tpadding: 0;\n\t\t}\n';
-            
-            // Generate element HTML and CSS
-            const elements = designArea.querySelectorAll('.element');
-            elements.forEach((element, index) => {
-                const type = element.dataset.type;
-                const id = `element-${index}`;
-                
-                // Add HTML for the element
-                htmlCode += `\t\t<div id="${id}">\n`;
-                htmlCode += `\t\t\t${element.innerHTML}\n`;
-                htmlCode += `\t\t</div>\n`;
-                
-                // Add CSS for the element
-                const style = window.getComputedStyle(element);
-                cssCode += `\n\t\t#${id} {\n`;
-                cssCode += `\t\t\tposition: absolute;\n`;
-                cssCode += `\t\t\tleft: ${element.style.left};\n`;
-                cssCode += `\t\t\ttop: ${element.style.top};\n`;
-                cssCode += `\t\t\twidth: ${element.style.width};\n`;
-                cssCode += `\t\t\theight: ${element.style.height};\n`;
-                if (element.style.backgroundColor) {
-                    cssCode += `\t\t\tbackground-color: ${element.style.backgroundColor};\n`;
-                }
-                cssCode += `\t\t}\n`;
-            });
-            
-            htmlCode += '\t</style>\n</head>\n<body>\n';
-            htmlCode += '</body>\n</html>';
-            
-            // Update editors
-            if (htmlEditor) {
-                htmlEditor.setValue(htmlCode);
-            }
-            
-            if (cssEditor) {
-                cssEditor.setValue(cssCode);
-            }
+        // Copy code
+        function copyCode(type) {
+            let text;
+            if (type === 'html') text = htmlEditor.getValue();
+            else if (type === 'css') text = cssEditor.getValue();
+            else if (type === 'js') text = jsEditor.getValue();
+            navigator.clipboard.writeText(text).then(() => alert('Copied!'));
         }
 
-        // Helper function to convert RGB to Hex
-        function rgbToHex(rgb) {
-            if (!rgb || rgb === 'rgba(0, 0, 0, 0)') return '#ffffff';
-            
-            const rgbValues = rgb.match(/\d+/g);
-            if (!rgbValues || rgbValues.length < 3) return '#ffffff';
-            
-            return '#' + 
-                parseInt(rgbValues[0]).toString(16).padStart(2, '0') +
-                parseInt(rgbValues[1]).toString(16).padStart(2, '0') +
-                parseInt(rgbValues[2]).toString(16).padStart(2, '0');
-        }
+        // Listen for changes in work area (e.g., resize)
+        const workArea = document.getElementById('work-area');
+        workArea.addEventListener('mouseup', updateCode); // Update after resize/drag
+        workArea.addEventListener('input', updateCode); // For contenteditable
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 </body>
 </html>
